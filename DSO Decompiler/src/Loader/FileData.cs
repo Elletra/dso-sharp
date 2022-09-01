@@ -130,7 +130,7 @@ namespace DsoDecompiler.Loader
 
 		public int StringTableSize (bool global) => (global ? globalStrings : funcStrings).Size;
 		public int FloatTableSize (bool global) => (global ? globalFloats : funcFloats).Length;
-		public int IdentTableSize () => identTable.Count;
-		public int CodeSize () => code.Length;
+		public int IdentTableSize => identTable.Count;
+		public int CodeSize => code.Length;
 	}
 }
