@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 
 using DsoDecompiler.Loader;
 using DsoDecompiler.Disassembler;
+using DsoDecompiler.ControlFlow;
 
 namespace DsoDecompiler
 {
@@ -11,7 +11,7 @@ namespace DsoDecompiler
 		static void Main (string[] args)
 		{
 			var loader = new FileLoader ();
-			var data = loader.LoadFile ("main.cs.dso", 210);
+			var data = loader.LoadFile ("test.cs.dso", 210);
 			var size = data.StringTableSize (true);
 
 			Console.WriteLine ("\n### Global String Table:");
@@ -60,53 +60,16 @@ namespace DsoDecompiler
 			var cfgAddrs = analyzer.Analyze ();
 
 			var disassembler = new BytecodeDisassembler (data);
-			var cfg = disassembler.Disassemble (cfgAddrs);
+			var graph = disassembler.Disassemble (cfgAddrs);
 
-			var queue = new Queue<uint> ();
-			var visited = new HashSet<uint> ();
+			DominanceCalculator.CalculateDominators (graph);
 
-			queue.Enqueue (0);
-
-			while (queue.Count > 0)
+			graph.DfsPostorder ((ControlFlowGraph.Node node) =>
 			{
-				var node = cfg.GetNode (queue.Dequeue ());
+				System.Console.WriteLine ($"Node {node.Addr}");
+			});
 
-				if (visited.Contains (node.Addr))
-				{
-					continue;
-				}
-
-				visited.Add (node.Addr);
-
-				System.Console.WriteLine ($"## CFG Node ({node.Addr}):");
-
-				foreach (var insn in node.Instructions)
-				{
-					System.Console.Write ($"    * {Opcodes.OpcodeToString (insn.Op)} (");
-
-					for (var i = 0; i < insn.Operands.Count; i++)
-					{
-						System.Console.Write (insn.Operands[i]);
-
-						if (i < insn.Operands.Count - 1)
-						{
-							System.Console.Write (", ");
-						}
-					}
-
-					System.Console.Write (")\n");
-				}
-
-				System.Console.WriteLine ("-------------------------------\n");
-
-				foreach (var succ in node.Successors)
-				{
-					if (!visited.Contains (succ.Addr))
-					{
-						queue.Enqueue (succ.Addr);
-					}
-				}
-			}
+			System.Console.WriteLine ($"Num loops: {DominanceCalculator.FindLoops (graph)}");
 		}
 	}
 }

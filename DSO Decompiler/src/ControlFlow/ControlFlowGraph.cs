@@ -59,6 +59,8 @@ namespace DsoDecompiler.ControlFlow
 			public bool HasEdgeTo (Node node) => Successors.Contains (node);
 		}
 
+		public delegate void DfsCallbackFn (Node node);
+
 		protected Dictionary<uint, Node> nodes = new Dictionary<uint, Node> ();
 
 		public Node AddNode (uint addr)
@@ -93,6 +95,31 @@ namespace DsoDecompiler.ControlFlow
 			}
 
 			return GetNode (edgeFrom).HasEdgeTo (GetNode (edgeTo));
+		}
+
+		public void DfsPostorder (DfsCallbackFn callback)
+		{
+			DfsPostorder (EntryPoint.Addr, new HashSet<uint> (), callback);
+		}
+
+		protected void DfsPostorder (uint addr, HashSet<uint> visited, DfsCallbackFn callback)
+		{
+			if (visited.Contains (addr))
+			{
+				return;
+			}
+
+			visited.Add (addr);
+
+			var node = GetNode (addr);
+			var successors = node.Successors;
+
+			foreach (var successor in successors)
+			{
+				DfsPostorder (successor.Addr, visited, callback);
+			}
+
+			callback (node);
 		}
 	}
 }

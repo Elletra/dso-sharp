@@ -3,7 +3,7 @@ using DsoDecompiler.Disassembler;
 
 namespace DsoDecompiler
 {
-	public class Opcodes
+	public static class Opcodes
 	{
 		public enum Ops
 		{
@@ -119,6 +119,26 @@ namespace DsoDecompiler
 
 			MinValue = min;
 			MaxValue = max;
+		}
+
+		public static bool IsJump (uint op) => IsJump ((Ops) op);
+
+		public static bool IsJump (Ops op)
+		{
+			switch (op)
+			{
+				case Opcodes.Ops.OP_JMP:
+				case Opcodes.Ops.OP_JMPIF:
+				case Opcodes.Ops.OP_JMPIFF:
+				case Opcodes.Ops.OP_JMPIFNOT:
+				case Opcodes.Ops.OP_JMPIFFNOT:
+				case Opcodes.Ops.OP_JMPIF_NP:
+				case Opcodes.Ops.OP_JMPIFNOT_NP:
+					return true;
+
+				default:
+					return false;
+			}
 		}
 
 		public static string OpcodeToString (Ops op) => IsValidOpcode ((uint) op) ? op.ToString () : "<UNKNOWN>";
