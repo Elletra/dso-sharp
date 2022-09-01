@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace DsoDecompiler.Disassembler
+namespace DSODecompiler.Disassembler
 {
 	public class Instruction
 	{

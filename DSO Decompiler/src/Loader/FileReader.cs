@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Text;
 
-namespace DsoDecompiler.Loader
+namespace DSODecompiler.Loader
 {
 	/// <summary>
 	/// Mostly a wrapper for BinaryReader, but with some added methods specifically for DSO file reading.

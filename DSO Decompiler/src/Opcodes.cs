@@ -1,7 +1,7 @@
 ﻿using System;
-using DsoDecompiler.Disassembler;
+using DSODecompiler.Disassembler;
 
-namespace DsoDecompiler
+namespace DSODecompiler
 {
 	public static class Opcodes
 	{

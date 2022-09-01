@@ -1,4 +1,4 @@
-﻿namespace DsoDecompiler.Loader
+﻿namespace DSODecompiler.Loader
 {
 	/// <summary>
 	/// Loads DSO files, parses them, and returns the parsed data.<br/>

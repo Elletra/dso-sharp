@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using DsoDecompiler.Disassembler;
+using DSODecompiler.Disassembler;
 
-namespace DsoDecompiler.ControlFlow
+namespace DSODecompiler.ControlFlow
 {
 	public class ControlFlowGraph
 	{
@@ -59,7 +59,7 @@ namespace DsoDecompiler.ControlFlow
 			public bool HasEdgeTo (Node node) => Successors.Contains (node);
 		}
 
-		public delegate void DfsCallbackFn (Node node);
+		public delegate void DFSCallbackFn (Node node);
 
 		protected Dictionary<uint, Node> nodes = new Dictionary<uint, Node> ();
 
@@ -97,12 +97,12 @@ namespace DsoDecompiler.ControlFlow
 			return GetNode (edgeFrom).HasEdgeTo (GetNode (edgeTo));
 		}
 
-		public void DfsPostorder (DfsCallbackFn callback)
+		public void PostorderDFS (DFSCallbackFn callback)
 		{
-			DfsPostorder (EntryPoint.Addr, new HashSet<uint> (), callback);
+			PostorderDFS (EntryPoint.Addr, new HashSet<uint> (), callback);
 		}
 
-		protected void DfsPostorder (uint addr, HashSet<uint> visited, DfsCallbackFn callback)
+		protected void PostorderDFS (uint addr, HashSet<uint> visited, DFSCallbackFn callback)
 		{
 			if (visited.Contains (addr))
 			{
@@ -116,7 +116,7 @@ namespace DsoDecompiler.ControlFlow
 
 			foreach (var successor in successors)
 			{
-				DfsPostorder (successor.Addr, visited, callback);
+				PostorderDFS (successor.Addr, visited, callback);
 			}
 
 			callback (node);

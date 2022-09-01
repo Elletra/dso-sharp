@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 
-using DsoDecompiler.Loader;
-using DsoDecompiler.ControlFlow;
+using DSODecompiler.Loader;
+using DSODecompiler.ControlFlow;
 
-namespace DsoDecompiler.Disassembler
+namespace DSODecompiler.Disassembler
 {
 	public class BytecodeDisassembler : BytecodeReader
 	{

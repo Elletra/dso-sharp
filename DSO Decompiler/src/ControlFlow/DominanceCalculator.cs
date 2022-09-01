@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace DsoDecompiler.ControlFlow
+namespace DSODecompiler.ControlFlow
 {
 	/// <summary>
 	/// Calculates the immediate dominators of nodes in a control flow graph (CFG).<br />
@@ -109,7 +109,7 @@ namespace DsoDecompiler.ControlFlow
 		{
 			uint numLoops = 0;
 
-			graph.DfsPostorder ((ControlFlowGraph.Node node) =>
+			graph.PostorderDFS ((ControlFlowGraph.Node node) =>
 			{
 				if (node.ImmediateDom == null && node != graph.EntryPoint)
 				{
@@ -177,7 +177,7 @@ namespace DsoDecompiler.ControlFlow
 		{
 			var postorder = 0;
 
-			graph.DfsPostorder ((ControlFlowGraph.Node node) =>
+			graph.PostorderDFS ((ControlFlowGraph.Node node) =>
 			{
 				node.Postorder = postorder++;
 			});
@@ -192,7 +192,7 @@ namespace DsoDecompiler.ControlFlow
 		{
 			var nodes = new ControlFlowGraph.Node[graph.NodeCount];
 
-			graph.DfsPostorder ((ControlFlowGraph.Node node) =>
+			graph.PostorderDFS ((ControlFlowGraph.Node node) =>
 			{
 				nodes[node.Postorder] = node;
 			});

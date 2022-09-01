@@ -1,10 +1,10 @@
 ﻿using System;
 
-using DsoDecompiler.Loader;
-using DsoDecompiler.Disassembler;
-using DsoDecompiler.ControlFlow;
+using DSODecompiler.Loader;
+using DSODecompiler.Disassembler;
+using DSODecompiler.ControlFlow;
 
-namespace DsoDecompiler
+namespace DSODecompiler
 {
 	class Program
 	{
@@ -64,7 +64,7 @@ namespace DsoDecompiler
 
 			DominanceCalculator.CalculateDominators (graph);
 
-			graph.DfsPostorder ((ControlFlowGraph.Node node) =>
+			graph.PostorderDFS ((ControlFlowGraph.Node node) =>
 			{
 				System.Console.WriteLine ($"Node {node.Addr}");
 			});

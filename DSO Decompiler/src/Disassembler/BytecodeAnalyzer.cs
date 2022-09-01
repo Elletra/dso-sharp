@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using DsoDecompiler.Loader;
+using DSODecompiler.Loader;
 
-namespace DsoDecompiler.Disassembler
+namespace DSODecompiler.Disassembler
 {
 	public class BytecodeAnalyzer : BytecodeReader
 	{
@@ -33,10 +33,10 @@ namespace DsoDecompiler.Disassembler
 			/* First rule of control flow graphs: jump targets start blocks, jumps end them. */
 
 			// Add jump target.
-			AddCfgAddr (Peek (Pos + 1));
+			AddCFGAddr (Peek (Pos + 1));
 
 			// Add address of next instruction.
-			AddCfgAddr (Pos + GetOpcodeSize (op, Pos));
+			AddCFGAddr (Pos + GetOpcodeSize (op, Pos));
 		}
 
 		protected override void ReadFuncDecl (uint op)
@@ -44,10 +44,10 @@ namespace DsoDecompiler.Disassembler
 			/* We're counting function bounds as jumps here. */
 
 			// Add function end
-			AddCfgAddr (Peek (Pos + 5));
+			AddCFGAddr (Peek (Pos + 5));
 
 			// Add address of next instruction
-			AddCfgAddr (Pos + GetOpcodeSize (op, Pos));
+			AddCFGAddr (Pos + GetOpcodeSize (op, Pos));
 		}
 
 		protected override void ReadReturn (uint op)
@@ -55,10 +55,10 @@ namespace DsoDecompiler.Disassembler
 			/* We're also counting returns as jumps. */
 
 			// Add address of next instruction
-			AddCfgAddr (Pos + GetOpcodeSize (op, Pos));
+			AddCFGAddr (Pos + GetOpcodeSize (op, Pos));
 		}
 
-		protected void AddCfgAddr (uint addr)
+		protected void AddCFGAddr (uint addr)
 		{
 			if (IsValidAddr (addr))
 			{

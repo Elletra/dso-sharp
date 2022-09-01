@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace DsoDecompiler.Loader
+namespace DSODecompiler.Loader
 {
 	public class FileData
 	{
