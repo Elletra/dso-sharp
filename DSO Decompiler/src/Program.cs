@@ -1,4 +1,8 @@
-﻿using DsoDecompiler.Loader;
+﻿using System;
+using System.Collections.Generic;
+
+using DsoDecompiler.Loader;
+using DsoDecompiler.Disassembler;
 
 namespace DsoDecompiler
 {
@@ -10,47 +14,99 @@ namespace DsoDecompiler
 			var data = loader.LoadFile ("main.cs.dso", 210);
 			var size = data.StringTableSize (true);
 
-			System.Console.WriteLine ("\n### Global String Table:");
+			Console.WriteLine ("\n### Global String Table:");
 
 			for (uint i = 0; i < size; i++)
 			{
 				if (data.HasString (i, true))
 				{
-					System.Console.WriteLine (data.StringTableValue (i, true));
+					Console.WriteLine (data.StringTableValue (i, true));
 				}
 			}
 
 			size = data.StringTableSize (false);
 
-			System.Console.WriteLine ("\n### Function String Table:");
+			Console.WriteLine ("\n### Function String Table:");
 
 			for (uint i = 0; i < size; i++)
 			{
 				if (data.HasString (i, false))
 				{
-					System.Console.WriteLine (data.StringTableValue (i, false));
+					Console.WriteLine (data.StringTableValue (i, false));
 				}
 			}
 
 			size = data.FloatTableSize (true);
 
-			System.Console.WriteLine ("\n### Global Float Table:");
+			Console.WriteLine ("\n### Global Float Table:");
 
 			for (uint i = 0; i < size; i++)
 			{
-				System.Console.WriteLine (data.FloatTableValue (i, true));
+				Console.WriteLine (data.FloatTableValue (i, true));
 			}
 
 			size = data.FloatTableSize (false);
 
-			System.Console.WriteLine ("\n### Function Float Table:");
+			Console.WriteLine ("\n### Function Float Table:");
 
 			for (uint i = 0; i < size; i++)
 			{
-				System.Console.WriteLine (data.FloatTableValue (i, false));
+				Console.WriteLine (data.FloatTableValue (i, false));
 			}
 
-			System.Console.WriteLine ($"\nCode size: {data.CodeSize ()}");
+			Console.WriteLine ($"\nCode size: {data.CodeSize}");
+
+			var analyzer = new BytecodeAnalyzer (data);
+			var cfgAddrs = analyzer.Analyze ();
+
+			var disassembler = new BytecodeDisassembler (data);
+			var cfg = disassembler.Disassemble (cfgAddrs);
+
+			var queue = new Queue<uint> ();
+			var visited = new HashSet<uint> ();
+
+			queue.Enqueue (0);
+
+			while (queue.Count > 0)
+			{
+				var node = cfg.GetNode (queue.Dequeue ());
+
+				if (visited.Contains (node.Addr))
+				{
+					continue;
+				}
+
+				visited.Add (node.Addr);
+
+				System.Console.WriteLine ($"## CFG Node ({node.Addr}):");
+
+				foreach (var insn in node.Instructions)
+				{
+					System.Console.Write ($"    * {Opcodes.OpcodeToString (insn.Op)} (");
+
+					for (var i = 0; i < insn.Operands.Count; i++)
+					{
+						System.Console.Write (insn.Operands[i]);
+
+						if (i < insn.Operands.Count - 1)
+						{
+							System.Console.Write (", ");
+						}
+					}
+
+					System.Console.Write (")\n");
+				}
+
+				System.Console.WriteLine ("-------------------------------\n");
+
+				foreach (var succ in node.Successors)
+				{
+					if (!visited.Contains (succ.Addr))
+					{
+						queue.Enqueue (succ.Addr);
+					}
+				}
+			}
 		}
 	}
 }
