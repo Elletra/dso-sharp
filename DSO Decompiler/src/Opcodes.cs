@@ -141,6 +141,12 @@ namespace DSODecompiler
 			}
 		}
 
+		public static bool IsFuncDecl (uint op) => IsFuncDecl ((Ops) op);
+		public static bool IsFuncDecl (Ops op) => op == Opcodes.Ops.OP_FUNC_DECL;
+
+		public static bool IsReturn (uint op) => IsReturn ((Ops) op);
+		public static bool IsReturn (Ops op) => op == Opcodes.Ops.OP_RETURN;
+
 		public static string OpcodeToString (Ops op) => IsValidOpcode ((uint) op) ? op.ToString () : "<UNKNOWN>";
 		public static string OpcodeToString (uint op) => OpcodeToString ((Ops) op);
 

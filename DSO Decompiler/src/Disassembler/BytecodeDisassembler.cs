@@ -72,17 +72,9 @@ namespace DSODecompiler.Disassembler
 			{
 				var last = node.LastInstruction;
 
-				switch ((Opcodes.Ops) last.Op)
+				if (Opcodes.IsJump (last.Op))
 				{
-					case Opcodes.Ops.OP_JMP:
-					case Opcodes.Ops.OP_JMPIF:
-					case Opcodes.Ops.OP_JMPIFF:
-					case Opcodes.Ops.OP_JMPIFNOT:
-					case Opcodes.Ops.OP_JMPIFFNOT:
-					case Opcodes.Ops.OP_JMPIF_NP:
-					case Opcodes.Ops.OP_JMPIFNOT_NP:
-						graph.AddEdge (node.Addr, last.Operands[0]);
-						break;
+					graph.AddEdge (node.Addr, last.Operands[0]);
 				}
 			});
 		}

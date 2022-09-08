@@ -50,25 +50,17 @@ namespace DSODecompiler.Disassembler
 		{
 			visited.Add (Pos);
 
-			switch ((Opcodes.Ops) op)
+			if (Opcodes.IsJump (op))
 			{
-				case Opcodes.Ops.OP_JMP:
-				case Opcodes.Ops.OP_JMPIF:
-				case Opcodes.Ops.OP_JMPIFF:
-				case Opcodes.Ops.OP_JMPIFNOT:
-				case Opcodes.Ops.OP_JMPIFFNOT:
-				case Opcodes.Ops.OP_JMPIF_NP:
-				case Opcodes.Ops.OP_JMPIFNOT_NP:
-					ReadJump (op);
-					break;
-
-				case Opcodes.Ops.OP_FUNC_DECL:
-					ReadFuncDecl (op);
-					break;
-
-				case Opcodes.Ops.OP_RETURN:
-					ReadReturn (op);
-					break;
+				ReadJump (op);
+			}
+			else if (Opcodes.IsFuncDecl (op))
+			{
+				ReadFuncDecl (op);
+			}
+			else if (Opcodes.IsReturn (op))
+			{
+				ReadReturn (op);
 			}
 		}
 
