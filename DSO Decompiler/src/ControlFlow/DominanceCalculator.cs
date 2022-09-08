@@ -24,7 +24,7 @@ namespace DSODecompiler.ControlFlow
 		/// <summary>
 		/// Calculates the immediate dominator of each node in `cfg`.<br />
 		/// <br />
-		/// NOTE: This function mutates the `postorder` and `immediate_dom` fields of CFG nodes.<br />
+		/// NOTE: This function mutates the `Postorder` and `ImmediateDom` properties of CFG nodes.<br />
 		/// <br />
 		/// "A Simple, Fast Dominance Algorithm" by Keith Cooper, Timothy Harvey, and Ken Kennedy:<br />
 		/// https://www.cs.rice.edu/~keith/EMBED/dom.pdf
@@ -32,14 +32,12 @@ namespace DSODecompiler.ControlFlow
 		/// <param name="graph"></param>
 		public static void CalculateDominators (ControlFlowGraph graph)
 		{
-			CalculatePostorder (graph);
-
+			var nodes = CalculatePostorder (graph);
 			var entryPoint = graph.EntryPoint;
 
 			// Temporarily set this so the algorithm works.
 			entryPoint.ImmediateDom = entryPoint;
 
-			var nodes = BuildNodeArray (graph);
 			var changed = true;
 
 			while (changed)
@@ -173,27 +171,22 @@ namespace DSODecompiler.ControlFlow
 			return finger1;
 		}
 
-		protected static void CalculatePostorder (ControlFlowGraph graph)
+		/// <summary>
+		/// Calculates the postorder of nodes in the given CFG and returns an array of the nodes
+		/// indexed by their postorder value.<br />
+		/// <br />
+		/// NOTE: This function modifies the `Postorder` property of CFG nodes.
+		/// </summary>
+		/// <param name="graph"></param>
+		/// <returns></returns>
+		protected static ControlFlowGraph.Node[] CalculatePostorder (ControlFlowGraph graph)
 		{
+			var nodes = new ControlFlowGraph.Node[graph.NodeCount];
 			var postorder = 0;
 
 			graph.PostorderDFS ((ControlFlowGraph.Node node) =>
 			{
 				node.Postorder = postorder++;
-			});
-		}
-
-		/// <summary>
-		/// Builds an array of nodes indexed by their postorder value.
-		/// </summary>
-		/// <param name="graph"></param>
-		/// <returns></returns>
-		protected static ControlFlowGraph.Node[] BuildNodeArray (ControlFlowGraph graph)
-		{
-			var nodes = new ControlFlowGraph.Node[graph.NodeCount];
-
-			graph.PostorderDFS ((ControlFlowGraph.Node node) =>
-			{
 				nodes[node.Postorder] = node;
 			});
 
