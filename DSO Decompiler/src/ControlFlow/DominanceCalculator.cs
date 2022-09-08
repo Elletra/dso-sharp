@@ -93,7 +93,7 @@ namespace DSODecompiler.ControlFlow
 			}
 
 			// Set immediate dominator back to `null` because a node cannot be the immediate
-			// dominator of itself, even the entry point.
+			// dominator of itself.
 			entryPoint.ImmediateDom = null;
 		}
 
@@ -114,7 +114,7 @@ namespace DSODecompiler.ControlFlow
 				if (node.ImmediateDom == null && node != graph.EntryPoint)
 				{
 					throw new DominanceCalculatorException (
-						"Immediate is null! Make sure you call CalculateDominators() before FindLoops()"
+						"Immediate dominator is null! Make sure you call CalculateDominators() before FindLoops()"
 					);
 				}
 
