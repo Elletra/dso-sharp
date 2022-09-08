@@ -52,8 +52,11 @@ namespace DSODecompiler.ControlFlow
 
 			public void AddEdgeTo (Node node)
 			{
-				Successors.Add (node);
-				node.Predecessors.Add (this);
+				if (!HasEdgeTo (node))
+				{
+					Successors.Add (node);
+					node.Predecessors.Add (this);
+				}
 			}
 
 			public bool HasEdgeTo (Node node) => Successors.Contains (node);
@@ -120,6 +123,31 @@ namespace DSODecompiler.ControlFlow
 			}
 
 			callback (node);
+		}
+
+		public void PreorderDFS (DFSCallbackFn callback)
+		{
+			PreorderDFS (EntryPoint.Addr, new HashSet<uint> (), callback);
+		}
+
+		public void PreorderDFS (uint addr, HashSet<uint> visited, DFSCallbackFn callback)
+		{
+			if (visited.Contains (addr))
+			{
+				return;
+			}
+
+			visited.Add (addr);
+
+			var node = GetNode (addr);
+			var successors = node.Successors;
+
+			callback (node);
+
+			foreach (var successor in successors)
+			{
+				PreorderDFS (successor.Addr, visited, callback);
+			}
 		}
 	}
 }
