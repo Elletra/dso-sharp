@@ -63,8 +63,8 @@ namespace DSODecompiler.Disassembler
 		}
 
 		/// <summary>
-		/// Because logistical issues would make the code messy, we have to go back and connect
-		/// all CFG nodes that end with jumps to their jump target CFG nodes.
+		/// We have to go back and connect all CFG nodes that end with jumps to their jump target
+		/// CFG nodes, because doing it during the initial disassembly would make the code messier.
 		/// </summary>
 		protected void ConnectJumps ()
 		{
