@@ -64,9 +64,32 @@ namespace DSODecompiler
 
 			DominanceCalculator.CalculateDominators (graph);
 
-			graph.PostorderDFS ((ControlFlowGraph.Node node) =>
+			System.Console.WriteLine ("\n======== NODES ========");
+
+			graph.PreorderDFS ((ControlFlowGraph.Node node) =>
 			{
-				System.Console.WriteLine ($"Node {node.Addr}");
+				System.Console.WriteLine ($"* Node {node.Addr} (IDom: {(node.ImmediateDom == null ? "none" : node.ImmediateDom.Addr.ToString ())}):");
+
+				foreach (var insn in node.Instructions)
+				{
+					System.Console.Write ($"    {Opcodes.OpcodeToString (insn.Op)} (");
+
+					var count = insn.Operands.Count;
+
+					for (var i = 0; i < count; i++)
+					{
+						System.Console.Write ($"{insn.Operands[i]}");
+
+						if (i < count - 1)
+						{
+							System.Console.Write (", ");
+						}
+					}
+
+					System.Console.Write (")\n");
+				}
+
+				System.Console.Write ("\n");
 			});
 
 			System.Console.WriteLine ($"Num loops: {DominanceCalculator.FindLoops (graph)}");

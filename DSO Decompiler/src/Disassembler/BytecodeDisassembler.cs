@@ -22,6 +22,7 @@ namespace DSODecompiler.Disassembler
 			graph = new ControlFlowGraph ();
 
 			ReadCode ();
+			ConnectJumps ();
 
 			return graph;
 		}
@@ -29,7 +30,15 @@ namespace DSODecompiler.Disassembler
 		protected override void Reset ()
 		{
 			base.Reset ();
+
 			currNode = null;
+		}
+
+		protected override void ReadFrom (uint startAddr)
+		{
+			currNode = null;
+
+			base.ReadFrom (startAddr);
 		}
 
 		protected override void ReadOp (uint op)
@@ -47,15 +56,40 @@ namespace DSODecompiler.Disassembler
 
 			if (currNode == null || cfgAddrs.Contains (addr))
 			{
-				currNode = CreateNode (addr);
+				currNode = CreateAndConnectNode (addr);
 			}
 
 			currNode.Instructions.Add (instruction);
 		}
 
-		protected ControlFlowGraph.Node CreateNode (uint addr)
+		/// <summary>
+		/// Because logistical issues would make the code messy, we have to go back and connect
+		/// all CFG nodes that end with jumps to their jump target CFG nodes.
+		/// </summary>
+		protected void ConnectJumps ()
 		{
-			var node = graph.HasNode (addr) ? graph.GetNode (addr) : graph.AddNode (addr);
+			graph.PreorderDFS ((ControlFlowGraph.Node node) =>
+			{
+				var last = node.LastInstruction;
+
+				switch ((Opcodes.Ops) last.Op)
+				{
+					case Opcodes.Ops.OP_JMP:
+					case Opcodes.Ops.OP_JMPIF:
+					case Opcodes.Ops.OP_JMPIFF:
+					case Opcodes.Ops.OP_JMPIFNOT:
+					case Opcodes.Ops.OP_JMPIFFNOT:
+					case Opcodes.Ops.OP_JMPIF_NP:
+					case Opcodes.Ops.OP_JMPIFNOT_NP:
+						graph.AddEdge (node.Addr, last.Operands[0]);
+						break;
+				}
+			});
+		}
+
+		protected ControlFlowGraph.Node CreateAndConnectNode (uint addr)
+		{
+			var node = CreateOrGetNode (addr);
 
 			if (currNode != null)
 			{
@@ -63,6 +97,11 @@ namespace DSODecompiler.Disassembler
 			}
 
 			return node;
+		}
+
+		protected ControlFlowGraph.Node CreateOrGetNode (uint addr)
+		{
+			return graph.HasNode (addr) ? graph.GetNode (addr) : graph.AddNode (addr);
 		}
 	}
 }

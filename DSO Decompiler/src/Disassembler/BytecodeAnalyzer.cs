@@ -19,12 +19,14 @@ namespace DSODecompiler.Disassembler
 		protected override void Reset ()
 		{
 			base.Reset ();
+
 			cfgAddrs.Clear ();
 		}
 
 		protected override void ReadOp (uint op)
 		{
 			base.ReadOp (op);
+
 			Skip (GetOpcodeSize (op, Pos));
 		}
 
