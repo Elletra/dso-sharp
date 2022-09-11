@@ -127,13 +127,13 @@ namespace DSODecompiler
 		{
 			switch (op)
 			{
-				case Opcodes.Ops.OP_JMP:
-				case Opcodes.Ops.OP_JMPIF:
-				case Opcodes.Ops.OP_JMPIFF:
-				case Opcodes.Ops.OP_JMPIFNOT:
-				case Opcodes.Ops.OP_JMPIFFNOT:
-				case Opcodes.Ops.OP_JMPIF_NP:
-				case Opcodes.Ops.OP_JMPIFNOT_NP:
+				case Ops.OP_JMP:
+				case Ops.OP_JMPIF:
+				case Ops.OP_JMPIFF:
+				case Ops.OP_JMPIFNOT:
+				case Ops.OP_JMPIFFNOT:
+				case Ops.OP_JMPIF_NP:
+				case Ops.OP_JMPIFNOT_NP:
 					return true;
 
 				default:
@@ -142,10 +142,10 @@ namespace DSODecompiler
 		}
 
 		public static bool IsFuncDecl (uint op) => IsFuncDecl ((Ops) op);
-		public static bool IsFuncDecl (Ops op) => op == Opcodes.Ops.OP_FUNC_DECL;
+		public static bool IsFuncDecl (Ops op) => op == Ops.OP_FUNC_DECL;
 
 		public static bool IsReturn (uint op) => IsReturn ((Ops) op);
-		public static bool IsReturn (Ops op) => op == Opcodes.Ops.OP_RETURN;
+		public static bool IsReturn (Ops op) => op == Ops.OP_RETURN;
 
 		public static string OpcodeToString (Ops op) => IsValidOpcode ((uint) op) ? op.ToString () : "<UNKNOWN>";
 		public static string OpcodeToString (uint op) => OpcodeToString ((Ops) op);
