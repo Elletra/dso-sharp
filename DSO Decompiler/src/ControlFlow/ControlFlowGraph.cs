@@ -10,7 +10,6 @@ namespace DSODecompiler.ControlFlow
 			public uint Addr { get; }
 			public int Postorder { get; set; }
 			public Node ImmediateDom { get; set; } = null;
-			public bool IsLoopEnd { get; set; } = false;
 
 			public readonly List<Node> Predecessors = new List<Node> ();
 			public readonly List<Node> Successors = new List<Node> ();

@@ -92,7 +92,10 @@ namespace DSODecompiler
 				System.Console.Write ("\n");
 			});
 
-			System.Console.WriteLine ($"Num loops: {DominanceCalculator.FindLoops (graph)}");
+			var jumpData = JumpData.FindJumps (graph);
+
+			System.Console.WriteLine ($"Num loops: {jumpData.LoopCount}");
+			System.Console.WriteLine ($"Num jumps: {jumpData.JumpCount}");
 		}
 	}
 }

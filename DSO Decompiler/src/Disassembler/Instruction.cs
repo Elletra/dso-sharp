@@ -18,5 +18,6 @@ namespace DSODecompiler.Disassembler
 		public uint this[int index] => index == 0 ? (uint) Op : Operands[index - 1];
 
 		public int Size => Operands.Count + 1;
+		public uint NextAddr => Addr + (uint) Size;
 	}
 }

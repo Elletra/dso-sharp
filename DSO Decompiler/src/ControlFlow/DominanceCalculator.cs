@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace DSODecompiler.ControlFlow
 {
@@ -14,11 +13,11 @@ namespace DSODecompiler.ControlFlow
 	/// </summary>
 	public class DominanceCalculator
 	{
-		public class DominanceCalculatorException : Exception
+		public class Exception : System.Exception
 		{
-			public DominanceCalculatorException () {}
-			public DominanceCalculatorException (string message) : base (message) {}
-			public DominanceCalculatorException (string message, Exception inner) : base (message, inner) {}
+			public Exception () {}
+			public Exception (string message) : base (message) {}
+			public Exception (string message, System.Exception inner) : base (message, inner) {}
 		}
 
 		/// <summary>
@@ -69,7 +68,7 @@ namespace DSODecompiler.ControlFlow
 
 					if (newIDom == null)
 					{
-						throw new DominanceCalculatorException ($"Could not find predecessor of {node.Postorder}");
+						throw new Exception ($"Could not find predecessor of {node.Postorder}");
 					}
 
 					/* Calculate new immediate dominator. */
@@ -93,54 +92,6 @@ namespace DSODecompiler.ControlFlow
 			// Set immediate dominator back to `null` because a node cannot be the immediate
 			// dominator of itself.
 			entryPoint.ImmediateDom = null;
-		}
-
-		/// <summary>
-		/// Finds loops based on back edges, which are defined as CFG nodes jumping back to one of
-		/// their dominators.<br />
-		/// <br />
-		/// NOTE: This function mutates the `IsLoopEnd` property of CFG nodes.
-		/// </summary>
-		/// <param name="graph"></param>
-		/// <returns></returns>
-		public static uint FindLoops (ControlFlowGraph graph)
-		{
-			uint numLoops = 0;
-
-			graph.PostorderDFS ((ControlFlowGraph.Node node) =>
-			{
-				if (node.ImmediateDom == null && node != graph.EntryPoint)
-				{
-					throw new DominanceCalculatorException (
-						"Immediate dominator is null! Make sure you call CalculateDominators() before FindLoops()"
-					);
-				}
-
-				var last = node.LastInstruction;
-
-				if (!Opcodes.IsJump (last.Op))
-				{
-					return;
-				}
-
-				var jumpTarget = last.Operands[0];
-
-				if (graph.GetNode (jumpTarget).Dominates (node))
-				{
-					if (jumpTarget > node.Addr)
-					{
-						// Back edge somehow jumps forward??
-						throw new DominanceCalculatorException (
-							$"Node at {jumpTarget} dominates earlier node at {node.Addr}"
-						);
-					}
-
-					node.IsLoopEnd = true;
-					numLoops++;
-				}
-			});
-
-			return numLoops;
 		}
 
 		/// <summary>
