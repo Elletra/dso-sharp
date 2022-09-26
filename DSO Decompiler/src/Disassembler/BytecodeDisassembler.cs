@@ -10,7 +10,7 @@ namespace DSODecompiler.Disassembler
 		protected HashSet<uint> cfgAddrs;
 
 		protected ControlFlowGraph graph;
-		protected ControlFlowGraph.Node currNode;
+		protected ControlFlowNode currNode;
 
 		public BytecodeDisassembler (FileData fileData) : base (fileData) {}
 
@@ -47,7 +47,7 @@ namespace DSODecompiler.Disassembler
 
 			var addr = Pos;
 			var size = GetOpcodeSize (op, addr);
-			var instruction = new Instruction (Read (), addr);
+			var instruction = new Instruction ((Opcodes.Ops) Read (), addr);
 
 			for (uint i = 1; i < size; i++)
 			{
@@ -68,7 +68,7 @@ namespace DSODecompiler.Disassembler
 		/// </summary>
 		protected void ConnectJumps ()
 		{
-			graph.PreorderDFS ((ControlFlowGraph.Node node) =>
+			graph.PreorderDFS ((ControlFlowNode node) =>
 			{
 				var last = node.LastInstruction;
 
@@ -79,9 +79,9 @@ namespace DSODecompiler.Disassembler
 			});
 		}
 
-		protected ControlFlowGraph.Node CreateAndConnectNode (uint addr)
+		protected ControlFlowNode CreateAndConnectNode (uint addr)
 		{
-			var node = CreateOrGetNode (addr);
+			var node = graph.CreateOrGet (addr);
 
 			if (currNode != null)
 			{
@@ -89,11 +89,6 @@ namespace DSODecompiler.Disassembler
 			}
 
 			return node;
-		}
-
-		protected ControlFlowGraph.Node CreateOrGetNode (uint addr)
-		{
-			return graph.HasNode (addr) ? graph.GetNode (addr) : graph.AddNode (addr);
 		}
 	}
 }

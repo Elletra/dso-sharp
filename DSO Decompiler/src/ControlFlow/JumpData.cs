@@ -23,7 +23,7 @@ namespace DSODecompiler.ControlFlow
 		{
 			var data = new JumpData ();
 
-			graph.PostorderDFS ((ControlFlowGraph.Node node) =>
+			graph.PostorderDFS ((ControlFlowNode node) =>
 			{
 				if (node.ImmediateDom == null && node != graph.EntryPoint)
 				{
@@ -41,7 +41,7 @@ namespace DSODecompiler.ControlFlow
 
 				data.AddJump (last.Addr, jumpTarget);
 
-				if (graph.GetNode (jumpTarget).Dominates (node))
+				if (graph.Get (jumpTarget).Dominates (node))
 				{
 					if (jumpTarget > node.Addr)
 					{

@@ -66,7 +66,7 @@ namespace DSODecompiler
 
 			System.Console.WriteLine ("\n======== NODES ========");
 
-			graph.PreorderDFS ((ControlFlowGraph.Node node) =>
+			graph.PreorderDFS ((ControlFlowNode node) =>
 			{
 				System.Console.WriteLine ($"* Node {node.Addr} (IDom: {(node.ImmediateDom == null ? "none" : node.ImmediateDom.Addr.ToString ())}):");
 

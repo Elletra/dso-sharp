@@ -48,13 +48,13 @@ namespace DSODecompiler.ControlFlow
 				{
 					var node = nodes[i];
 
-					ControlFlowGraph.Node newIDom = null;
+					ControlFlowNode newIDom = null;
 
-					var predecessors = new HashSet <ControlFlowGraph.Node> ();
+					var predecessors = new HashSet <ControlFlowNode> ();
 
 					/* Find first predecessor whose dominator has been calculated. */
 
-					foreach (var pred in node.Predecessors)
+					foreach (ControlFlowNode pred in node.Predecessors)
 					{
 						if (newIDom == null && pred.ImmediateDom != null)
 						{
@@ -101,7 +101,7 @@ namespace DSODecompiler.ControlFlow
 		/// <param name="node1"></param>
 		/// <param name="node2"></param>
 		/// <returns></returns>
-		protected static ControlFlowGraph.Node FindCommonDominator (ControlFlowGraph.Node node1, ControlFlowGraph.Node node2)
+		protected static ControlFlowNode FindCommonDominator (ControlFlowNode node1, ControlFlowNode node2)
 		{
 			var finger1 = node1;
 			var finger2 = node2;
@@ -130,12 +130,12 @@ namespace DSODecompiler.ControlFlow
 		/// </summary>
 		/// <param name="graph"></param>
 		/// <returns></returns>
-		protected static ControlFlowGraph.Node[] CalculatePostorder (ControlFlowGraph graph)
+		protected static ControlFlowNode[] CalculatePostorder (ControlFlowGraph graph)
 		{
-			var nodes = new ControlFlowGraph.Node[graph.NodeCount];
+			var nodes = new ControlFlowNode[graph.Count];
 			var postorder = 0;
 
-			graph.PostorderDFS ((ControlFlowGraph.Node node) =>
+			graph.PostorderDFS ((ControlFlowNode node) =>
 			{
 				node.Postorder = postorder++;
 				nodes[node.Postorder] = node;
