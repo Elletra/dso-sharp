@@ -9,17 +9,10 @@ namespace DSODecompiler.Disassembler
 		public Opcodes.Ops Op { get; }
 		public uint Addr => Key;
 
-		public readonly List<uint> Operands = new List<uint> ();
-
 		public Instruction (Opcodes.Ops op, uint addr) : base (addr)
 		{
 			Op = op;
 		}
-
-		public uint this[int index] => index == 0 ? (uint) Op : Operands[index - 1];
-
-		public int Size => Operands.Count + 1;
-		public uint NextAddr => Addr + (uint) Size;
 	}
 
 	public class FuncDeclInsn : Instruction

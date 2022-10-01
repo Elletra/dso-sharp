@@ -9,13 +9,15 @@ namespace DSODecompiler.ControlFlow
 	{
 		public int Postorder { get; set; }
 		public ControlFlowNode ImmediateDom { get; set; } = null;
+
+		public uint EndAddr { get; set; }
+
 		public uint Addr => Key;
 
 		public readonly List<Instruction> Instructions = new List<Instruction> ();
 
 		public Instruction this[int index] => index >= 0 && index < Instructions.Count ? Instructions[index] : null;
 
-		public uint EndAddr => (uint) (Key + (Instructions.Count > 0 ? LastInstruction.Size : 1));
 		public Instruction FirstInstruction => Instructions.Count > 0 ? Instructions[0] : null;
 		public Instruction LastInstruction => Instructions.Count > 0 ? Instructions[Instructions.Count - 1] : null;
 

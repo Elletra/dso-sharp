@@ -56,46 +56,20 @@ namespace DSODecompiler
 
 			Console.WriteLine ($"\nCode size: {data.CodeSize}");
 
-			var analyzer = new BytecodeAnalyzer (data);
-			var cfgAddrs = analyzer.Analyze ();
+			var disassembler = new BytecodeDisassembler ();
+			var graph = disassembler.Disassemble (data);
 
-			var disassembler = new BytecodeDisassembler (data);
-			var graph = disassembler.Disassemble (cfgAddrs);
-
-			DominanceCalculator.CalculateDominators (graph);
-
-			System.Console.WriteLine ("\n======== NODES ========");
-
-			graph.PreorderDFS ((ControlFlowNode node) =>
+			graph.PreorderDFS ((Instruction instruction, InstructionGraph graph) =>
 			{
-				System.Console.WriteLine ($"* Node {node.Addr} (IDom: {(node.ImmediateDom == null ? "none" : node.ImmediateDom.Addr.ToString ())}):");
-
-				foreach (var insn in node.Instructions)
+				if (instruction is JumpInsn)
 				{
-					System.Console.Write ($"    {Opcodes.OpcodeToString (insn.Op)} (");
-
-					var count = insn.Operands.Count;
-
-					for (var i = 0; i < count; i++)
-					{
-						System.Console.Write ($"{insn.Operands[i]}");
-
-						if (i < count - 1)
-						{
-							System.Console.Write (", ");
-						}
-					}
-
-					System.Console.Write (")\n");
+					Console.WriteLine ($"({instruction.Addr}=>{(instruction as JumpInsn).TargetAddr}) {instruction}");
 				}
-
-				System.Console.Write ("\n");
+				else
+				{
+					Console.WriteLine ($"({instruction.Addr}) {instruction}");
+				}
 			});
-
-			var jumpData = JumpData.FindJumps (graph);
-
-			System.Console.WriteLine ($"Num loops: {jumpData.LoopCount}");
-			System.Console.WriteLine ($"Num jumps: {jumpData.JumpCount}");
 		}
 	}
 }
