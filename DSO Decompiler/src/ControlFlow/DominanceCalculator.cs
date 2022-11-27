@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using DSODecompiler.Disassembler;
 
 namespace DSODecompiler.ControlFlow
 {
@@ -92,6 +93,47 @@ namespace DSODecompiler.ControlFlow
 			// Set immediate dominator back to `null` because a node cannot be the immediate
 			// dominator of itself.
 			entryPoint.ImmediateDom = null;
+		}
+
+		/// <summary>
+		/// Finds loop ends and marks them by changing the `IsLoopEnd` property on `ControlFlowNode`.
+		/// </summary>
+		/// <param name="graph"></param>
+		/// <returns>Number of loops found.</returns>
+		public static uint FindLoops (ControlFlowGraph graph)
+		{
+			uint numLoops = 0;
+
+			graph.PreorderDFS ((ControlFlowNode node) =>
+			{
+				if (node.ImmediateDom == null && node != graph.EntryPoint)
+				{
+					throw new Exception ("Immediate dominator is null! Make sure you call CalculateDominators() before FindLoops()");
+				}
+
+				var last = node.LastInstruction;
+
+				if (!(last is JumpInsn))
+				{
+					return;
+				}
+
+				var target = (last as JumpInsn).TargetAddr;
+
+				if (graph.Get (target).Dominates (node))
+				{
+					if (target > node.Addr)
+					{
+						// Back edge somehow jumps forward??
+						throw new Exception ($"Node at {target} dominates earlier node at {node.Addr}");
+					}
+
+					node.IsLoopEnd = true;
+					numLoops++;
+				}
+			});
+
+			return numLoops;
 		}
 
 		/// <summary>
