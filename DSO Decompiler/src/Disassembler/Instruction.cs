@@ -21,7 +21,7 @@ namespace DSODecompiler.Disassembler
 		public string Namespace { get; set; } = null;
 		public string Package { get; set; } = null;
 		public bool HasBody { get; set; }
-		public uint EndAddr { get; set; } = 0;
+		public uint EndAddr { get; set; }
 
 		public readonly List<string> Arguments = new List<string> ();
 

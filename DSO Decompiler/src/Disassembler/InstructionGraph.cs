@@ -16,7 +16,7 @@ namespace DSODecompiler.Disassembler
 
 		public void PreorderDFS (DFSCallbackFn callback)
 		{
-			PreorderDFS (EntryPoint.Key, new HashSet<uint> (), (Instruction instruction) => callback (instruction, this));
+			PreorderDFS (EntryPoint, (Instruction instruction) => callback (instruction, this));
 		}
 	}
 }
