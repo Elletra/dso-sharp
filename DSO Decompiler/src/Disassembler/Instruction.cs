@@ -8,6 +8,8 @@ namespace DSODecompiler.Disassembler
 	{
 		public Opcodes.Ops Op { get; }
 		public uint Addr => Key;
+		public int Label { get; set; } = -1;
+		public bool HasLabel => Label >= 0;
 
 		public Instruction (Opcodes.Ops op, uint addr) : base (addr)
 		{
@@ -67,6 +69,7 @@ namespace DSODecompiler.Disassembler
 		}
 
 		public uint TargetAddr { get; }
+
 		public InsnType Type { get; }
 
 		public JumpInsn (Opcodes.Ops op, uint addr, uint target, InsnType type) : base (op, addr)
@@ -234,12 +237,12 @@ namespace DSODecompiler.Disassembler
 
 	public class PushInsn : Instruction
 	{
-		public bool PushFrame { get; }
+		public PushInsn (Opcodes.Ops op, uint addr) : base (op, addr) {}
+	}
 
-		public PushInsn (Opcodes.Ops op, uint addr, bool pushFrame) : base (op, addr)
-		{
-			PushFrame = pushFrame;
-		}
+	public class PushFrameInsn : Instruction
+	{
+		public PushFrameInsn (Opcodes.Ops op, uint addr) : base (op, addr) {}
 	}
 
 	public class DebugBreakInsn : Instruction

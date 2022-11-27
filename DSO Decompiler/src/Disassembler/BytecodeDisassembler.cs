@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using DSODecompiler;
 using DSODecompiler.Loader;
@@ -33,7 +34,7 @@ namespace DSODecompiler.Disassembler
 			graph = new InstructionGraph ();
 
 			ReadCode ();
-			ConnectJumps ();
+			ConnectAndLabelJumps ();
 
 			return graph;
 		}
@@ -271,10 +272,10 @@ namespace DSODecompiler.Disassembler
 					return new RewindInsn (op, addr, terminate: true);
 
 				case Opcodes.Ops.OP_PUSH:
-					return new PushInsn (op, addr, pushFrame: false);
+					return new PushInsn (op, addr);
 
 				case Opcodes.Ops.OP_PUSH_FRAME:
-					return new PushInsn (op, addr, pushFrame: true);
+					return new PushFrameInsn (op, addr);
 
 				case Opcodes.Ops.OP_BREAK:
 					return new DebugBreakInsn (op, addr);
@@ -311,13 +312,30 @@ namespace DSODecompiler.Disassembler
 			AddToQueue (instruction.TargetAddr);
 		}
 
-		protected void ConnectJumps ()
+		protected void ConnectAndLabelJumps ()
 		{
+			var addrToLabel = new Dictionary<uint, int> ();
+
 			graph.PreorderDFS ((Instruction instruction, InstructionGraph graph) =>
 			{
-				if (instruction is JumpInsn)
+				if (instruction is JumpInsn jump)
 				{
-					graph.AddEdge (instruction.Addr, (instruction as JumpInsn).TargetAddr);
+					graph.AddEdge (instruction.Addr, jump.TargetAddr);
+
+					if (graph.Has (jump.TargetAddr))
+					{
+						var target = graph.Get (jump.TargetAddr);
+
+						if (addrToLabel.ContainsKey (target.Addr))
+						{
+							target.Label = addrToLabel[target.Addr];
+						}
+						else
+						{
+							target.Label = addrToLabel.Count;
+							addrToLabel[target.Addr] = addrToLabel.Count;
+						}
+					}
 				}
 			});
 		}
