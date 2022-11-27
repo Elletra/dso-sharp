@@ -68,6 +68,7 @@ namespace DSODecompiler.Util
 			return Get (from).HasEdgeTo (Get (to));
 		}
 
+		// TODO: Somehow make this iterative because it causes a stack overflow on larger files.
 		protected void PostorderDFS (K key, HashSet<K> visited, DFSCallbackFn callback)
 		{
 			if (visited.Contains (key))
@@ -88,23 +89,29 @@ namespace DSODecompiler.Util
 			callback (node);
 		}
 
-		protected void PreorderDFS (K key, HashSet<K> visited, DFSCallbackFn callback)
+		protected void PreorderDFS (N entryPoint, DFSCallbackFn callback)
 		{
-			if (visited.Contains (key))
+			var stack = new Stack<N> ();
+			var visited = new HashSet<K> ();
+
+			stack.Push (entryPoint);
+
+			while (stack.Count > 0)
 			{
-				return;
-			}
+				var node = stack.Pop ();
 
-			visited.Add (key);
+				if (visited.Contains (node.Key))
+				{
+					continue;
+				}
 
-			var node = Get (key);
-			var successors = node.Successors;
+				visited.Add (node.Key);
+				callback (node);
 
-			callback (node);
-
-			foreach (var successor in successors)
-			{
-				PreorderDFS (successor.Key, visited, callback);
+				for (var i = node.Successors.Count - 1; i >= 0; i--)
+				{
+					stack.Push ((N) node.Successors[i]);
+				}
 			}
 		}
 	}

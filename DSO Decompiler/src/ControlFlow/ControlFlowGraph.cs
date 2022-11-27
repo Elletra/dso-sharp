@@ -9,8 +9,7 @@ namespace DSODecompiler.ControlFlow
 	{
 		public int Postorder { get; set; }
 		public ControlFlowNode ImmediateDom { get; set; } = null;
-
-		public uint EndAddr { get; set; }
+		public bool IsLoopEnd { get; set; } = false;
 
 		public uint Addr => Key;
 
@@ -60,7 +59,7 @@ namespace DSODecompiler.ControlFlow
 
 		public void PreorderDFS (DFSCallbackFn callback)
 		{
-			PreorderDFS (EntryPoint.Key, new HashSet<uint> (), callback);
+			PreorderDFS (EntryPoint, callback);
 		}
 	}
 }
