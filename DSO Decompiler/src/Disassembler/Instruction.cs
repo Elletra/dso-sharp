@@ -81,12 +81,11 @@ namespace DSODecompiler.Disassembler
 
 	public class ReturnInsn : Instruction
 	{
-		// FIXME: Uncomment
-		//public bool ReturnsValue { get; }
+		public bool ReturnsValue { get; }
 
-		public ReturnInsn (Opcodes.Ops op, uint addr/*, bool returnsValue*/) : base (op, addr)
+		public ReturnInsn (Opcodes.Ops op, uint addr, bool returnsValue) : base (op, addr)
 		{
-			//ReturnsValue = returnsValue;
+			ReturnsValue = returnsValue;
 		}
 	}
 

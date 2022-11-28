@@ -26,6 +26,9 @@ namespace DSODecompiler.Disassembler
 
 		protected bool IsAtEnd => Pos >= data.CodeSize;
 
+		// This is used to emulate the STR object used in Torque to return values from files/functions.
+		protected bool returnableValue = false;
+
 		public InstructionGraph Disassemble (FileData fileData)
 		{
 			Reset ();
@@ -143,7 +146,13 @@ namespace DSODecompiler.Disassembler
 					return new JumpInsn (op, addr, Read (), JumpInsn.InsnType.Unconditional);
 
 				case Opcodes.Ops.OP_RETURN:
-					return new ReturnInsn (op, addr);
+				{
+					var instruction = new ReturnInsn (op, addr, returnsValue: returnableValue);
+
+					returnableValue = false;
+
+					return instruction;
+				}
 
 				case Opcodes.Ops.OP_CMPEQ:
 				case Opcodes.Ops.OP_CMPGR:
@@ -182,15 +191,23 @@ namespace DSODecompiler.Disassembler
 				case Opcodes.Ops.OP_SETCURVAR_ARRAY_CREATE:
 					return new SetCurVarArrayInsn (op, addr);
 
+				case Opcodes.Ops.OP_LOADVAR_STR:
+				{
+					returnableValue = true;
+					return new LoadVarInsn (op, addr);
+				}
+
 				case Opcodes.Ops.OP_LOADVAR_UINT:
 				case Opcodes.Ops.OP_LOADVAR_FLT:
-				case Opcodes.Ops.OP_LOADVAR_STR:
 					return new LoadVarInsn (op, addr);
 
 				case Opcodes.Ops.OP_SAVEVAR_UINT:
 				case Opcodes.Ops.OP_SAVEVAR_FLT:
 				case Opcodes.Ops.OP_SAVEVAR_STR:
+				{
+					returnableValue = true;
 					return new SaveVarInsn (op, addr);
+				}
 
 				case Opcodes.Ops.OP_SETCUROBJECT:
 					return new SetCurObjectInsn (op, addr, isNew: false);
@@ -204,15 +221,23 @@ namespace DSODecompiler.Disassembler
 				case Opcodes.Ops.OP_SETCURFIELD_ARRAY:
 					return new SetCurFieldArrayInsn (op, addr);
 
+				case Opcodes.Ops.OP_LOADFIELD_STR:
+				{
+					returnableValue = true;
+					return new LoadFieldInsn (op, addr);
+				}
+
 				case Opcodes.Ops.OP_LOADFIELD_UINT:
 				case Opcodes.Ops.OP_LOADFIELD_FLT:
-				case Opcodes.Ops.OP_LOADFIELD_STR:
 					return new LoadFieldInsn (op, addr);
 
 				case Opcodes.Ops.OP_SAVEFIELD_UINT:
 				case Opcodes.Ops.OP_SAVEFIELD_FLT:
 				case Opcodes.Ops.OP_SAVEFIELD_STR:
+				{
+					returnableValue = true;
 					return new SaveFieldInsn (op, addr);
+				}
 
 				case Opcodes.Ops.OP_STR_TO_UINT:
 				case Opcodes.Ops.OP_FLT_TO_UINT:
@@ -224,25 +249,39 @@ namespace DSODecompiler.Disassembler
 
 				case Opcodes.Ops.OP_FLT_TO_STR:
 				case Opcodes.Ops.OP_UINT_TO_STR:
+				{
+					returnableValue = true;
 					return new ConvertToTypeInsn (op, addr, ConvertToTypeInsn.InsnType.String);
+				}
 
 				case Opcodes.Ops.OP_STR_TO_NONE:
 				case Opcodes.Ops.OP_FLT_TO_NONE:
 				case Opcodes.Ops.OP_UINT_TO_NONE:
+				{
+					returnableValue = false;
 					return new ConvertToTypeInsn (op, addr, ConvertToTypeInsn.InsnType.None);
+				}
 
-				case Opcodes.Ops.OP_LOADIMMED_UINT:
-				case Opcodes.Ops.OP_LOADIMMED_FLT:
+				/* Strings and floats rely on knowing whether we're in a function, so we're
+				   just going to read in the raw table index for now. */
+
 				case Opcodes.Ops.OP_TAG_TO_STR:
 				case Opcodes.Ops.OP_LOADIMMED_STR:
 				case Opcodes.Ops.OP_LOADIMMED_IDENT:
-					// Strings and floats rely on knowing whether we're in a function, so we're
-					// just going to read in the raw table index for now.
+				{
+					returnableValue = true;
+					return new LoadImmedInsn (op, addr, Read ());
+				}
+
+				case Opcodes.Ops.OP_LOADIMMED_UINT:
+				case Opcodes.Ops.OP_LOADIMMED_FLT:
 					return new LoadImmedInsn (op, addr, Read ());
 
 				case Opcodes.Ops.OP_CALLFUNC:
 				case Opcodes.Ops.OP_CALLFUNC_RESOLVE:
 				{
+					returnableValue = true;
+
 					var instruction = new FuncCallInsn (op, addr)
 					{
 						Name = ReadIdent (),
@@ -266,10 +305,16 @@ namespace DSODecompiler.Disassembler
 					return new AdvanceStringInsn (op, addr, AdvanceStringInsn.InsnType.Null);
 
 				case Opcodes.Ops.OP_REWIND_STR:
+				{
+					returnableValue = true;
 					return new RewindInsn (op, addr);
+				}
 
 				case Opcodes.Ops.OP_TERMINATE_REWIND_STR:
+				{
+					returnableValue = true;
 					return new RewindInsn (op, addr, terminate: true);
+				}
 
 				case Opcodes.Ops.OP_PUSH:
 					return new PushInsn (op, addr);
