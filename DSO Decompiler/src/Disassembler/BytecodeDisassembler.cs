@@ -361,7 +361,7 @@ namespace DSODecompiler.Disassembler
 		{
 			var addrToLabel = new Dictionary<uint, int> ();
 
-			graph.PreorderDFS ((Instruction instruction, InstructionGraph graph) =>
+			graph.PreorderDFS ((Instruction instruction) =>
 			{
 				if (instruction is JumpInsn jump)
 				{
