@@ -5,98 +5,96 @@ namespace DSODecompiler.ControlFlow
 {
 	public class CFGBuilder
 	{
-		protected InstructionGraph insnGraph = null;
+		public class Exception : System.Exception
+		{
+			public Exception () {}
+			public Exception (string message) : base (message) {}
+			public Exception (string message, System.Exception inner) : base (message, inner) {}
+		}
+
+		protected Disassembly disassembly = null;
 		protected ControlFlowGraph cfg = null;
 
-		public ControlFlowGraph Build (InstructionGraph graph)
+		public ControlFlowGraph Build (Disassembly disasm)
 		{
-			insnGraph = graph;
+			disassembly = disasm;
 			cfg = new ControlFlowGraph ();
 
-			TraverseInstructions ();
+			BuildInitialGraph ();
+			ConnectJumps ();
 
 			return cfg;
 		}
 
-		// We can't use the `PreorderDFS()` method because we need to maintain data between node visits.
-		// It's also iterative to prevent stack overflows on large files. Enjoy!
-		protected void TraverseInstructions ()
+		protected void BuildInitialGraph ()
 		{
-			var stack = new Stack<(Instruction, ControlFlowNode)> ();
-			var visited = new HashSet<Instruction> ();
+			var instruction = disassembly.EntryPoint;
+			var node = cfg.CreateOrGet (instruction.Addr);
 
-			stack.Push ((insnGraph.EntryPoint, null));
-
-			while (stack.Count > 0)
+			while (instruction != null)
 			{
-				var (instruction, node) = stack.Pop ();
+				var prevNode = node;
 
-				if (visited.Contains (instruction))
-				{
-					continue;
-				}
-
-				visited.Add (instruction);
-
-				if (node == null)
+				if (IsJumpTarget (instruction))
 				{
 					node = cfg.CreateOrGet (instruction.Addr);
-				}
-				else if (IsJumpTarget (instruction))
-				{
-					var newNode = cfg.CreateOrGet (instruction.Addr);
-
-					if (node != null && node != newNode)
-					{
-						node.AddEdgeTo (newNode);
-					}
-
-					node = newNode;
+					ConnectToPrevious (node, prevNode);
 				}
 
 				node.Instructions.Add (instruction);
 
-				var isNodeEnd = IsControlFlowNodeEnd (instruction);
-
-				foreach (Instruction successor in instruction.Successors)
+				if (IsControlFlowNodeEnd (instruction) && instruction.Next != null)
 				{
-					if (isNodeEnd)
-					{
-						node.AddEdgeTo (cfg.CreateOrGet (successor.Addr));
-					}
+					node = cfg.CreateOrGet (instruction.Next.Addr);
+					ConnectToPrevious (node, prevNode);
 				}
 
-				for (var i = instruction.Successors.Count - 1; i >= 0; i--)
-				{
-					Instruction successor = (Instruction) instruction.Successors[i];
-
-					if (isNodeEnd)
-					{
-						var newNode = cfg.CreateOrGet (successor.Addr);
-
-						node.AddEdgeTo (newNode);
-						stack.Push ((successor, newNode));
-					}
-					else
-					{
-						stack.Push ((successor, node));
-					}
-				}
+				instruction = instruction.Next;
 			}
 		}
 
-		protected bool IsJumpTarget (Instruction instruction)
+		protected void ConnectToPrevious (ControlFlowNode node, ControlFlowNode prevNode)
 		{
-			foreach (Instruction predecessor in instruction.Predecessors)
+			if (prevNode != null && prevNode != node)
 			{
-				if (predecessor is JumpInsn)
+				prevNode.AddEdgeTo (node);
+			}
+		}
+
+		// The reason we connect the jumps afterward is that the next instruction is always the
+		// first successor and the jump target is always the second.
+		//
+		// It's easier and less complicated to do it after the fact.
+		protected void ConnectJumps ()
+		{
+			var nodes = cfg.GetNodes ();
+
+			foreach (var node in nodes)
+			{
+				var last = node.LastInstruction;
+
+				if (last is JumpInsn jump)
 				{
-					return true;
+					/* I know I made a big deal in BytecodeDisassembler about having it support
+					   jumps that jump to the middle of an instruction, but frankly, figuring out
+					   how to support that for everything else is not something I'm interested in
+					   doing.
+
+					   And, frankly, no one cares enough to do something like that except maybe me,
+					   so I'm not going to bother.
+
+					   Consider this a tentative TODO: Maybe. */
+					if (!cfg.Has (jump.TargetAddr))
+					{
+						throw new Exception ($"Jump to address {jump.TargetAddr} that does not have a CFG node");
+					}
+
+					node.AddEdgeTo (cfg.Get (jump.TargetAddr));
 				}
 			}
-
-			return false;
 		}
+
+		protected bool IsJumpTarget (Instruction instruction) => instruction.IsJumpTarget;
 
 		protected bool IsControlFlowNodeEnd (Instruction instruction)
 		{

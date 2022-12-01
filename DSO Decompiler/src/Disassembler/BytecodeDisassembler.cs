@@ -16,7 +16,7 @@ namespace DSODecompiler.Disassembler
 		}
 
 		protected FileData data = null;
-		protected InstructionGraph graph = null;
+		protected Disassembly disassembly = null;
 		protected Instruction prevInsn = null;
 
 		protected HashSet<uint> visited = new HashSet<uint> ();
@@ -29,17 +29,17 @@ namespace DSODecompiler.Disassembler
 		// This is used to emulate the STR object used in Torque to return values from files/functions.
 		protected bool returnableValue = false;
 
-		public InstructionGraph Disassemble (FileData fileData)
+		public Disassembly Disassemble (FileData fileData)
 		{
 			Reset ();
 
 			data = fileData;
-			graph = new InstructionGraph ();
+			disassembly = new Disassembly ();
 
 			ReadCode ();
 			ConnectAndLabelJumps ();
 
-			return graph;
+			return disassembly;
 		}
 
 		protected virtual void ReadCode ()
@@ -48,7 +48,7 @@ namespace DSODecompiler.Disassembler
 			AddToQueue (0);
 
 			/* The queue should typically only have 1 item in it. The reason we use a queue at all
-			   is to disassemble jumps that jump in the middle of an instruction to try to avoid
+			   is to disassemble jumps that jump to the middle of an instruction to try to avoid
 			   disassembly.
 
 			   I don't think there are any DSO files that actually do that, but it doesn't hurt to
@@ -79,13 +79,8 @@ namespace DSODecompiler.Disassembler
 			var instruction = DisassembleInstruction (op, addr);
 
 			ProcessInstruction (instruction, op, addr);
+			ConnectToPrevious (instruction);
 
-			if (prevInsn != null)
-			{
-				prevInsn.AddEdgeTo (instruction);
-			}
-
-			graph.Add (instruction);
 			prevInsn = instruction;
 		}
 
@@ -140,7 +135,7 @@ namespace DSODecompiler.Disassembler
 
 				case Opcodes.Ops.OP_JMPIFNOT_NP:
 				case Opcodes.Ops.OP_JMPIF_NP:
-					return new JumpInsn (op, addr, Read (), JumpInsn.InsnType.TernaryBranch);
+					return new JumpInsn (op, addr, Read (), JumpInsn.InsnType.LogicalBranch);
 
 				case Opcodes.Ops.OP_JMP:
 					return new JumpInsn (op, addr, Read (), JumpInsn.InsnType.Unconditional);
@@ -345,6 +340,17 @@ namespace DSODecompiler.Disassembler
 			{
 				ProcessJump ((JumpInsn) instruction);
 			}
+
+			disassembly.Add (instruction);
+		}
+
+		protected void ConnectToPrevious (Instruction instruction)
+		{
+			if (prevInsn != null)
+			{
+				prevInsn.Next = instruction;
+				instruction.Prev = prevInsn;
+			}
 		}
 
 		protected void ProcessJump (JumpInsn instruction)
@@ -361,28 +367,29 @@ namespace DSODecompiler.Disassembler
 		{
 			var addrToLabel = new Dictionary<uint, int> ();
 
-			graph.PreorderDFS ((Instruction instruction) =>
+			foreach (var (_, instruction) in disassembly.Instructions)
 			{
 				if (instruction is JumpInsn jump)
 				{
-					graph.AddEdge (instruction.Addr, jump.TargetAddr);
-
-					if (graph.Has (jump.TargetAddr))
+					if (!disassembly.Has (jump.TargetAddr))
 					{
-						var target = graph.Get (jump.TargetAddr);
+						throw new Exception ($"Jump at {jump.Addr} to instruction that does not exist at {jump.TargetAddr}");
+					}
 
-						if (addrToLabel.ContainsKey (target.Addr))
-						{
-							target.Label = addrToLabel[target.Addr];
-						}
-						else
-						{
-							target.Label = addrToLabel.Count;
-							addrToLabel[target.Addr] = addrToLabel.Count;
-						}
+					var target = disassembly[jump.TargetAddr];
+					jump.Target = target;
+
+					if (addrToLabel.ContainsKey (target.Addr))
+					{
+						target.Label = addrToLabel[target.Addr];
+					}
+					else
+					{
+						target.Label = addrToLabel.Count;
+						addrToLabel[target.Addr] = addrToLabel.Count;
 					}
 				}
-			});
+			}
 		}
 
 		protected virtual void Reset ()

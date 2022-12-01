@@ -39,7 +39,7 @@ namespace DSODecompiler.Loader
 
 			public int Size => rawString.Length;
 			public string RawString => rawString;
-			public string this[uint index] => table[index];
+			public string this[uint index] => table.ContainsKey (index) ? table[index] : null;
 
 			public string At (uint index) => table[index];
 			public bool Has (uint index) => table.ContainsKey (index);

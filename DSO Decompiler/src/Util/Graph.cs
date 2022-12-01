@@ -16,11 +16,20 @@ namespace DSODecompiler.Util
 
 		public void AddEdgeTo (GraphNode<K> node)
 		{
-			if (!HasEdgeTo (node) && !HasEdgeFrom (node))
+			if (!HasEdgeTo (node))
 			{
 				Successors.Add (node);
+			}
+
+			if (!HasEdgeFrom (node))
+			{
 				node.Predecessors.Add (this);
 			}
+		}
+
+		public void AddEdgeFrom (GraphNode<K> node)
+		{
+			node.AddEdgeTo (this);
 		}
 
 		public bool HasEdgeTo (GraphNode<K> node) => Successors.Contains (node);
@@ -66,6 +75,14 @@ namespace DSODecompiler.Util
 			}
 
 			return Get (from).HasEdgeTo (Get (to));
+		}
+
+		public IEnumerable<N> GetNodes ()
+		{
+			foreach (var (_, node) in nodes)
+			{
+				yield return node;
+			}
 		}
 
 		// TODO: Somehow make this iterative because it causes a stack overflow on larger files.

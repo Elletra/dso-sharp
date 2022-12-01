@@ -4,16 +4,21 @@ using DSODecompiler.Util;
 
 namespace DSODecompiler.Disassembler
 {
-	public class Instruction : GraphNode<uint>
+	public class Instruction
 	{
 		public Opcodes.Ops Op { get; }
-		public uint Addr => Key;
+		public uint Addr { get; }
 		public int Label { get; set; } = -1;
 		public bool HasLabel => Label >= 0;
+		public bool IsJumpTarget => HasLabel;
 
-		public Instruction (Opcodes.Ops op, uint addr) : base (addr)
+		public Instruction Prev { get; set; } = null;
+		public Instruction Next { get; set; } = null;
+
+		public Instruction (Opcodes.Ops op, uint addr)
 		{
 			Op = op;
+			Addr = addr;
 		}
 	}
 
@@ -63,12 +68,13 @@ namespace DSODecompiler.Disassembler
 	{
 		public enum InsnType
 		{
-			Unconditional,
-			Branch,
-			TernaryBranch,
+			Unconditional, // OP_JMP
+			Branch,        // OP_JMPIF, OP_JMPIFNOT, etc.
+			LogicalBranch, // OP_JMPIF_NP, OPJMPIFNOT_NP (can be logical operators or ternary)
 		}
 
 		public uint TargetAddr { get; }
+		public Instruction Target { get; set; } = null;
 
 		public InsnType Type { get; }
 
