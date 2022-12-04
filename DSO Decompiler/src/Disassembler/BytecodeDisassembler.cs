@@ -20,7 +20,9 @@ namespace DSODecompiler.Disassembler
 		protected Instruction prevInsn = null;
 
 		protected HashSet<uint> visited = new HashSet<uint> ();
-		protected Queue<uint> queue = new Queue<uint> ();
+
+		// (Addr, Function End <0 if not in function>)
+		protected Queue<(uint, uint)> queue = new Queue<(uint, uint)> ();
 
 		protected uint Pos { get; set; } = 0;
 
@@ -28,6 +30,13 @@ namespace DSODecompiler.Disassembler
 
 		// This is used to emulate the STR object used in Torque to return values from files/functions.
 		protected bool returnableValue = false;
+
+		/* This doesn't account for the possibility of nested functions, which seems to be possible
+		   for the bytecode, but I don't feel like dealing with that right now.
+
+		   TODO: Add support for nested functions. */
+		protected uint functionEnd = 0;
+		protected bool InFunction => functionEnd > 0;
 
 		public Disassembly Disassemble (FileData fileData)
 		{
@@ -51,11 +60,15 @@ namespace DSODecompiler.Disassembler
 			   is to disassemble jumps that jump to the middle of an instruction to try to avoid
 			   disassembly.
 
-			   I don't think there are any DSO files that actually do that, but it doesn't hurt to
-			   be thorough... */
+			   I highly, *highly* doubt there are DSO files that actually do that, but it's still
+			   good to do this... */
 			while (queue.Count > 0)
 			{
-				ReadFrom (queue.Dequeue ());
+				var (startAddr, funcEnd) = queue.Dequeue ();
+
+				functionEnd = funcEnd;
+
+				ReadFrom (startAddr);
 			}
 		}
 
@@ -84,6 +97,11 @@ namespace DSODecompiler.Disassembler
 
 		protected Instruction DisassembleInstruction (Opcodes.Ops op, uint addr)
 		{
+			if (addr >= functionEnd)
+			{
+				functionEnd = 0;
+			}
+
 			switch (op)
 			{
 				case Opcodes.Ops.OP_FUNC_DECL:
@@ -102,6 +120,11 @@ namespace DSODecompiler.Disassembler
 					for (uint i = 0; i < numArgs; i++)
 					{
 						instruction.Arguments.Add (ReadIdent ());
+					}
+
+					if (instruction.HasBody)
+					{
+						functionEnd = instruction.EndAddr;
 					}
 
 					return instruction;
@@ -255,20 +278,30 @@ namespace DSODecompiler.Disassembler
 					return new ConvertToTypeInsn (op, addr, ConvertToTypeInsn.InsnType.None);
 				}
 
-				/* Strings and floats rely on knowing whether we're in a function, so we're
-				   just going to read in the raw table index for now. */
-
 				case Opcodes.Ops.OP_TAG_TO_STR:
 				case Opcodes.Ops.OP_LOADIMMED_STR:
+				{
+					returnableValue = true;
+					return new LoadImmedInsn<string> (op, addr, ReadString ());
+				}
+
 				case Opcodes.Ops.OP_LOADIMMED_IDENT:
 				{
 					returnableValue = true;
-					return new LoadImmedInsn (op, addr, Read ());
+					return new LoadImmedInsn<string> (op, addr, ReadIdent ());
 				}
 
 				case Opcodes.Ops.OP_LOADIMMED_UINT:
+				{
+					returnableValue = true;
+					return new LoadImmedInsn<uint> (op, addr, Read ());
+				}
+
 				case Opcodes.Ops.OP_LOADIMMED_FLT:
-					return new LoadImmedInsn (op, addr, Read ());
+				{
+					returnableValue = true;
+					return new LoadImmedInsn<double> (op, addr, ReadFloat ());
+				}
 
 				case Opcodes.Ops.OP_CALLFUNC:
 				case Opcodes.Ops.OP_CALLFUNC_RESOLVE:
@@ -395,7 +428,7 @@ namespace DSODecompiler.Disassembler
 		{
 			if (!visited.Contains (addr))
 			{
-				queue.Enqueue (addr);
+				queue.Enqueue ((addr, functionEnd));
 			}
 		}
 
@@ -404,6 +437,8 @@ namespace DSODecompiler.Disassembler
 		protected uint Read () => data.Op (Pos++);
 
 		protected string ReadIdent () => data.Identifer (Pos, Read ());
+		protected string ReadString () => data.StringTableValue (Read (), !InFunction);
+		protected double ReadFloat () => data.FloatTableValue (Read (), !InFunction);
 		protected bool ReadBool () => Read () != 0;
 		protected char ReadChar () => (char) Read ();
 
