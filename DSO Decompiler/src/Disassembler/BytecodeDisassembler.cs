@@ -77,9 +77,7 @@ namespace DSODecompiler.Disassembler
 			visited.Add (addr);
 
 			var instruction = DisassembleInstruction (op, addr);
-
 			ProcessInstruction (instruction, op, addr);
-			ConnectToPrevious (instruction);
 
 			prevInsn = instruction;
 		}
@@ -344,15 +342,6 @@ namespace DSODecompiler.Disassembler
 			disassembly.Add (instruction);
 		}
 
-		protected void ConnectToPrevious (Instruction instruction)
-		{
-			if (prevInsn != null)
-			{
-				prevInsn.Next = instruction;
-				instruction.Prev = prevInsn;
-			}
-		}
-
 		protected void ProcessJump (JumpInsn instruction)
 		{
 			if (!IsValidAddr (instruction.TargetAddr))
@@ -366,28 +355,31 @@ namespace DSODecompiler.Disassembler
 		protected void ConnectAndLabelJumps ()
 		{
 			var addrToLabel = new Dictionary<uint, int> ();
+			var instructions = disassembly.GetInstructions ();
 
-			foreach (var (_, instruction) in disassembly.Instructions)
+			foreach (var instruction in instructions)
 			{
-				if (instruction is JumpInsn jump)
+				if (!(instruction is JumpInsn jump))
 				{
-					if (!disassembly.Has (jump.TargetAddr))
-					{
-						throw new Exception ($"Jump at {jump.Addr} to instruction that does not exist at {jump.TargetAddr}");
-					}
+					continue;
+				}
 
-					var target = disassembly[jump.TargetAddr];
-					jump.Target = target;
+				if (!disassembly.Has (jump.TargetAddr))
+				{
+					throw new Exception ($"Jump at {jump.Addr} to instruction that does not exist at {jump.TargetAddr}");
+				}
 
-					if (addrToLabel.ContainsKey (target.Addr))
-					{
-						target.Label = addrToLabel[target.Addr];
-					}
-					else
-					{
-						target.Label = addrToLabel.Count;
-						addrToLabel[target.Addr] = addrToLabel.Count;
-					}
+				var target = disassembly.Get (jump.TargetAddr);
+				jump.Target = target;
+
+				if (addrToLabel.ContainsKey (target.Addr))
+				{
+					target.Label = addrToLabel[target.Addr];
+				}
+				else
+				{
+					target.Label = addrToLabel.Count;
+					addrToLabel[target.Addr] = addrToLabel.Count;
 				}
 			}
 		}

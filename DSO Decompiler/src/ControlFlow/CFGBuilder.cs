@@ -28,36 +28,29 @@ namespace DSODecompiler.ControlFlow
 
 		protected void BuildInitialGraph ()
 		{
-			var instruction = disassembly.EntryPoint;
-			var node = cfg.CreateOrGet (instruction.Addr);
+			var node = cfg.CreateOrGet (disassembly.EntryPoint.Addr);
 
-			while (instruction != null)
+			ControlFlowNode prev = null;
+
+			foreach (var instruction in disassembly.GetInstructions ())
 			{
-				var prevNode = node;
-
-				if (IsJumpTarget (instruction))
+				if (IsJumpTarget (instruction) || (node.Instructions.Count > 0 && IsControlFlowNodeEnd (node.LastInstruction)))
 				{
+					prev = node;
 					node = cfg.CreateOrGet (instruction.Addr);
-					ConnectToPrevious (node, prevNode);
+
+					ConnectToPrevious (node, prev);
 				}
 
 				node.Instructions.Add (instruction);
-
-				if (IsControlFlowNodeEnd (instruction) && instruction.Next != null)
-				{
-					node = cfg.CreateOrGet (instruction.Next.Addr);
-					ConnectToPrevious (node, prevNode);
-				}
-
-				instruction = instruction.Next;
 			}
 		}
 
-		protected void ConnectToPrevious (ControlFlowNode node, ControlFlowNode prevNode)
+		protected void ConnectToPrevious (ControlFlowNode node, ControlFlowNode prev)
 		{
-			if (prevNode != null && prevNode != node)
+			if (prev != null && prev != node)
 			{
-				prevNode.AddEdgeTo (node);
+				prev.AddEdgeTo (node);
 			}
 		}
 

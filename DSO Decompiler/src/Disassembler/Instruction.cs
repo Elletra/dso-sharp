@@ -12,9 +12,6 @@ namespace DSODecompiler.Disassembler
 		public bool HasLabel => Label >= 0;
 		public bool IsJumpTarget => HasLabel;
 
-		public Instruction Prev { get; set; } = null;
-		public Instruction Next { get; set; } = null;
-
 		public Instruction (Opcodes.Ops op, uint addr)
 		{
 			Op = op;
