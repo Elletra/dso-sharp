@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using DSODecompiler.Loader;
 
 namespace DSODecompiler.Disassembler
 {
@@ -11,7 +12,8 @@ namespace DSODecompiler.Disassembler
 			public Exception (string message, System.Exception inner) : base (message, inner) {}
 		}
 
-		public Instruction EntryPoint => instructions.Count > 0 ? instructions[0] : null;
+		public Instruction First => instructions.Count > 0 ? instructions[0] : null;
+		public Instruction Last => instructions.Count > 0 ? instructions[instructions.Count - 1] : null;
 
 		protected Dictionary<uint, Instruction> addrToInsn = new Dictionary<uint, Instruction> ();
 		protected List<Instruction> instructions = new List<Instruction> ();
@@ -43,6 +45,6 @@ namespace DSODecompiler.Disassembler
 
 		public bool Has (uint addr) => addrToInsn.ContainsKey (addr);
 		public Instruction Get (uint addr) => Has (addr) ? addrToInsn[addr] : null;
-		public Instruction At (int index) => index < 0 ? instructions[index] : null;
+		public Instruction At (int index) => index >= 0 && index < Count ? instructions[index] : null;
 	}
 }

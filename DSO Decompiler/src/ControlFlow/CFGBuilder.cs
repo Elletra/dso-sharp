@@ -28,7 +28,7 @@ namespace DSODecompiler.ControlFlow
 
 		protected void BuildInitialGraph ()
 		{
-			var node = cfg.CreateOrGet (disassembly.EntryPoint.Addr);
+			var node = cfg.CreateOrGet (disassembly.First.Addr);
 
 			ControlFlowNode prev = null;
 
