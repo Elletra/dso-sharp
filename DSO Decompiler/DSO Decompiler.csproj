@@ -4,10 +4,15 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>DSODecompiler</RootNamespace>
+    <Version>0.1.0</Version>
+    <Authors>Electrk</Authors>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="test.cs" />
   </ItemGroup>
 
+  <PropertyGroup>
+     <LangVersion>9.0</LangVersion>
+  </PropertyGroup>
 </Project>
