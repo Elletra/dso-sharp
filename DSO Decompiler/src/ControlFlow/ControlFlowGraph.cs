@@ -9,6 +9,8 @@ namespace DSODecompiler.ControlFlow
 	{
 		public int Postorder { get; set; }
 		public ControlFlowNode ImmediateDom { get; set; } = null;
+
+		public bool IsLoopStart { get; set; } = false;
 		public bool IsLoopEnd { get; set; } = false;
 
 		public uint Addr => Key;

@@ -96,7 +96,7 @@ namespace DSODecompiler.ControlFlow
 		}
 
 		/// <summary>
-		/// Finds loop ends and marks them by changing the `IsLoopEnd` property on `ControlFlowNode`.
+		/// Finds loop ends and marks them by changing `IsLoopStart` and `IsLoopEnd` properties.
 		/// </summary>
 		/// <param name="graph"></param>
 		/// <returns>Number of loops found.</returns>
@@ -113,22 +113,25 @@ namespace DSODecompiler.ControlFlow
 
 				var last = node.LastInstruction;
 
-				if (!(last is JumpInsn))
+				if (last is not JumpInsn jump)
 				{
 					return;
 				}
 
-				var target = (last as JumpInsn).TargetAddr;
+				var target = graph.Get (jump.TargetAddr);
 
-				if (graph.Get (target).Dominates (node))
+				// Is this a loop?
+				if (target.Dominates (node))
 				{
-					if (target > node.Addr)
+					if (target.Addr > node.Addr)
 					{
 						// Back edge somehow jumps forward??
-						throw new Exception ($"Node at {target} dominates earlier node at {node.Addr}");
+						throw new Exception ($"Node at {target.Addr} dominates earlier node at {node.Addr}");
 					}
 
+					target.IsLoopStart = true;
 					node.IsLoopEnd = true;
+
 					numLoops++;
 				}
 			});
