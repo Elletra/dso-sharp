@@ -17,7 +17,6 @@ namespace DSODecompiler.Disassembler
 
 		protected FileData data = null;
 		protected Disassembly disassembly = null;
-		protected Instruction prevInsn = null;
 
 		protected HashSet<uint> visited = new HashSet<uint> ();
 
@@ -31,8 +30,8 @@ namespace DSODecompiler.Disassembler
 		// This is used to emulate the STR object used in Torque to return values from files/functions.
 		protected bool returnableValue = false;
 
-		/* This doesn't account for the possibility of nested functions, which seems to be possible
-		   for the bytecode, but I don't feel like dealing with that right now.
+		/* This doesn't account for the possibility of nested functions, which seem to be possible
+		   with bytecode, but I don't feel like dealing with that right now.
 
 		   TODO: Add support for nested functions. */
 		protected uint functionEnd = 0;
@@ -75,7 +74,6 @@ namespace DSODecompiler.Disassembler
 		protected virtual void ReadFrom (uint startAddr)
 		{
 			Pos = startAddr;
-			prevInsn = null;
 
 			while (!IsAtEnd && !visited.Contains (Pos))
 			{
@@ -91,8 +89,6 @@ namespace DSODecompiler.Disassembler
 
 			var instruction = DisassembleInstruction (op, addr);
 			ProcessInstruction (instruction, op, addr);
-
-			prevInsn = instruction;
 		}
 
 		protected Instruction DisassembleInstruction (Opcodes.Ops op, uint addr)
