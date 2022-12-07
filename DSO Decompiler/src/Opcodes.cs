@@ -122,6 +122,8 @@ namespace DSODecompiler
 		}
 
 		public static bool IsJump (uint op) => IsJump ((Ops) op);
+		public static bool IsBranch (uint op) => IsBranch ((Ops) op);
+		public static bool IsUnconditionalJump (uint op) => IsUnconditionalJump ((Ops) op);
 
 		public static bool IsJump (Ops op)
 		{
@@ -140,6 +142,25 @@ namespace DSODecompiler
 					return false;
 			}
 		}
+
+		public static bool IsBranch (Ops op)
+		{
+			switch (op)
+			{
+				case Ops.OP_JMPIF:
+				case Ops.OP_JMPIFF:
+				case Ops.OP_JMPIFNOT:
+				case Ops.OP_JMPIFFNOT:
+				case Ops.OP_JMPIF_NP:
+				case Ops.OP_JMPIFNOT_NP:
+					return true;
+
+				default:
+					return false;
+			}
+		}
+
+		public static bool IsUnconditionalJump (Ops op) => op == Ops.OP_JMP;
 
 		public static bool IsFuncDecl (uint op) => IsFuncDecl ((Ops) op);
 		public static bool IsFuncDecl (Ops op) => op == Ops.OP_FUNC_DECL;
