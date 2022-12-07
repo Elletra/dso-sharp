@@ -29,6 +29,12 @@ namespace DSODecompiler.Disassembler
 				throw new Exception ($"Instruction already exists at ${addr}");
 			}
 
+			if (instructions.Count > 0)
+			{
+				instructions[^1].Next = instruction;
+				instruction.Prev = instructions[^1];
+			}
+
 			addrToInsn[addr] = instruction;
 			instructions.Add (instruction);
 
