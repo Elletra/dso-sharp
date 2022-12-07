@@ -6,7 +6,7 @@ using DSODecompiler.Loader;
 
 namespace DSODecompiler.Disassembler
 {
-	public class BytecodeDisassembler
+	public class Disassembler
 	{
 		public class Exception : System.Exception
 		{
@@ -435,7 +435,6 @@ namespace DSODecompiler.Disassembler
 		protected bool IsValidAddr (uint addr) => addr < data.CodeSize;
 
 		protected uint Read () => data.Op (Pos++);
-
 		protected string ReadIdent () => data.Identifer (Pos, Read ());
 		protected string ReadString () => data.StringTableValue (Read (), !InFunction);
 		protected double ReadFloat () => data.FloatTableValue (Read (), !InFunction);
