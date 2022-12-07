@@ -299,17 +299,27 @@ namespace DSODecompiler.Disassembler
 
 		public InsnType Type { get; }
 		public char Char { get; }
+		public bool HasChar { get; }
 
-		public AdvanceStringInsn (Opcodes.Ops op, uint addr, InsnType type = InsnType.Default, char ch = '\0')
+		public AdvanceStringInsn (Opcodes.Ops op, uint addr, InsnType type, char ch)
 			: base (op, addr)
 		{
 			Type = type;
 			Char = ch;
+			HasChar = true;
+		}
+
+		public AdvanceStringInsn (Opcodes.Ops op, uint addr, InsnType type = InsnType.Default)
+			: base (op, addr)
+		{
+			Type = type;
+			Char = '\0';
+			HasChar = false;
 		}
 
 		public override string ToString ()
 		{
-			return $"[{GetType ().Name}, {Type}{(Char != '\0' ? $"'{Char}'" : "")}]";
+			return $"[{GetType ().Name}, {Type}{(HasChar ? $", {(byte) Char}" : "")}]";
 		}
 	}
 
