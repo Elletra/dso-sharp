@@ -10,6 +10,9 @@ namespace DSODecompiler.Disassembler
 		public uint Addr { get; }
 		public int Label { get; set; } = -1;
 
+		public Instruction Prev { get; set; } = null;
+		public Instruction Next { get; set; } = null;
+
 		public bool HasLabel => Label >= 0;
 		public bool IsJumpTarget => HasLabel;
 
@@ -17,6 +20,11 @@ namespace DSODecompiler.Disassembler
 		{
 			Op = op;
 			Addr = addr;
+		}
+
+		public override string ToString ()
+		{
+			return $"[{GetType ().Name}]";
 		}
 	}
 
@@ -31,6 +39,18 @@ namespace DSODecompiler.Disassembler
 		public readonly List<string> Arguments = new ();
 
 		public FuncDeclInsn (Opcodes.Ops op, uint addr) : base (op, addr) {}
+
+		public override string ToString ()
+		{
+			var str = $"[{GetType ().Name}, \"{Name}\", \"{Namespace}\", \"{Package}\", {HasBody}, {EndAddr}";
+
+			foreach (var arg in Arguments)
+			{
+				str += $", {arg}";
+			}
+
+			return $"{str}]";
+		}
 	}
 
 	public class CreateObjectInsn : Instruction
@@ -39,7 +59,12 @@ namespace DSODecompiler.Disassembler
 		public bool IsDataBlock { get; set; } = false;
 		public uint FailJumpAddr { get; set; }
 
-		public CreateObjectInsn (Opcodes.Ops op, uint addr) : base (op, addr) {}
+		public CreateObjectInsn (Opcodes.Ops op, uint addr) : base (op, addr) { }
+
+		public override string ToString ()
+		{
+			return $"[{GetType ().Name}, \"{ParentName}\", {IsDataBlock}, {FailJumpAddr}]";
+		}
 	}
 
 	public class AddObjectInsn : Instruction
@@ -50,6 +75,11 @@ namespace DSODecompiler.Disassembler
 		{
 			PlaceAtRoot = placeAtRoot;
 		}
+
+		public override string ToString ()
+		{
+			return $"[{GetType ().Name}, {PlaceAtRoot}]";
+		}
 	}
 
 	public class EndObjectInsn : Instruction
@@ -59,6 +89,11 @@ namespace DSODecompiler.Disassembler
 		public EndObjectInsn (Opcodes.Ops op, uint addr, bool value) : base (op, addr)
 		{
 			Value = value;
+		}
+
+		public override string ToString ()
+		{
+			return $"[{GetType ().Name}, {Value}]";
 		}
 	}
 
@@ -81,6 +116,11 @@ namespace DSODecompiler.Disassembler
 			TargetAddr = target;
 			Type = type;
 		}
+
+		public override string ToString ()
+		{
+			return $"[{GetType ().Name}, {TargetAddr}, {Type}]";
+		}
 	}
 
 	public class ReturnInsn : Instruction
@@ -90,6 +130,11 @@ namespace DSODecompiler.Disassembler
 		public ReturnInsn (Opcodes.Ops op, uint addr, bool returnsValue) : base (op, addr)
 		{
 			ReturnsValue = returnsValue;
+		}
+
+		public override string ToString ()
+		{
+			return $"[{GetType ().Name}, {ReturnsValue}]";
 		}
 	}
 
@@ -116,6 +161,11 @@ namespace DSODecompiler.Disassembler
 		{
 			Name = name;
 		}
+
+		public override string ToString ()
+		{
+			return $"[{GetType ().Name}, \"{Name}\"]";
+		}
 	}
 
 	public class SetCurVarArrayInsn : Instruction
@@ -141,6 +191,11 @@ namespace DSODecompiler.Disassembler
 		{
 			IsNew = isNew;
 		}
+
+		public override string ToString ()
+		{
+			return $"[{GetType ().Name}, {IsNew}]";
+		}
 	}
 
 	public class SetCurFieldInsn : Instruction
@@ -150,6 +205,11 @@ namespace DSODecompiler.Disassembler
 		public SetCurFieldInsn (Opcodes.Ops op, uint addr, string name) : base (op, addr)
 		{
 			Name = name;
+		}
+
+		public override string ToString ()
+		{
+			return $"[{GetType ().Name}, \"{Name}\"]";
 		}
 	}
 
@@ -184,6 +244,11 @@ namespace DSODecompiler.Disassembler
 		{
 			Type = type;
 		}
+
+		public override string ToString ()
+		{
+			return $"[{GetType ().Name}, {Type}]";
+		}
 	}
 
 	public class LoadImmedInsn<T> : Instruction
@@ -196,6 +261,16 @@ namespace DSODecompiler.Disassembler
 		{
 			Value = value;
 		}
+
+		public override string ToString ()
+		{
+			if (typeof (T) == typeof (string))
+			{
+				return $"[{GetType ().Name}, \"{Value}\"]";
+			}
+
+			return $"[{GetType ().Name}, {Value}]";
+		}
 	}
 
 	public class FuncCallInsn : Instruction
@@ -204,7 +279,12 @@ namespace DSODecompiler.Disassembler
 		public string Namespace { get; set; } = null;
 		public uint CallType { get; set; } = 0;
 
-		public FuncCallInsn (Opcodes.Ops op, uint addr) : base (op, addr) {}
+		public FuncCallInsn (Opcodes.Ops op, uint addr) : base (op, addr) { }
+
+		public override string ToString ()
+		{
+			return $"[{GetType ().Name}, \"{Name}\", \"{Namespace}\", {CallType}]";
+		}
 	}
 
 	public class AdvanceStringInsn : Instruction
@@ -226,6 +306,11 @@ namespace DSODecompiler.Disassembler
 			Type = type;
 			Char = ch;
 		}
+
+		public override string ToString ()
+		{
+			return $"[{GetType ().Name}, {Type}{(Char != '\0' ? $"'{Char}'" : "")}]";
+		}
 	}
 
 	public class RewindInsn : Instruction
@@ -235,6 +320,11 @@ namespace DSODecompiler.Disassembler
 		public RewindInsn (Opcodes.Ops op, uint addr, bool terminate = false) : base (op, addr)
 		{
 			Terminate = terminate;
+		}
+
+		public override string ToString ()
+		{
+			return $"[{GetType ().Name}, {Terminate}]";
 		}
 	}
 
