@@ -9,6 +9,7 @@ namespace DSODecompiler.Disassembler
 		public Opcodes.Ops Op { get; }
 		public uint Addr { get; }
 		public int Label { get; set; } = -1;
+
 		public bool HasLabel => Label >= 0;
 		public bool IsJumpTarget => HasLabel;
 
@@ -27,7 +28,7 @@ namespace DSODecompiler.Disassembler
 		public bool HasBody { get; set; }
 		public uint EndAddr { get; set; }
 
-		public readonly List<string> Arguments = new List<string> ();
+		public readonly List<string> Arguments = new ();
 
 		public FuncDeclInsn (Opcodes.Ops op, uint addr) : base (op, addr) {}
 	}

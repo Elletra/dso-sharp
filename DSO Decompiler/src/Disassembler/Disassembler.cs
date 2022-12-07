@@ -18,10 +18,10 @@ namespace DSODecompiler.Disassembler
 		protected FileData data = null;
 		protected Disassembly disassembly = null;
 
-		protected HashSet<uint> visited = new HashSet<uint> ();
+		protected HashSet<uint> visited = new ();
 
 		// (Addr, Function End <0 if not in function>)
-		protected Queue<(uint, uint)> queue = new Queue<(uint, uint)> ();
+		protected Queue<(uint, uint)> queue = new ();
 
 		protected uint Pos { get; set; } = 0;
 
@@ -363,9 +363,9 @@ namespace DSODecompiler.Disassembler
 				throw new Exception ($"Invalid opcode {op} at {addr}");
 			}
 
-			if (instruction is JumpInsn)
+			if (instruction is JumpInsn jump)
 			{
-				ProcessJump ((JumpInsn) instruction);
+				ProcessJump (jump);
 			}
 
 			disassembly.Add (instruction);
@@ -388,7 +388,7 @@ namespace DSODecompiler.Disassembler
 
 			foreach (var instruction in instructions)
 			{
-				if (!(instruction is JumpInsn jump))
+				if (instruction is not JumpInsn jump)
 				{
 					continue;
 				}

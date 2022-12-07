@@ -13,10 +13,10 @@ namespace DSODecompiler.Disassembler
 		}
 
 		public Instruction First => instructions.Count > 0 ? instructions[0] : null;
-		public Instruction Last => instructions.Count > 0 ? instructions[instructions.Count - 1] : null;
+		public Instruction Last => instructions.Count > 0 ? instructions[^1] : null;
 
-		protected Dictionary<uint, Instruction> addrToInsn = new Dictionary<uint, Instruction> ();
-		protected List<Instruction> instructions = new List<Instruction> ();
+		protected Dictionary<uint, Instruction> addrToInsn = new ();
+		protected List<Instruction> instructions = new ();
 
 		public int Count => instructions.Count;
 
