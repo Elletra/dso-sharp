@@ -15,12 +15,12 @@ namespace DSODecompiler.ControlFlow
 
 		public uint Addr => Key;
 
-		public readonly List<Instruction> Instructions = new List<Instruction> ();
+		public readonly List<Instruction> Instructions = new ();
 
 		public Instruction this[int index] => index >= 0 && index < Instructions.Count ? Instructions[index] : null;
 
 		public Instruction FirstInstruction => Instructions.Count > 0 ? Instructions[0] : null;
-		public Instruction LastInstruction => Instructions.Count > 0 ? Instructions[Instructions.Count - 1] : null;
+		public Instruction LastInstruction => Instructions.Count > 0 ? Instructions[^1] : null;
 
 		public ControlFlowNode (uint key) : base (key) {}
 
