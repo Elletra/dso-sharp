@@ -27,17 +27,17 @@
 		/// <returns>The parsed data.</returns>
 		public FileData LoadFile (string filePath, uint version)
 		{
-			reader = new FileReader (filePath);
+			reader = new FileReader(filePath);
 
-			var data = new FileData (version);
+			var data = new FileData(version);
 
-			ParseHeader (data);
-			ParseStringTable (data, global: true);
-			ParseFloatTable (data, global: true);
-			ParseStringTable (data, global: false);
-			ParseFloatTable (data, global: false);
-			ParseCode (data);
-			ParseIdentTable (data);
+			ParseHeader(data);
+			ParseStringTable(data, global: true);
+			ParseFloatTable(data, global: true);
+			ParseStringTable(data, global: false);
+			ParseFloatTable(data, global: false);
+			ParseCode(data);
+			ParseIdentTable(data);
 
 			return data;
 		}
@@ -50,46 +50,46 @@
 		/// <param name="data"></param>
 		protected void ParseHeader (FileData data)
 		{
-			var fileVersion = reader.ReadUInt ();
+			var fileVersion = reader.ReadUInt();
 
 			if (fileVersion != data.Version)
 			{
-				throw new Exception ($"Invalid DSO version: Expected {data.Version}, got {fileVersion}");
+				throw new Exception($"Invalid DSO version: Expected {data.Version}, got {fileVersion}");
 			}
 		}
 
 		protected void ParseStringTable (FileData data, bool global)
 		{
-			var table = reader.ReadString (reader.ReadUInt ());
+			var table = reader.ReadString(reader.ReadUInt());
 
-			data.SetStringTable (UnencryptString (table), global);
+			data.SetStringTable(UnencryptString(table), global);
 		}
 
 		protected void ParseFloatTable (FileData data, bool global)
 		{
-			var size = reader.ReadUInt ();
+			var size = reader.ReadUInt();
 
-			data.InitFloatTable (size, global);
+			data.InitFloatTable(size, global);
 
 			for (uint i = 0; i < size; i++)
 			{
-				data.SetFloat (i, reader.ReadDouble (), global);
+				data.SetFloat(i, reader.ReadDouble(), global);
 			}
 		}
 
 		protected void ParseCode (FileData data)
 		{
-			var size = reader.ReadUInt ();
-			var lineBreaks = reader.ReadUInt ();
+			var size = reader.ReadUInt();
+			var lineBreaks = reader.ReadUInt();
 
-			data.InitCode (size);
+			data.InitCode(size);
 
 			for (uint i = 0; i < size; i++)
 			{
-				data.SetOp (i, reader.ReadOp ());
+				data.SetOp(i, reader.ReadOp());
 			}
 
-			ParseLineBreaks (data, size, lineBreaks);
+			ParseLineBreaks(data, size, lineBreaks);
 		}
 
 		/// <summary>
@@ -105,7 +105,7 @@
 
 			for (uint i = codeSize; i < totalSize; i++)
 			{
-				data.AddLineBreakPair (reader.ReadUInt ());
+				data.AddLineBreakPair(reader.ReadUInt());
 			}
 		}
 
@@ -115,19 +115,19 @@
 		/// <param name="data"></param>
 		protected void ParseIdentTable (FileData data)
 		{
-			var identifiers = reader.ReadUInt ();
+			var identifiers = reader.ReadUInt();
 
 			while (identifiers-- > 0)
 			{
-				var index = reader.ReadUInt ();
-				var count = reader.ReadUInt ();
+				var index = reader.ReadUInt();
+				var count = reader.ReadUInt();
 
 				while (count-- > 0)
 				{
-					var ip = reader.ReadUInt ();
+					var ip = reader.ReadUInt();
 
-					data.SetOp (ip, index);
-					data.SetIdentifier (ip, index);
+					data.SetOp(ip, index);
+					data.SetIdentifier(ip, index);
 				}
 			}
 		}

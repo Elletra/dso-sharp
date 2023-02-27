@@ -98,13 +98,13 @@ namespace DSODecompiler
 
 		static Opcodes ()
 		{
-			var values = Enum.GetValues (typeof (Ops));
+			var values = Enum.GetValues(typeof(Ops));
 			var min = uint.MaxValue;
 			var max = uint.MinValue;
 
 			foreach (var op in values)
 			{
-				var value = Convert.ToUInt32 (op);
+				var value = Convert.ToUInt32(op);
 
 				if (value < min)
 				{
@@ -121,10 +121,10 @@ namespace DSODecompiler
 			MaxValue = max;
 		}
 
-		public static bool IsJump (uint op) => IsJump ((Ops) op);
-		public static bool IsBranch (uint op) => IsBranch ((Ops) op);
-		public static bool IsLogicalBranch (uint op) => IsLogicalBranch ((Ops) op);
-		public static bool IsUnconditionalJump (uint op) => IsUnconditionalJump ((Ops) op);
+		public static bool IsJump (uint op) => IsJump((Ops) op);
+		public static bool IsBranch (uint op) => IsBranch((Ops) op);
+		public static bool IsLogicalBranch (uint op) => IsLogicalBranch((Ops) op);
+		public static bool IsUnconditionalJump (uint op) => IsUnconditionalJump((Ops) op);
 
 		public static bool IsJump (Ops op)
 		{
@@ -164,14 +164,14 @@ namespace DSODecompiler
 		public static bool IsLogicalBranch (Ops op) => op == Ops.OP_JMPIF_NP || op == Ops.OP_JMPIFNOT_NP;
 		public static bool IsUnconditionalJump (Ops op) => op == Ops.OP_JMP;
 
-		public static bool IsFuncDecl (uint op) => IsFuncDecl ((Ops) op);
+		public static bool IsFuncDecl (uint op) => IsFuncDecl((Ops) op);
 		public static bool IsFuncDecl (Ops op) => op == Ops.OP_FUNC_DECL;
 
-		public static bool IsReturn (uint op) => IsReturn ((Ops) op);
+		public static bool IsReturn (uint op) => IsReturn((Ops) op);
 		public static bool IsReturn (Ops op) => op == Ops.OP_RETURN;
 
-		public static string OpcodeToString (Ops op) => IsValidOpcode ((uint) op) ? op.ToString () : "<UNKNOWN>";
-		public static string OpcodeToString (uint op) => OpcodeToString ((Ops) op);
+		public static string OpcodeToString (Ops op) => IsValidOpcode((uint) op) ? op.ToString() : "<UNKNOWN>";
+		public static string OpcodeToString (uint op) => OpcodeToString((Ops) op);
 
 		public static bool IsValidOpcode (uint op) => op >= MinValue && op <= MaxValue;
 	}

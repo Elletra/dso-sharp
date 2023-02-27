@@ -11,7 +11,7 @@ namespace DSODecompiler.Loader
 
 			public StringTable (string rawStr)
 			{
-				table = new Dictionary<uint, string> ();
+				table = new Dictionary<uint, string>();
 				rawString = rawStr;
 
 				uint index = 0;
@@ -39,10 +39,10 @@ namespace DSODecompiler.Loader
 
 			public int Size => rawString.Length;
 			public string RawString => rawString;
-			public string this[uint index] => table.ContainsKey (index) ? table[index] : null;
+			public string this[uint index] => table.ContainsKey(index) ? table[index] : null;
 
-			public string At (uint index) => table[index];
-			public bool Has (uint index) => table.ContainsKey (index);
+			public string At(uint index) => table[index];
+			public bool Has(uint index) => table.ContainsKey(index);
 		}
 
 		protected uint version;
@@ -55,9 +55,9 @@ namespace DSODecompiler.Loader
 		protected double[] globalFloats;
 		protected double[] funcFloats;
 
-		protected Dictionary<uint, uint> identTable = new Dictionary<uint, uint> ();
+		protected Dictionary<uint, uint> identTable = new Dictionary<uint, uint>();
 
-		protected List<uint> lineBreakPairs = new List<uint> ();
+		protected List<uint> lineBreakPairs = new List<uint>();
 
 		public uint Version => version;
 
@@ -72,7 +72,7 @@ namespace DSODecompiler.Loader
 
 		public string StringTableValue (uint index, bool global) => (global ? globalStrings : funcStrings)[index];
 		public double FloatTableValue (uint index, bool global) => (global ? globalFloats : funcFloats)[index];
-		public string Identifer (uint addr, uint index) => HasIdentifierAt (addr) ? StringTableValue (index, true) : null;
+		public string Identifer (uint addr, uint index) => HasIdentifierAt(addr) ? StringTableValue(index, true) : null;
 		public uint Op (uint index) => code[index];
 
 		/**
@@ -83,11 +83,11 @@ namespace DSODecompiler.Loader
 		{
 			if (global)
 			{
-				globalStrings = new StringTable (table);
+				globalStrings = new StringTable(table);
 			}
 			else
 			{
-				funcStrings = new StringTable (table);
+				funcStrings = new StringTable(table);
 			}
 		}
 
@@ -104,8 +104,8 @@ namespace DSODecompiler.Loader
 		}
 
 		public void InitCode (uint size) => code = new uint[size];
-		public void ClearLineBreaks () => lineBreakPairs.Clear ();
-		public void ClearIdentTable () => identTable.Clear ();
+		public void ClearLineBreaks () => lineBreakPairs.Clear();
+		public void ClearIdentTable () => identTable.Clear();
 
 		/**
 		 * Methods for setting/adding values
@@ -114,15 +114,15 @@ namespace DSODecompiler.Loader
 		public void SetFloat (uint index, double value, bool global) => (global ? globalFloats : funcFloats)[index] = value;
 		public void SetIdentifier (uint addr, uint index) => identTable[addr] = index;
 		public void SetOp (uint index, uint op) => code[index] = op;
-		public void AddLineBreakPair (uint value) => lineBreakPairs.Add (value);
+		public void AddLineBreakPair (uint value) => lineBreakPairs.Add(value);
 
 		/**
 		 * Methods for validating values
 		 */
 
-		public bool HasString (uint index, bool global) => (global ? globalStrings : funcStrings).Has (index);
+		public bool HasString (uint index, bool global) => (global ? globalStrings : funcStrings).Has(index);
 		public bool HasFloat (uint index, bool global) => index < (global ? globalFloats : funcFloats).Length;
-		public bool HasIdentifierAt (uint addr) => identTable.ContainsKey (addr);
+		public bool HasIdentifierAt (uint addr) => identTable.ContainsKey(addr);
 
 		/**
 		 * Methods for getting the size of various sections
