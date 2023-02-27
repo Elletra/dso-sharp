@@ -13,11 +13,14 @@ namespace DSODecompiler
 			var fileData = loader.LoadFile("test.cs.dso", 210);
 			var disassembler = new Disassembler.Disassembler();
 			var disassembly = disassembler.Disassemble(fileData);
+			var traverser = new DisassemblyTraverser();
 
-			for (var insn = disassembly.EntryPoint; insn != null; insn = insn.Next)
-			{
-				System.Console.WriteLine("{0,16}    {1}", insn.Addr, insn);
-			}
+			traverser.Traverse(disassembly, PrintInstruction);
+		}
+
+		static private void PrintInstruction (Instruction instruction)
+		{
+			System.Console.WriteLine("{0,16}    {1}", instruction.Addr, instruction);
 		}
 	}
 }

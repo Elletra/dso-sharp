@@ -28,4 +28,56 @@ namespace DSODecompiler.Disassembler
 			return true;
 		}
 	}
+
+	public class DisassemblyTraverser
+	{
+		public delegate void VisitFn (Instruction instruction);
+
+		protected Queue<Instruction> queue = null;
+		protected HashSet<Instruction> visited = null;
+
+		public void Traverse (Disassembly disassembly, VisitFn visitFunc)
+		{
+			queue = new();
+			visited = new();
+
+			StartTraverse(disassembly, visitFunc);
+		}
+
+		protected void StartTraverse (Disassembly disassembly, VisitFn visitFunc)
+		{
+			queue.Enqueue(disassembly.EntryPoint);
+
+			while (queue.Count > 0 && !HasVisited(queue.Peek()))
+			{
+				TraverseFrom(queue.Dequeue(), disassembly, visitFunc);
+			}
+		}
+
+		protected void TraverseFrom (Instruction fromInsn, Disassembly disassembly, VisitFn visitFunc)
+		{
+			var instruction = fromInsn;
+
+			while (instruction != null)
+			{
+				Visit(instruction, disassembly, visitFunc);
+
+				instruction = instruction.Next;
+			}
+		}
+
+		protected void Visit (Instruction instruction, Disassembly disassembly, VisitFn visitFunc)
+		{
+			visitFunc(instruction);
+
+			if (instruction is BranchInsn branch && disassembly.Has(branch.TargetAddr))
+			{
+				queue.Enqueue(disassembly[branch.TargetAddr]);
+			}
+
+			visited.Add(instruction);
+		}
+
+		protected bool HasVisited (Instruction instruction) => visited.Contains(instruction);
+	}
 }
