@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-using DSODecompiler;
 using DSODecompiler.Loader;
 
 namespace DSODecompiler.Disassembler
@@ -10,50 +8,38 @@ namespace DSODecompiler.Disassembler
 	{
 		public class Exception : System.Exception
 		{
-			public Exception () {}
-			public Exception (string message) : base (message) {}
-			public Exception (string message, System.Exception inner) : base (message, inner) {}
+			public Exception () { }
+			public Exception (string message) : base(message) { }
+			public Exception (string message, System.Exception inner) : base(message, inner) { }
 		}
 
-		protected FileData data = null;
 		protected Disassembly disassembly = null;
-
-		protected HashSet<uint> visited = new ();
-
-		// (Addr, Function End <0 if not in function>)
-		protected Queue<(uint, uint)> queue = new ();
-
-		protected uint Pos { get; set; } = 0;
-
-		protected bool IsAtEnd => Pos >= data.CodeSize;
+		protected FileData fileData = null;
+		protected Queue<uint> queue = null;
+		protected Instruction prevInsn = null;
 
 		// This is used to emulate the STR object used in Torque to return values from files/functions.
 		protected bool returnableValue = false;
 
-		/* This doesn't account for the possibility of nested functions, which seem to be possible
-		   with bytecode, but I don't feel like dealing with that right now.
+		protected uint index = 0;
 
-		   TODO: Add support for nested functions. */
-		protected uint functionEnd = 0;
-		protected bool InFunction => functionEnd > 0;
+		protected bool IsAtEnd => index >= fileData.CodeSize;
 
-		public Disassembly Disassemble (FileData fileData)
+		public Disassembly Disassemble (FileData data)
 		{
-			Reset ();
+			disassembly = new();
+			fileData = data;
+			queue = new();
+			index = 0;
 
-			data = fileData;
-			disassembly = new Disassembly ();
-
-			ReadCode ();
-			ConnectAndLabelJumps ();
+			StartDisassemble();
 
 			return disassembly;
 		}
 
-		protected virtual void ReadCode ()
+		protected void StartDisassemble ()
 		{
-			// Enqueue entry point
-			AddToQueue (0);
+			queue.Enqueue(0);
 
 			/* The queue should typically only have 1 item in it. The reason we use a queue at all
 			   is to disassemble jumps that jump to the middle of an instruction to try to avoid
@@ -63,64 +49,51 @@ namespace DSODecompiler.Disassembler
 			   good to do this... */
 			while (queue.Count > 0)
 			{
-				var (startAddr, funcEnd) = queue.Dequeue ();
-
-				functionEnd = funcEnd;
-
-				ReadFrom (startAddr);
+				DisassembleFromAddr(queue.Dequeue());
 			}
 		}
 
-		protected virtual void ReadFrom (uint startAddr)
+		protected void DisassembleFromAddr (uint fromAddr)
 		{
-			Pos = startAddr;
+			index = fromAddr;
+			prevInsn = null;
+			returnableValue = false;
 
-			while (!IsAtEnd && !visited.Contains (Pos))
+			while (!IsAtEnd && !HasVisited(index))
 			{
-				var addr = Pos;
+				var addr = index;
+				var op = Read();
+				var instruction = DisassembleOp((Opcodes.Ops) op, addr);
 
-				ReadOp ((Opcodes.Ops) Read (), addr);
+				if (instruction == null)
+				{
+					throw new Exception($"Invalid opcode {op} at {addr}");
+				}
+
+				ProcessInstruction(instruction);
 			}
 		}
 
-		protected virtual void ReadOp (Opcodes.Ops op, uint addr)
+		protected Instruction DisassembleOp (Opcodes.Ops op, uint addr)
 		{
-			visited.Add (addr);
-
-			var instruction = DisassembleInstruction (op, addr);
-			ProcessInstruction (instruction, op, addr);
-		}
-
-		protected Instruction DisassembleInstruction (Opcodes.Ops op, uint addr)
-		{
-			if (addr >= functionEnd)
-			{
-				functionEnd = 0;
-			}
-
 			switch (op)
 			{
 				case Opcodes.Ops.OP_FUNC_DECL:
 				{
-					var instruction = new FuncDeclInsn (op, addr)
+					var instruction = new FuncDeclInsn(op, addr)
 					{
-						Name = ReadIdent (),
-						Namespace = ReadIdent (),
-						Package = ReadIdent (),
-						HasBody = ReadBool (),
-						EndAddr = Read (),
+						Name = ReadIdent(),
+						Namespace = ReadIdent(),
+						Package = ReadIdent(),
+						HasBody = ReadBool(),
+						EndAddr = Read(),
 					};
 
-					var numArgs = Read ();
+					var args = Read();
 
-					for (uint i = 0; i < numArgs; i++)
+					for (uint i = 0; i < args; i++)
 					{
-						instruction.Arguments.Add (ReadIdent ());
-					}
-
-					if (instruction.HasBody)
-					{
-						functionEnd = instruction.EndAddr;
+						instruction.Arguments.Add(ReadIdent());
 					}
 
 					return instruction;
@@ -128,39 +101,52 @@ namespace DSODecompiler.Disassembler
 
 				case Opcodes.Ops.OP_CREATE_OBJECT:
 				{
-					var instruction = new CreateObjectInsn (op, addr)
+					var instruction = new CreateObjectInsn(op, addr)
 					{
-						ParentName = ReadIdent (),
-						IsDataBlock = ReadBool (),
-						FailJumpAddr = Read (),
+						ParentName = ReadIdent(),
+						IsDataBlock = ReadBool(),
+						FailJumpAddr = Read(),
 					};
 
 					return instruction;
 				}
 
 				case Opcodes.Ops.OP_ADD_OBJECT:
-					return new AddObjectInsn (op, addr, ReadBool ());
+				{
+					return new AddObjectInsn(op, addr, ReadBool());
+				}
 
 				case Opcodes.Ops.OP_END_OBJECT:
-					return new EndObjectInsn (op, addr, ReadBool ());
-
-				case Opcodes.Ops.OP_JMPIFFNOT:
-				case Opcodes.Ops.OP_JMPIFNOT:
-				case Opcodes.Ops.OP_JMPIFF:
-				case Opcodes.Ops.OP_JMPIF:
-					return new JumpInsn (op, addr, Read (), JumpInsn.InsnType.Branch);
-
-				case Opcodes.Ops.OP_JMPIFNOT_NP:
-				case Opcodes.Ops.OP_JMPIF_NP:
-					return new JumpInsn (op, addr, Read (), JumpInsn.InsnType.LogicalBranch);
+				{
+					return new EndObjectInsn(op, addr, ReadBool());
+				}
 
 				case Opcodes.Ops.OP_JMP:
-					return new JumpInsn (op, addr, Read (), JumpInsn.InsnType.Unconditional);
+				case Opcodes.Ops.OP_JMPIF:
+				case Opcodes.Ops.OP_JMPIFF:
+				case Opcodes.Ops.OP_JMPIFNOT:
+				case Opcodes.Ops.OP_JMPIFFNOT:
+				case Opcodes.Ops.OP_JMPIF_NP:
+				case Opcodes.Ops.OP_JMPIFNOT_NP:
+				{
+					var type = GetBranchType(op);
+
+					if (type == BranchInsn.InsnType.Invalid)
+					{
+						throw new Exception($"Invalid branch type at {addr}");
+					}
+
+					var target = Read();
+
+					queue.Enqueue(target);
+					disassembly.AddJumpTarget(target);
+
+					return new BranchInsn(op, addr, target, type);
+				}
 
 				case Opcodes.Ops.OP_RETURN:
 				{
-					var instruction = new ReturnInsn (op, addr, returnsValue: returnableValue);
-
+					var instruction = new ReturnInsn(op, addr, returnsValue: returnableValue);
 					returnableValue = false;
 
 					return instruction;
@@ -184,119 +170,134 @@ namespace DSODecompiler.Disassembler
 				case Opcodes.Ops.OP_SUB:
 				case Opcodes.Ops.OP_MUL:
 				case Opcodes.Ops.OP_DIV:
-					return new BinaryInsn (op, addr);
+				{
+					return new BinaryInsn(op, addr);
+				}
 
 				case Opcodes.Ops.OP_COMPARE_STR:
-					return new StringCompareInsn (op, addr);
+				{
+					return new StringCompareInsn(op, addr);
+				}
 
 				case Opcodes.Ops.OP_NEG:
 				case Opcodes.Ops.OP_NOT:
 				case Opcodes.Ops.OP_NOTF:
 				case Opcodes.Ops.OP_ONESCOMPLEMENT:
-					return new UnaryInsn (op, addr);
+				{
+					return new UnaryInsn(op, addr);
+				}
 
 				case Opcodes.Ops.OP_SETCURVAR:
 				case Opcodes.Ops.OP_SETCURVAR_CREATE:
-					return new SetCurVarInsn (op, addr, ReadIdent ());
+				{
+					return new SetCurVarInsn(op, addr, ReadIdent());
+				}
 
 				case Opcodes.Ops.OP_SETCURVAR_ARRAY:
 				case Opcodes.Ops.OP_SETCURVAR_ARRAY_CREATE:
-					return new SetCurVarArrayInsn (op, addr);
+				{
+					return new SetCurVarArrayInsn(op, addr);
+				}
 
 				case Opcodes.Ops.OP_LOADVAR_STR:
 				{
 					returnableValue = true;
-					return new LoadVarInsn (op, addr);
+
+					return new LoadVarInsn(op, addr);
 				}
 
 				case Opcodes.Ops.OP_LOADVAR_UINT:
 				case Opcodes.Ops.OP_LOADVAR_FLT:
-					return new LoadVarInsn (op, addr);
+				{
+					return new LoadVarInsn(op, addr);
+				}
 
 				case Opcodes.Ops.OP_SAVEVAR_UINT:
 				case Opcodes.Ops.OP_SAVEVAR_FLT:
 				case Opcodes.Ops.OP_SAVEVAR_STR:
 				{
 					returnableValue = true;
-					return new SaveVarInsn (op, addr);
+
+					return new SaveVarInsn(op, addr);
 				}
 
 				case Opcodes.Ops.OP_SETCUROBJECT:
-					return new SetCurObjectInsn (op, addr, isNew: false);
-
 				case Opcodes.Ops.OP_SETCUROBJECT_NEW:
-					return new SetCurObjectInsn (op, addr, isNew: true);
+				{
+					return new SetCurObjectInsn(op, addr, op == Opcodes.Ops.OP_SETCUROBJECT_NEW);
+				}
 
 				case Opcodes.Ops.OP_SETCURFIELD:
-					return new SetCurFieldInsn (op, addr, ReadIdent ());
+				{
+					return new SetCurFieldInsn(op, addr, ReadIdent());
+				}
 
 				case Opcodes.Ops.OP_SETCURFIELD_ARRAY:
-					return new SetCurFieldArrayInsn (op, addr);
+				{
+					return new SetCurFieldArrayInsn(op, addr);
+				}
 
 				case Opcodes.Ops.OP_LOADFIELD_STR:
 				{
 					returnableValue = true;
-					return new LoadFieldInsn (op, addr);
+
+					return new LoadFieldInsn(op, addr);
 				}
 
 				case Opcodes.Ops.OP_LOADFIELD_UINT:
 				case Opcodes.Ops.OP_LOADFIELD_FLT:
-					return new LoadFieldInsn (op, addr);
+				{
+					return new LoadFieldInsn(op, addr);
+				}
 
 				case Opcodes.Ops.OP_SAVEFIELD_UINT:
 				case Opcodes.Ops.OP_SAVEFIELD_FLT:
 				case Opcodes.Ops.OP_SAVEFIELD_STR:
 				{
 					returnableValue = true;
-					return new SaveFieldInsn (op, addr);
+
+					return new SaveFieldInsn(op, addr);
 				}
 
 				case Opcodes.Ops.OP_STR_TO_UINT:
 				case Opcodes.Ops.OP_FLT_TO_UINT:
-					return new ConvertToTypeInsn (op, addr, ConvertToTypeInsn.InsnType.UInt);
+				{
+					return new ConvertToTypeInsn(op, addr, ConvertToTypeInsn.InsnType.UInt);
+				}
 
 				case Opcodes.Ops.OP_STR_TO_FLT:
 				case Opcodes.Ops.OP_UINT_TO_FLT:
-					return new ConvertToTypeInsn (op, addr, ConvertToTypeInsn.InsnType.Float);
+				{
+					return new ConvertToTypeInsn(op, addr, ConvertToTypeInsn.InsnType.Float);
+				}
 
 				case Opcodes.Ops.OP_FLT_TO_STR:
 				case Opcodes.Ops.OP_UINT_TO_STR:
 				{
 					returnableValue = true;
-					return new ConvertToTypeInsn (op, addr, ConvertToTypeInsn.InsnType.String);
+
+					return new ConvertToTypeInsn(op, addr, ConvertToTypeInsn.InsnType.String);
 				}
 
 				case Opcodes.Ops.OP_STR_TO_NONE:
+				case Opcodes.Ops.OP_STR_TO_NONE_2:
 				case Opcodes.Ops.OP_FLT_TO_NONE:
 				case Opcodes.Ops.OP_UINT_TO_NONE:
 				{
 					returnableValue = false;
-					return new ConvertToTypeInsn (op, addr, ConvertToTypeInsn.InsnType.None);
-				}
 
-				case Opcodes.Ops.OP_TAG_TO_STR:
-				case Opcodes.Ops.OP_LOADIMMED_STR:
-				{
-					returnableValue = true;
-					return new LoadImmedInsn<string> (op, addr, ReadString ());
-				}
-
-				case Opcodes.Ops.OP_LOADIMMED_IDENT:
-				{
-					returnableValue = true;
-					return new LoadImmedInsn<string> (op, addr, ReadIdent ());
+					return new ConvertToTypeInsn(op, addr, ConvertToTypeInsn.InsnType.None);
 				}
 
 				case Opcodes.Ops.OP_LOADIMMED_UINT:
-				{
-					returnableValue = true;
-					return new LoadImmedInsn<uint> (op, addr, Read ());
-				}
-
 				case Opcodes.Ops.OP_LOADIMMED_FLT:
+				case Opcodes.Ops.OP_TAG_TO_STR:
+				case Opcodes.Ops.OP_LOADIMMED_STR:
+				case Opcodes.Ops.OP_LOADIMMED_IDENT:
 				{
 					returnableValue = true;
-					return new LoadImmedInsn<double> (op, addr, ReadFloat ());
+
+					return new LoadImmedInsn(op, addr, Read());
 				}
 
 				case Opcodes.Ops.OP_CALLFUNC:
@@ -304,140 +305,150 @@ namespace DSODecompiler.Disassembler
 				{
 					returnableValue = true;
 
-					var instruction = new FuncCallInsn (op, addr)
+					return new FuncCallInsn(op, addr)
 					{
-						Name = ReadIdent (),
-						Namespace = ReadIdent (),
-						CallType = Read (),
+						Name = ReadIdent(),
+						Namespace = ReadIdent(),
+						CallType = Read(),
 					};
-
-					return instruction;
 				}
 
 				case Opcodes.Ops.OP_ADVANCE_STR:
-					return new AdvanceStringInsn (op, addr);
-
 				case Opcodes.Ops.OP_ADVANCE_STR_APPENDCHAR:
-					return new AdvanceStringInsn (op, addr, AdvanceStringInsn.InsnType.Append, ReadChar ());
-
 				case Opcodes.Ops.OP_ADVANCE_STR_COMMA:
-					return new AdvanceStringInsn (op, addr, AdvanceStringInsn.InsnType.Comma);
-
 				case Opcodes.Ops.OP_ADVANCE_STR_NUL:
-					return new AdvanceStringInsn (op, addr, AdvanceStringInsn.InsnType.Null);
-
-				case Opcodes.Ops.OP_REWIND_STR:
 				{
-					returnableValue = true;
-					return new RewindInsn (op, addr);
+					var type = GetAdvanceStringType(op);
+
+					if (type == AdvanceStringInsn.InsnType.Invalid)
+					{
+						throw new Exception($"Invalid advance string type at {addr}");
+					}
+
+					if (type == AdvanceStringInsn.InsnType.Append)
+					{
+						return new AdvanceStringInsn(op, addr, type, ReadChar());
+					}
+
+					return new AdvanceStringInsn(op, addr, type);
 				}
 
+				case Opcodes.Ops.OP_REWIND_STR:
 				case Opcodes.Ops.OP_TERMINATE_REWIND_STR:
 				{
 					returnableValue = true;
-					return new RewindInsn (op, addr, terminate: true);
+
+					return new RewindInsn(op, addr, op == Opcodes.Ops.OP_TERMINATE_REWIND_STR);
 				}
 
 				case Opcodes.Ops.OP_PUSH:
-					return new PushInsn (op, addr);
+				{
+					return new PushInsn(op, addr);
+				}
 
 				case Opcodes.Ops.OP_PUSH_FRAME:
-					return new PushFrameInsn (op, addr);
+				{
+					return new PushFrameInsn(op, addr);
+				}
 
 				case Opcodes.Ops.OP_BREAK:
-					return new DebugBreakInsn (op, addr);
+				{
+					return new DebugBreakInsn(op, addr);
+				}
 
 				case Opcodes.Ops.UNUSED1:
 				case Opcodes.Ops.UNUSED2:
-					return new UnusedInsn (op, addr);
+				{
+					return new UnusedInsn(op, addr);
+				}
+
+				case Opcodes.Ops.OP_INVALID:
+				default:
+				{
+					return null;
+				}
+			}
+		}
+
+		protected void ProcessInstruction (Instruction instruction)
+		{
+			if (prevInsn != null)
+			{
+				prevInsn.Next = instruction;
+				instruction.Prev = prevInsn;
+			}
+
+			disassembly.Add(instruction);
+
+			prevInsn = instruction;
+		}
+
+		protected BranchInsn.InsnType GetBranchType (Opcodes.Ops op)
+		{
+			switch (op)
+			{
+				case Opcodes.Ops.OP_JMP:
+				{
+					return BranchInsn.InsnType.Unconditional;
+				}
+
+				case Opcodes.Ops.OP_JMPIF:
+				case Opcodes.Ops.OP_JMPIFF:
+				case Opcodes.Ops.OP_JMPIFNOT:
+				case Opcodes.Ops.OP_JMPIFFNOT:
+				{
+					return BranchInsn.InsnType.Conditional;
+				}
+
+				case Opcodes.Ops.OP_JMPIF_NP:
+				case Opcodes.Ops.OP_JMPIFNOT_NP:
+				{
+					return BranchInsn.InsnType.LogicalBranch;
+				}
 
 				default:
-					return null;
-			}
-		}
-
-		protected void ProcessInstruction (Instruction instruction, Opcodes.Ops op, uint addr)
-		{
-			if (instruction == null)
-			{
-				throw new Exception ($"Invalid opcode {op} at {addr}");
-			}
-
-			if (instruction is JumpInsn jump)
-			{
-				ProcessJump (jump);
-			}
-
-			disassembly.Add (instruction);
-		}
-
-		protected void ProcessJump (JumpInsn instruction)
-		{
-			if (!IsValidAddr (instruction.TargetAddr))
-			{
-				throw new Exception ($"Jump at {instruction.Addr} jumps to invalid address {instruction.TargetAddr}");
-			}
-
-			AddToQueue (instruction.TargetAddr);
-		}
-
-		protected void ConnectAndLabelJumps ()
-		{
-			var addrToLabel = new Dictionary<uint, int> ();
-			var instructions = disassembly.GetInstructions ();
-
-			foreach (var instruction in instructions)
-			{
-				if (instruction is not JumpInsn jump)
 				{
-					continue;
-				}
-
-				if (!disassembly.Has (jump.TargetAddr))
-				{
-					throw new Exception ($"Jump at {jump.Addr} to instruction that does not exist at {jump.TargetAddr}");
-				}
-
-				var target = disassembly.Get (jump.TargetAddr);
-				jump.Target = target;
-
-				if (addrToLabel.ContainsKey (target.Addr))
-				{
-					target.Label = addrToLabel[target.Addr];
-				}
-				else
-				{
-					target.Label = addrToLabel.Count;
-					addrToLabel[target.Addr] = addrToLabel.Count;
+					return BranchInsn.InsnType.Invalid;
 				}
 			}
 		}
 
-		protected virtual void Reset ()
+		protected AdvanceStringInsn.InsnType GetAdvanceStringType (Opcodes.Ops op)
 		{
-			Pos = 0;
-			queue.Clear ();
-			visited.Clear ();
-		}
-
-		protected void AddToQueue (uint addr)
-		{
-			if (!visited.Contains (addr))
+			switch (op)
 			{
-				queue.Enqueue ((addr, functionEnd));
+				case Opcodes.Ops.OP_ADVANCE_STR:
+				{
+					return AdvanceStringInsn.InsnType.Default;
+				}
+
+				case Opcodes.Ops.OP_ADVANCE_STR_APPENDCHAR:
+				{
+					return AdvanceStringInsn.InsnType.Append;
+				}
+
+				case Opcodes.Ops.OP_ADVANCE_STR_COMMA:
+				{
+					return AdvanceStringInsn.InsnType.Comma;
+				}
+
+				case Opcodes.Ops.OP_ADVANCE_STR_NUL:
+				{
+					return AdvanceStringInsn.InsnType.Null;
+				}
+
+				default:
+				{
+					return AdvanceStringInsn.InsnType.Invalid;
+				}
 			}
 		}
 
-		protected bool IsValidAddr (uint addr) => addr < data.CodeSize;
+		protected uint Read () => fileData.Op(index++);
+		protected bool ReadBool () => Read() != 0;
+		protected char ReadChar () => (char) Read();
+		protected string ReadIdent () => fileData.Identifer(index, Read());
 
-		protected uint Read () => data.Op (Pos++);
-		protected string ReadIdent () => data.Identifer (Pos, Read ());
-		protected string ReadString () => data.StringTableValue (Read (), !InFunction);
-		protected double ReadFloat () => data.FloatTableValue (Read (), !InFunction);
-		protected bool ReadBool () => Read () != 0;
-		protected char ReadChar () => (char) Read ();
-
-		protected uint Peek () => Peek (Pos);
-		protected uint Peek (uint addr) => data.Op (addr);
+		protected bool HasVisited (uint addr) => disassembly.Has(addr);
 	}
 }

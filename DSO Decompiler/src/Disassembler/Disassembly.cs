@@ -1,56 +1,31 @@
 ﻿using System.Collections.Generic;
-using DSODecompiler.Loader;
 
 namespace DSODecompiler.Disassembler
 {
 	public class Disassembly
 	{
-		public class Exception : System.Exception
+		protected Dictionary<uint, Instruction> instructions = new();
+		protected HashSet<uint> jumpTargets = new();
+
+		public Instruction EntryPoint { get => Get(0); }
+
+		public bool Has (uint addr) => instructions.ContainsKey(addr);
+		public Instruction Get (uint addr) => Has(addr) ? instructions[addr] : null;
+		public Instruction this[uint addr] => Get(addr);
+
+		public void AddJumpTarget (uint addr) => jumpTargets.Add(addr);
+		public bool IsJumpTarget (uint addr) => jumpTargets.Contains(addr);
+
+		public bool Add (Instruction instruction)
 		{
-			public Exception () {}
-			public Exception (string message) : base (message) {}
-			public Exception (string message, System.Exception inner) : base (message, inner) {}
-		}
-
-		public Instruction First => instructions.Count > 0 ? instructions[0] : null;
-		public Instruction Last => instructions.Count > 0 ? instructions[^1] : null;
-
-		protected Dictionary<uint, Instruction> addrToInsn = new ();
-		protected List<Instruction> instructions = new ();
-
-		public int Count => instructions.Count;
-
-		public Instruction Add (Instruction instruction)
-		{
-			var addr = instruction.Addr;
-
-			if (addrToInsn.ContainsKey (addr) && addrToInsn[addr] != instruction)
+			if (Has(instruction.Addr))
 			{
-				throw new Exception ($"Instruction already exists at ${addr}");
+				return false;
 			}
 
-			if (instructions.Count > 0)
-			{
-				instructions[^1].Next = instruction;
-				instruction.Prev = instructions[^1];
-			}
+			instructions.Add(instruction.Addr, instruction);
 
-			addrToInsn[addr] = instruction;
-			instructions.Add (instruction);
-
-			return instruction;
+			return true;
 		}
-
-		public IEnumerable<Instruction> GetInstructions ()
-		{
-			foreach (var instruction in instructions)
-			{
-				yield return instruction;
-			}
-		}
-
-		public bool Has (uint addr) => addrToInsn.ContainsKey (addr);
-		public Instruction Get (uint addr) => Has (addr) ? addrToInsn[addr] : null;
-		public Instruction At (int index) => index >= 0 && index < Count ? instructions[index] : null;
 	}
 }
