@@ -8,9 +8,9 @@ namespace DSODecompiler.Disassembler
 	{
 		public class Exception : System.Exception
 		{
-			public Exception () { }
-			public Exception (string message) : base(message) { }
-			public Exception (string message, System.Exception inner) : base(message, inner) { }
+			public Exception () {}
+			public Exception (string message) : base(message) {}
+			public Exception (string message, System.Exception inner) : base(message, inner) {}
 		}
 
 		protected Disassembly disassembly = null;
@@ -137,6 +137,11 @@ namespace DSODecompiler.Disassembler
 					}
 
 					var target = Read();
+
+					if (target >= fileData.CodeSize)
+					{
+						throw new Exception($"Branch at {addr} jumps to invalid address {target}");
+					}
 
 					queue.Enqueue(target);
 					disassembly.AddJumpTarget(target);
@@ -376,6 +381,14 @@ namespace DSODecompiler.Disassembler
 			{
 				prevInsn.Next = instruction;
 				instruction.Prev = prevInsn;
+
+				/* We do this for instructions that jump in the middle of an instruction. If we're
+				   disassembling from one, then there will eventually be an instruction we've
+				   already visited that comes next, so we want to hook them up. */
+				if (disassembly.Has(index))
+				{
+					instruction.Next = disassembly[index];
+				}
 			}
 
 			disassembly.Add(instruction);
