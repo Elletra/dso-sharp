@@ -104,8 +104,6 @@ namespace DSODecompiler.Disassembler
 		}
 
 		public uint TargetAddr { get; }
-		public Instruction Target { get; set; } = null;
-
 		public InsnType Type { get; }
 
 		public BranchInsn (Opcodes.Ops op, uint addr, uint target, InsnType type) : base(op, addr)
