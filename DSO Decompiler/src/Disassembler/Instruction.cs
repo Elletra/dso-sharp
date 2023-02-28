@@ -10,8 +10,6 @@ namespace DSODecompiler.Disassembler
 		public Instruction Prev { get; set; } = null;
 		public Instruction Next { get; set; } = null;
 
-		public bool IsJumpTarget { get; set; } = false;
-
 		public Instruction (Opcodes.Ops op, uint addr)
 		{
 			Op = op;
@@ -20,7 +18,7 @@ namespace DSODecompiler.Disassembler
 
 		public override string ToString ()
 		{
-			return $"[{GetType().Name}]";
+			return $"[@{Addr}, {GetType().Name}]";
 		}
 	}
 
@@ -38,7 +36,7 @@ namespace DSODecompiler.Disassembler
 
 		public override string ToString ()
 		{
-			var str = $"[{GetType().Name}, \"{Name}\", \"{Namespace}\", \"{Package}\", {HasBody}, {EndAddr}";
+			var str = $"[@{Addr}, {GetType().Name}, \"{Name}\", \"{Namespace}\", \"{Package}\", {HasBody}, {EndAddr}";
 
 			foreach (var arg in Arguments)
 			{
@@ -59,7 +57,7 @@ namespace DSODecompiler.Disassembler
 
 		public override string ToString ()
 		{
-			return $"[{GetType().Name}, \"{ParentName}\", {IsDataBlock}, {FailJumpAddr}]";
+			return $"[@{Addr}, {GetType().Name}, \"{ParentName}\", {IsDataBlock}, {FailJumpAddr}]";
 		}
 	}
 
@@ -74,7 +72,7 @@ namespace DSODecompiler.Disassembler
 
 		public override string ToString ()
 		{
-			return $"[{GetType().Name}, {PlaceAtRoot}]";
+			return $"[@{Addr}, {GetType().Name}, {PlaceAtRoot}]";
 		}
 	}
 
@@ -89,7 +87,7 @@ namespace DSODecompiler.Disassembler
 
 		public override string ToString ()
 		{
-			return $"[{GetType().Name}, {Value}]";
+			return $"[@{Addr}, {GetType().Name}, {Value}]";
 		}
 	}
 
@@ -114,7 +112,7 @@ namespace DSODecompiler.Disassembler
 
 		public override string ToString ()
 		{
-			return $"[{GetType().Name}, {TargetAddr}, {Type}]";
+			return $"[@{Addr}, {GetType().Name}, {TargetAddr}, {Type}]";
 		}
 	}
 
@@ -129,7 +127,7 @@ namespace DSODecompiler.Disassembler
 
 		public override string ToString ()
 		{
-			return $"[{GetType().Name}, {ReturnsValue}]";
+			return $"[@{Addr}, {GetType().Name}, {ReturnsValue}]";
 		}
 	}
 
@@ -159,7 +157,7 @@ namespace DSODecompiler.Disassembler
 
 		public override string ToString ()
 		{
-			return $"[{GetType().Name}, \"{Name}\"]";
+			return $"[@{Addr}, {GetType().Name}, \"{Name}\"]";
 		}
 	}
 
@@ -189,7 +187,7 @@ namespace DSODecompiler.Disassembler
 
 		public override string ToString ()
 		{
-			return $"[{GetType().Name}, {IsNew}]";
+			return $"[@{Addr}, {GetType().Name}, {IsNew}]";
 		}
 	}
 
@@ -204,7 +202,7 @@ namespace DSODecompiler.Disassembler
 
 		public override string ToString ()
 		{
-			return $"[{GetType().Name}, \"{Name}\"]";
+			return $"[@{Addr}, {GetType().Name}, \"{Name}\"]";
 		}
 	}
 
@@ -243,7 +241,7 @@ namespace DSODecompiler.Disassembler
 
 		public override string ToString ()
 		{
-			return $"[{GetType().Name}, {Type}]";
+			return $"[@{Addr}, {GetType().Name}, {Type}]";
 		}
 	}
 
@@ -260,7 +258,7 @@ namespace DSODecompiler.Disassembler
 
 		public override string ToString ()
 		{
-			return $"[{GetType().Name}, {Value}]";
+			return $"[@{Addr}, {GetType().Name}, {Value}]";
 		}
 	}
 
@@ -274,7 +272,7 @@ namespace DSODecompiler.Disassembler
 
 		public override string ToString ()
 		{
-			return $"[{GetType().Name}, \"{Name}\", \"{Namespace}\", {CallType}]";
+			return $"[@{Addr}, {GetType().Name}, \"{Name}\", \"{Namespace}\", {CallType}]";
 		}
 	}
 
@@ -311,7 +309,7 @@ namespace DSODecompiler.Disassembler
 
 		public override string ToString ()
 		{
-			return $"[{GetType().Name}, {Type}{(HasChar ? $", {(byte) Char}" : "")}]";
+			return $"[@{Addr}, {GetType().Name}, {Type}{(HasChar ? $", {(byte) Char}" : "")}]";
 		}
 	}
 
@@ -326,7 +324,7 @@ namespace DSODecompiler.Disassembler
 
 		public override string ToString ()
 		{
-			return $"[{GetType().Name}, {Terminate}]";
+			return $"[@{Addr}, {GetType().Name}, {Terminate}]";
 		}
 	}
 
