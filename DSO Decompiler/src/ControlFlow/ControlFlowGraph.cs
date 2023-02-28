@@ -57,6 +57,7 @@ namespace DSODecompiler.ControlFlow
 
 		protected Dictionary<uint, ControlFlowNode> nodes = new();
 
+		public int Count => nodes.Count;
 		public ControlFlowNode EntryPoint => Get(0);
 
 		public bool Has (uint addr) => nodes.ContainsKey(addr);

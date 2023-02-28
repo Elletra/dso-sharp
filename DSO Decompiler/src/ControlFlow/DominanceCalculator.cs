@@ -17,8 +17,8 @@ namespace DSODecompiler.ControlFlow
 		public class Exception : System.Exception
 		{
 			public Exception () {}
-			public Exception (string message) : base (message) {}
-			public Exception (string message, System.Exception inner) : base (message, inner) {}
+			public Exception (string message) : base(message) {}
+			public Exception (string message, System.Exception inner) : base(message, inner) {}
 		}
 
 		/// <summary>
@@ -32,7 +32,7 @@ namespace DSODecompiler.ControlFlow
 		/// <param name="graph"></param>
 		public static void CalculateDominators (ControlFlowGraph graph)
 		{
-			var nodes = CalculatePostorder (graph);
+			var nodes = CalculatePostorder(graph);
 			var entryPoint = graph.EntryPoint;
 
 			// Temporarily set this so the algorithm works.
@@ -48,10 +48,9 @@ namespace DSODecompiler.ControlFlow
 				for (var i = nodes.Length - 2; i >= 0; i--)
 				{
 					var node = nodes[i];
+					var predecessors = new HashSet<ControlFlowNode>();
 
 					ControlFlowNode newIDom = null;
-
-					var predecessors = new HashSet <ControlFlowNode> ();
 
 					/* Find first predecessor whose dominator has been calculated. */
 
@@ -63,13 +62,13 @@ namespace DSODecompiler.ControlFlow
 						}
 						else
 						{
-							predecessors.Add (pred);
+							predecessors.Add(pred);
 						}
 					}
 
 					if (newIDom == null)
 					{
-						throw new Exception ($"Could not find predecessor of {node.Postorder}");
+						throw new Exception($"Could not find predecessor of {node.Postorder}");
 					}
 
 					/* Calculate new immediate dominator. */
@@ -78,7 +77,7 @@ namespace DSODecompiler.ControlFlow
 					{
 						if (pred.ImmediateDom != null)
 						{
-							newIDom = FindCommonDominator (pred, newIDom);
+							newIDom = FindCommonDominator(pred, newIDom);
 						}
 					}
 
@@ -104,29 +103,29 @@ namespace DSODecompiler.ControlFlow
 		{
 			uint numLoops = 0;
 
-			graph.PreorderDFS ((ControlFlowNode node) =>
+			graph.PreorderDFS((ControlFlowNode node) =>
 			{
 				if (node.ImmediateDom == null && node != graph.EntryPoint)
 				{
-					throw new Exception ("Immediate dominator is null! Make sure you call CalculateDominators() before FindLoops()");
+					throw new Exception("Immediate dominator is null! Make sure you call CalculateDominators() before FindLoops()");
 				}
 
 				var last = node.LastInstruction;
 
-				if (last is not JumpInsn jump)
+				if (last is not BranchInsn branch)
 				{
 					return;
 				}
 
-				var target = graph.Get (jump.TargetAddr);
+				var target = graph.Get(branch.TargetAddr);
 
 				// Is this a loop?
-				if (target.Dominates (node))
+				if (target.Dominates(node))
 				{
 					if (target.Addr > node.Addr)
 					{
 						// Back edge somehow jumps forward??
-						throw new Exception ($"Node at {target.Addr} dominates earlier node at {node.Addr}");
+						throw new Exception($"Node at {target.Addr} dominates earlier node at {node.Addr}");
 					}
 
 					target.IsLoopStart = true;
@@ -180,7 +179,7 @@ namespace DSODecompiler.ControlFlow
 			var nodes = new ControlFlowNode[graph.Count];
 			var postorder = 0;
 
-			graph.PostorderDFS ((ControlFlowNode node) =>
+			graph.PostorderDFS((ControlFlowNode node) =>
 			{
 				node.Postorder = postorder++;
 				nodes[node.Postorder] = node;

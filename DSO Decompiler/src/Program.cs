@@ -19,6 +19,10 @@ namespace DSODecompiler
 			var cfg = cfgBuilder.Build(disassembly);
 
 			cfg.PreorderDFS(PrintCFG);
+
+			DominanceCalculator.CalculateDominators(cfg);
+
+			Console.WriteLine($"Found {DominanceCalculator.FindLoops(cfg)} loop(s).");
 		}
 
 		static private void PrintCFG (ControlFlowNode node)

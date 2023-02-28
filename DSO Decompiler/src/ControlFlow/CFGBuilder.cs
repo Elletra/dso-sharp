@@ -80,7 +80,7 @@ namespace DSODecompiler.ControlFlow
 			{
 				if (!cfg.Connect(node.Addr, branch.TargetAddr))
 				{
-					throw new Exception($"Invalid branch address {branch.TargetAddr}");
+					throw new Exception($"Invalid branch from {branch.Addr} to {branch.TargetAddr}");
 				}
 			}
 		}
