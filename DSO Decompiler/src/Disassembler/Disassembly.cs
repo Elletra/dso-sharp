@@ -5,7 +5,7 @@ namespace DSODecompiler.Disassembler
 	public class Disassembly
 	{
 		protected Dictionary<uint, Instruction> instructions = new();
-		protected HashSet<uint> jumpTargets = new();
+		protected HashSet<uint> branchTargets = new();
 
 		public Instruction EntryPoint { get => Get(0); }
 
@@ -13,8 +13,8 @@ namespace DSODecompiler.Disassembler
 		public Instruction Get (uint addr) => Has(addr) ? instructions[addr] : null;
 		public Instruction this[uint addr] => Get(addr);
 
-		public void AddJumpTarget (uint addr) => jumpTargets.Add(addr);
-		public bool IsJumpTarget (uint addr) => jumpTargets.Contains(addr);
+		public void AddBranchTarget (uint addr) => branchTargets.Add(addr);
+		public bool IsBranchTarget (uint addr) => branchTargets.Contains(addr);
 
 		public bool Add (Instruction instruction)
 		{
@@ -31,44 +31,52 @@ namespace DSODecompiler.Disassembler
 
 	public class DisassemblyTraverser
 	{
-		public delegate void VisitFn (Instruction instruction);
+		public delegate void VisitFn (Instruction instruction, Disassembly disassembly);
+		public delegate void TraverseFromFn (Instruction instruction, Disassembly disassembly);
 
 		protected Queue<Instruction> queue = null;
 		protected HashSet<Instruction> visited = null;
 
-		public void Traverse (Disassembly disassembly, VisitFn visitFunc)
+		protected VisitFn visitFunc;
+		protected TraverseFromFn traverseFromFunc;
+
+		public void Traverse (Disassembly disassembly, VisitFn visitFn, TraverseFromFn traverseFromFn)
 		{
+			visitFunc = visitFn ?? DefaultVisitFunc;
+			traverseFromFunc = traverseFromFn ?? DefaultTraverseFromFunc;
 			queue = new();
 			visited = new();
 
-			StartTraverse(disassembly, visitFunc);
+			StartTraverse(disassembly);
 		}
 
-		protected void StartTraverse (Disassembly disassembly, VisitFn visitFunc)
+		protected void StartTraverse (Disassembly disassembly)
 		{
 			queue.Enqueue(disassembly.EntryPoint);
 
 			while (queue.Count > 0 && !HasVisited(queue.Peek()))
 			{
-				TraverseFrom(queue.Dequeue(), disassembly, visitFunc);
+				TraverseFrom(queue.Dequeue(), disassembly);
 			}
 		}
 
-		protected void TraverseFrom (Instruction fromInsn, Disassembly disassembly, VisitFn visitFunc)
+		protected void TraverseFrom (Instruction fromInsn, Disassembly disassembly)
 		{
+			traverseFromFunc(fromInsn, disassembly);
+
 			var instruction = fromInsn;
 
 			while (instruction != null)
 			{
-				Visit(instruction, disassembly, visitFunc);
+				Visit(instruction, disassembly);
 
 				instruction = instruction.Next;
 			}
 		}
 
-		protected void Visit (Instruction instruction, Disassembly disassembly, VisitFn visitFunc)
+		protected void Visit (Instruction instruction, Disassembly disassembly)
 		{
-			visitFunc(instruction);
+			visitFunc(instruction, disassembly);
 
 			if (instruction is BranchInsn branch && disassembly.Has(branch.TargetAddr))
 			{
@@ -79,5 +87,8 @@ namespace DSODecompiler.Disassembler
 		}
 
 		protected bool HasVisited (Instruction instruction) => visited.Contains(instruction);
+
+		protected void DefaultVisitFunc (Instruction instruction, Disassembly disassembly) {}
+		protected void DefaultTraverseFromFunc (Instruction instruction, Disassembly disassembly) {}
 	}
 }

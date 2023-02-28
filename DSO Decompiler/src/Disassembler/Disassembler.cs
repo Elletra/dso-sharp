@@ -42,8 +42,8 @@ namespace DSODecompiler.Disassembler
 			queue.Enqueue(0);
 
 			/* The queue should typically only have 1 item in it. The reason we use a queue at all
-			   is to disassemble jumps that jump to the middle of an instruction to try to avoid
-			   disassembly.
+			   is to disassemble instructions that jump to the middle of an instruction to try to
+			   avoid disassembly.
 
 			   I highly, *highly* doubt there are DSO files that actually do that, but it's still
 			   good to do this... */
@@ -144,7 +144,7 @@ namespace DSODecompiler.Disassembler
 					}
 
 					queue.Enqueue(target);
-					disassembly.AddJumpTarget(target);
+					disassembly.AddBranchTarget(target);
 
 					return new BranchInsn(op, addr, target, type);
 				}
