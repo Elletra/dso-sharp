@@ -1,31 +1,34 @@
 ﻿using System.Collections.Generic;
 
 using DSODecompiler.Disassembler;
-using DSODecompiler.Util;
 
 namespace DSODecompiler.ControlFlow
 {
-	public class ControlFlowNode : GraphNode<uint>
+	public class ControlFlowNode
 	{
+		public uint Addr { get; } = 0;
 		public int Postorder { get; set; }
+
 		public ControlFlowNode ImmediateDom { get; set; } = null;
 
 		public bool IsLoopStart { get; set; } = false;
 		public bool IsLoopEnd { get; set; } = false;
 
-		public uint Addr => Key;
+		// We don't need to store all the instructions -- We just need the last one.
+		public Instruction LastInstruction { get; set; } = null;
 
-		public readonly List<Instruction> Instructions = new ();
+		public readonly List<ControlFlowNode> Predecessors = new();
+		public readonly List<ControlFlowNode> Successors = new();
 
-		public Instruction this[int index] => index >= 0 && index < Instructions.Count ? Instructions[index] : null;
-
-		public Instruction FirstInstruction => Instructions.Count > 0 ? Instructions[0] : null;
-		public Instruction LastInstruction => Instructions.Count > 0 ? Instructions[^1] : null;
-
-		public ControlFlowNode (uint key) : base (key) {}
+		public ControlFlowNode (uint addr)
+		{
+			Addr = addr;
+		}
 
 		/// <summary>
 		/// Calculates if this node dominates the node specified.
+		/// <br />
+		/// NOTE: Requires dominators to be calculated first.
 		/// </summary>
 		/// <param name="node"></param>
 		/// <returns>Whether this node dominates the node specified.</returns>
@@ -48,20 +51,99 @@ namespace DSODecompiler.ControlFlow
 		}
 	}
 
-	public class ControlFlowGraph : Graph<uint, ControlFlowNode>
+	public class ControlFlowGraph
 	{
-		public ControlFlowNode EntryPoint => Get (0);
+		public delegate void VisitFn (ControlFlowNode node);
 
-		public ControlFlowNode CreateOrGet (uint addr) => Has (addr) ? Get (addr) : Add (new ControlFlowNode (addr));
+		protected Dictionary<uint, ControlFlowNode> nodes = new();
 
-		public void PostorderDFS (DFSCallbackFn callback)
+		public ControlFlowNode EntryPoint => Get(0);
+
+		public bool Has (uint addr) => nodes.ContainsKey(addr);
+
+		public ControlFlowNode Add (uint addr) => nodes[addr] = new ControlFlowNode(addr);
+		public ControlFlowNode Get (uint addr) => Has(addr) ? nodes[addr] : null;
+		public ControlFlowNode AddOrGet (uint addr) => Has(addr) ? Get(addr) : Add(addr);
+
+		public bool Connect (uint fromAddr, uint toAddr)
 		{
-			PostorderDFS (EntryPoint.Key, new HashSet<uint> (), callback);
+			if (!Has(fromAddr) || !Has(toAddr))
+			{
+				return false;
+			}
+
+			var fromNode = Get(fromAddr);
+			var toNode = Get(toAddr);
+
+			fromNode.Successors.Add(toNode);
+			toNode.Predecessors.Add(fromNode);
+
+			return true;
 		}
 
-		public void PreorderDFS (DFSCallbackFn callback)
+		public void Iterate (VisitFn callback)
 		{
-			PreorderDFS (EntryPoint, callback);
+			foreach (var (_, node) in nodes)
+			{
+				callback(node);
+			}
+		}
+
+		public void PostorderDFS (VisitFn callback)
+		{
+			PostorderDFS(EntryPoint.Addr, new HashSet<uint>(), callback);
+		}
+
+		public void PreorderDFS (VisitFn callback)
+		{
+			PreorderDFS(EntryPoint, callback);
+		}
+
+		// TODO: Somehow make this iterative because it causes a stack overflow on larger files.
+		protected void PostorderDFS (uint addr, HashSet<uint> visited, VisitFn callback)
+		{
+			if (visited.Contains(addr))
+			{
+				return;
+			}
+
+			visited.Add(addr);
+
+			var node = Get(addr);
+			var successors = node.Successors;
+
+			foreach (var successor in successors)
+			{
+				PostorderDFS(successor.Addr, visited, callback);
+			}
+
+			callback(node);
+		}
+
+		protected void PreorderDFS (ControlFlowNode entryPoint, VisitFn callback)
+		{
+			var stack = new Stack<ControlFlowNode>();
+			var visited = new HashSet<uint>();
+
+			stack.Push(entryPoint);
+
+			while (stack.Count > 0)
+			{
+				var node = stack.Pop();
+
+				if (visited.Contains(node.Addr))
+				{
+					continue;
+				}
+
+				visited.Add(node.Addr);
+				callback(node);
+
+				for (var i = node.Successors.Count - 1; i >= 0; i--)
+				{
+					stack.Push(node.Successors[i]);
+				}
+			}
 		}
 	}
 }
