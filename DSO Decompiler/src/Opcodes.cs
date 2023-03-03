@@ -96,6 +96,32 @@ namespace DSODecompiler
 		public static readonly uint MaxValue;
 		public static readonly uint MinValue;
 
+		public enum BranchType
+		{
+			Invalid = -1,
+			Unconditional, // OP_JMP
+			Conditional,   // OP_JMPIF(F), OP_JMPIF(F)NOT
+			LogicalBranch, // OP_JMPIF_NP, OPJMPIFNOT_NP (for logical and/or)
+		}
+
+		public enum ConvertToType
+		{
+			Invalid = -1,
+			UInt,
+			Float,
+			String,
+			None,
+		}
+
+		public enum AdvanceStringType
+		{
+			Invalid = -1,
+			Default,
+			Append,
+			Comma,
+			Null,
+		}
+
 		static Opcodes ()
 		{
 			var values = Enum.GetValues(typeof(Ops));
@@ -174,5 +200,103 @@ namespace DSODecompiler
 		public static string OpcodeToString (uint op) => OpcodeToString((Ops) op);
 
 		public static bool IsValidOpcode (uint op) => op >= MinValue && op <= MaxValue;
+
+		public static BranchType GetBranchType (Ops op)
+		{
+			switch (op)
+			{
+				case Ops.OP_JMP:
+				{
+					return BranchType.Unconditional;
+				}
+
+				case Ops.OP_JMPIF:
+				case Ops.OP_JMPIFF:
+				case Ops.OP_JMPIFNOT:
+				case Ops.OP_JMPIFFNOT:
+				{
+					return BranchType.Conditional;
+				}
+
+				case Ops.OP_JMPIF_NP:
+				case Ops.OP_JMPIFNOT_NP:
+				{
+					return BranchType.LogicalBranch;
+				}
+
+				default:
+				{
+					return BranchType.Invalid;
+				}
+			}
+		}
+
+		public static ConvertToType GetConvertToType (Ops op)
+		{
+			switch (op)
+			{
+				case Ops.OP_STR_TO_UINT:
+				case Ops.OP_FLT_TO_UINT:
+				{
+					return ConvertToType.UInt;
+				}
+
+				case Ops.OP_STR_TO_FLT:
+				case Ops.OP_UINT_TO_FLT:
+				{
+					return ConvertToType.Float;
+				}
+
+				case Ops.OP_FLT_TO_STR:
+				case Ops.OP_UINT_TO_STR:
+				{
+					return ConvertToType.String;
+				}
+
+				case Ops.OP_STR_TO_NONE:
+				case Ops.OP_STR_TO_NONE_2:
+				case Ops.OP_FLT_TO_NONE:
+				case Ops.OP_UINT_TO_NONE:
+				{
+					return ConvertToType.None;
+				}
+
+				default:
+				{
+					return ConvertToType.Invalid;
+				}
+			}
+		}
+
+		public static AdvanceStringType GetAdvanceStringType (Ops op)
+		{
+			switch (op)
+			{
+				case Ops.OP_ADVANCE_STR:
+				{
+					return AdvanceStringType.Default;
+				}
+
+				case Ops.OP_ADVANCE_STR_APPENDCHAR:
+				{
+					return AdvanceStringType.Append;
+				}
+
+				case Ops.OP_ADVANCE_STR_COMMA:
+				{
+					return AdvanceStringType.Comma;
+				}
+
+				case Ops.OP_ADVANCE_STR_NUL:
+				{
+					return AdvanceStringType.Null;
+				}
+
+				default:
+				{
+					return AdvanceStringType.Invalid;
+				}
+			}
+		}
 	}
 }

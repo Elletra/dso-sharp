@@ -93,18 +93,10 @@ namespace DSODecompiler.Disassembler
 
 	public class BranchInsn : Instruction
 	{
-		public enum InsnType
-		{
-			Invalid = -1,
-			Unconditional, // OP_JMP
-			Conditional,   // OP_JMPIF(F), OP_JMPIF(F)NOT
-			LogicalBranch, // OP_JMPIF_NP, OPJMPIFNOT_NP (for logical and/or)
-		}
-
 		public uint TargetAddr { get; }
-		public InsnType Type { get; }
+		public Opcodes.BranchType Type { get; }
 
-		public BranchInsn (Opcodes.Ops op, uint addr, uint target, InsnType type) : base(op, addr)
+		public BranchInsn (Opcodes.Ops op, uint addr, uint target, Opcodes.BranchType type) : base(op, addr)
 		{
 			TargetAddr = target;
 			Type = type;
@@ -223,18 +215,9 @@ namespace DSODecompiler.Disassembler
 
 	public class ConvertToTypeInsn : Instruction
 	{
-		public enum InsnType
-		{
-			Invalid = -1,
-			UInt,
-			Float,
-			String,
-			None,
-		}
+		public Opcodes.ConvertToType Type { get; }
 
-		public InsnType Type { get; }
-
-		public ConvertToTypeInsn (Opcodes.Ops op, uint addr, InsnType type) : base(op, addr)
+		public ConvertToTypeInsn (Opcodes.Ops op, uint addr, Opcodes.ConvertToType type) : base(op, addr)
 		{
 			Type = type;
 		}
@@ -278,20 +261,11 @@ namespace DSODecompiler.Disassembler
 
 	public class AdvanceStringInsn : Instruction
 	{
-		public enum InsnType
-		{
-			Invalid = -1,
-			Default,
-			Append,
-			Comma,
-			Null,
-		}
-
-		public InsnType Type { get; }
+		public Opcodes.AdvanceStringType Type { get; }
 		public char Char { get; }
 		public bool HasChar { get; }
 
-		public AdvanceStringInsn (Opcodes.Ops op, uint addr, InsnType type, char ch)
+		public AdvanceStringInsn (Opcodes.Ops op, uint addr, Opcodes.AdvanceStringType type, char ch)
 			: base(op, addr)
 		{
 			Type = type;
@@ -299,7 +273,7 @@ namespace DSODecompiler.Disassembler
 			HasChar = true;
 		}
 
-		public AdvanceStringInsn (Opcodes.Ops op, uint addr, InsnType type = InsnType.Default)
+		public AdvanceStringInsn (Opcodes.Ops op, uint addr, Opcodes.AdvanceStringType type = Opcodes.AdvanceStringType.Default)
 			: base(op, addr)
 		{
 			Type = type;

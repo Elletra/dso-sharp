@@ -129,9 +129,9 @@ namespace DSODecompiler.Disassembler
 				case Opcodes.Ops.OP_JMPIF_NP:
 				case Opcodes.Ops.OP_JMPIFNOT_NP:
 				{
-					var type = GetBranchType(op);
+					var type = Opcodes.GetBranchType(op);
 
-					if (type == BranchInsn.InsnType.Invalid)
+					if (type == Opcodes.BranchType.Invalid)
 					{
 						throw new Exception($"Invalid branch type at {addr}");
 					}
@@ -266,14 +266,10 @@ namespace DSODecompiler.Disassembler
 
 				case Opcodes.Ops.OP_STR_TO_UINT:
 				case Opcodes.Ops.OP_FLT_TO_UINT:
-				{
-					return new ConvertToTypeInsn(op, addr, ConvertToTypeInsn.InsnType.UInt);
-				}
-
 				case Opcodes.Ops.OP_STR_TO_FLT:
 				case Opcodes.Ops.OP_UINT_TO_FLT:
 				{
-					return new ConvertToTypeInsn(op, addr, ConvertToTypeInsn.InsnType.Float);
+					return new ConvertToTypeInsn(op, addr, Opcodes.ConvertToType.Float);
 				}
 
 				case Opcodes.Ops.OP_FLT_TO_STR:
@@ -281,7 +277,7 @@ namespace DSODecompiler.Disassembler
 				{
 					returnableValue = true;
 
-					return new ConvertToTypeInsn(op, addr, ConvertToTypeInsn.InsnType.String);
+					return new ConvertToTypeInsn(op, addr, Opcodes.ConvertToType.String);
 				}
 
 				case Opcodes.Ops.OP_STR_TO_NONE:
@@ -291,7 +287,7 @@ namespace DSODecompiler.Disassembler
 				{
 					returnableValue = false;
 
-					return new ConvertToTypeInsn(op, addr, ConvertToTypeInsn.InsnType.None);
+					return new ConvertToTypeInsn(op, addr, Opcodes.ConvertToType.None);
 				}
 
 				case Opcodes.Ops.OP_LOADIMMED_UINT:
@@ -323,14 +319,14 @@ namespace DSODecompiler.Disassembler
 				case Opcodes.Ops.OP_ADVANCE_STR_COMMA:
 				case Opcodes.Ops.OP_ADVANCE_STR_NUL:
 				{
-					var type = GetAdvanceStringType(op);
+					var type = Opcodes.GetAdvanceStringType(op);
 
-					if (type == AdvanceStringInsn.InsnType.Invalid)
+					if (type == Opcodes.AdvanceStringType.Invalid)
 					{
 						throw new Exception($"Invalid advance string type at {addr}");
 					}
 
-					if (type == AdvanceStringInsn.InsnType.Append)
+					if (type == Opcodes.AdvanceStringType.Append)
 					{
 						return new AdvanceStringInsn(op, addr, type, ReadChar());
 					}
@@ -394,67 +390,6 @@ namespace DSODecompiler.Disassembler
 			disassembly.Add(instruction);
 
 			prevInsn = instruction;
-		}
-
-		protected BranchInsn.InsnType GetBranchType (Opcodes.Ops op)
-		{
-			switch (op)
-			{
-				case Opcodes.Ops.OP_JMP:
-				{
-					return BranchInsn.InsnType.Unconditional;
-				}
-
-				case Opcodes.Ops.OP_JMPIF:
-				case Opcodes.Ops.OP_JMPIFF:
-				case Opcodes.Ops.OP_JMPIFNOT:
-				case Opcodes.Ops.OP_JMPIFFNOT:
-				{
-					return BranchInsn.InsnType.Conditional;
-				}
-
-				case Opcodes.Ops.OP_JMPIF_NP:
-				case Opcodes.Ops.OP_JMPIFNOT_NP:
-				{
-					return BranchInsn.InsnType.LogicalBranch;
-				}
-
-				default:
-				{
-					return BranchInsn.InsnType.Invalid;
-				}
-			}
-		}
-
-		protected AdvanceStringInsn.InsnType GetAdvanceStringType (Opcodes.Ops op)
-		{
-			switch (op)
-			{
-				case Opcodes.Ops.OP_ADVANCE_STR:
-				{
-					return AdvanceStringInsn.InsnType.Default;
-				}
-
-				case Opcodes.Ops.OP_ADVANCE_STR_APPENDCHAR:
-				{
-					return AdvanceStringInsn.InsnType.Append;
-				}
-
-				case Opcodes.Ops.OP_ADVANCE_STR_COMMA:
-				{
-					return AdvanceStringInsn.InsnType.Comma;
-				}
-
-				case Opcodes.Ops.OP_ADVANCE_STR_NUL:
-				{
-					return AdvanceStringInsn.InsnType.Null;
-				}
-
-				default:
-				{
-					return AdvanceStringInsn.InsnType.Invalid;
-				}
-			}
 		}
 
 		protected uint Read () => fileData.Op(index++);
