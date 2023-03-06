@@ -226,13 +226,11 @@ namespace DSODecompiler.Disassembler
 		}
 	}
 
-	public class LoadImmedInsn : Instruction
+	public class LoadImmedInsn<T> : Instruction
 	{
-		// Strings and floats rely on knowing whether we're in a function, which we're not going
-		// to do until later, so we just store the raw table index.
-		public uint Value { get; }
+		public T Value { get; }
 
-		public LoadImmedInsn (Opcode op, uint addr, uint value) : base(op, addr)
+		public LoadImmedInsn (Opcode op, uint addr, T value) : base(op, addr)
 		{
 			Value = value;
 		}

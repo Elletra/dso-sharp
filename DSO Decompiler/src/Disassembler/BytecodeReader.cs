@@ -21,8 +21,8 @@ namespace DSODecompiler.Disassembler
 		public bool ReadBool () => Read() != 0;
 		public char ReadChar () => (char) Read();
 		public string ReadIdent () => fileData.Identifer(index, Read());
-		public string ReadString (uint value, bool global) => fileData.StringTableValue(value, global);
-		public double ReadFloat (uint value, bool global) => fileData.FloatTableValue(value, global);
+		public string ReadString (bool global) => fileData.StringTableValue(Read(), global);
+		public double ReadDouble (bool global) => fileData.FloatTableValue(Read(), global);
 
 		public uint Peek () => fileData.Op(index);
 		public bool PeekBool () => Peek() != 0;

@@ -17,11 +17,21 @@ namespace DSODecompiler.Disassembler
 		// This is used to emulate the STR object used in Torque to return values from files/functions.
 		protected bool returnableValue = false;
 
+		protected uint functionEnd = 0;
+
+		/* There's probably a stupid way to nest function declarations inside each other, and that
+		   would require having a function stack instead, but since we're keeping it simple for now,
+		   let's just do it this way.
+
+		   Tentative TODO: Maybe someday. */
+		protected bool InFunction => functionEnd > 0;
+
 		public Disassembly Disassemble (FileData data)
 		{
 			reader = new(data);
 			disassembly = new();
 			returnableValue = false;
+			functionEnd = 0;
 
 			InitialDisassembly();
 			MarkBranchTargets();
@@ -37,7 +47,7 @@ namespace DSODecompiler.Disassembler
 			}
 		}
 
-		/* Since branches can jump backwards, we can't reliably do it on the first pass. */
+		/* Since branches can jump backwards, we have to do this on a second pass. */
 		protected void MarkBranchTargets()
 		{
 			foreach (var instruction in disassembly.GetInstructions())
@@ -87,6 +97,8 @@ namespace DSODecompiler.Disassembler
 
 		protected Instruction DisassembleOp (Opcode opcode, uint addr)
 		{
+			ProcessAddress(addr);
+
 			switch (opcode.Op)
 			{
 				case Opcode.Ops.OP_FUNC_DECL:
@@ -105,6 +117,16 @@ namespace DSODecompiler.Disassembler
 					for (uint i = 0; i < args; i++)
 					{
 						instruction.Arguments.Add(reader.ReadIdent());
+					}
+
+					if (instruction.HasBody)
+					{
+						if (InFunction)
+						{
+							throw new Exception($"Nested function declaration at {addr}");
+						}
+
+						functionEnd = instruction.EndAddr;
 					}
 
 					return instruction;
@@ -299,14 +321,32 @@ namespace DSODecompiler.Disassembler
 				}
 
 				case Opcode.Ops.OP_LOADIMMED_UINT:
+				{
+					returnableValue = true;
+
+					return new LoadImmedInsn<uint>(opcode, addr, reader.Read());
+				}
+
 				case Opcode.Ops.OP_LOADIMMED_FLT:
+				{
+					returnableValue = true;
+
+					return new LoadImmedInsn<double>(opcode, addr, reader.ReadDouble(global: !InFunction));
+				}
+
 				case Opcode.Ops.OP_TAG_TO_STR:
 				case Opcode.Ops.OP_LOADIMMED_STR:
+				{
+					returnableValue = true;
+
+					return new LoadImmedInsn<string>(opcode, addr, reader.ReadString(global: !InFunction));
+				}
+
 				case Opcode.Ops.OP_LOADIMMED_IDENT:
 				{
 					returnableValue = true;
 
-					return new LoadImmedInsn(opcode, addr, reader.Read());
+					return new LoadImmedInsn<string>(opcode, addr, reader.ReadIdent());
 				}
 
 				case Opcode.Ops.OP_CALLFUNC:
@@ -376,6 +416,14 @@ namespace DSODecompiler.Disassembler
 				{
 					return null;
 				}
+			}
+		}
+
+		protected void ProcessAddress (uint addr)
+		{
+			if (addr == functionEnd)
+			{
+				functionEnd = 0;
 			}
 		}
 
