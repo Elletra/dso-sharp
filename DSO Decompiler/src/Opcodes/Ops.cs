@@ -265,5 +265,244 @@ namespace DSODecompiler.Opcodes
 				}
 			}
 		}
+
+		public static OpcodeType GetOpcodeType (Value op)
+		{
+			switch (op)
+			{
+				case Value.OP_FUNC_DECL:
+				{
+					return OpcodeType.FunctionDecl;
+				}
+
+				case Value.OP_CREATE_OBJECT:
+				{
+					return OpcodeType.CreateObject;
+				}
+
+				case Value.OP_ADD_OBJECT:
+				{
+					return OpcodeType.AddObject;
+				}
+
+				case Value.OP_END_OBJECT:
+				{
+					return OpcodeType.EndObject;
+				}
+
+				case Value.OP_JMP:
+				case Value.OP_JMPIF:
+				case Value.OP_JMPIFF:
+				case Value.OP_JMPIFNOT:
+				case Value.OP_JMPIFFNOT:
+				case Value.OP_JMPIF_NP:
+				case Value.OP_JMPIFNOT_NP:
+				{
+					return OpcodeType.Branch;
+				}
+
+				case Value.OP_RETURN:
+				{
+					return OpcodeType.Return;
+				}
+
+				case Value.OP_CMPEQ:
+				case Value.OP_CMPGR:
+				case Value.OP_CMPGE:
+				case Value.OP_CMPLT:
+				case Value.OP_CMPLE:
+				case Value.OP_CMPNE:
+				case Value.OP_XOR:
+				case Value.OP_MOD:
+				case Value.OP_BITAND:
+				case Value.OP_BITOR:
+				case Value.OP_SHR:
+				case Value.OP_SHL:
+				case Value.OP_AND:
+				case Value.OP_OR:
+				case Value.OP_ADD:
+				case Value.OP_SUB:
+				case Value.OP_MUL:
+				case Value.OP_DIV:
+				{
+					return OpcodeType.Binary;
+				}
+
+				case Value.OP_COMPARE_STR:
+				{
+					return OpcodeType.BinaryString;
+				}
+
+				case Value.OP_NEG:
+				case Value.OP_NOT:
+				case Value.OP_NOTF:
+				case Value.OP_ONESCOMPLEMENT:
+				{
+					return OpcodeType.Unary;
+				}
+
+				case Value.OP_SETCURVAR:
+				case Value.OP_SETCURVAR_CREATE:
+				{
+					return OpcodeType.SetCurVar;
+				}
+
+				case Value.OP_SETCURVAR_ARRAY:
+				case Value.OP_SETCURVAR_ARRAY_CREATE:
+				{
+					return OpcodeType.SetCurVarArray;
+				}
+
+				case Value.OP_LOADVAR_UINT:
+				case Value.OP_LOADVAR_FLT:
+				case Value.OP_LOADVAR_STR:
+				{
+					return OpcodeType.LoadVar;
+				}
+
+				case Value.OP_SAVEVAR_UINT:
+				case Value.OP_SAVEVAR_FLT:
+				case Value.OP_SAVEVAR_STR:
+				{
+					return OpcodeType.SaveVar;
+				}
+
+				case Value.OP_SETCUROBJECT:
+				{
+					return OpcodeType.SetCurObject;
+				}
+
+				case Value.OP_SETCUROBJECT_NEW:
+				{
+					return OpcodeType.SetCurObjectNew;
+				}
+
+				case Value.OP_SETCURFIELD:
+				{
+					return OpcodeType.SetCurField;
+				}
+
+				case Value.OP_SETCURFIELD_ARRAY:
+				{
+					return OpcodeType.SetCurFieldArray;
+				}
+
+				case Value.OP_LOADFIELD_UINT:
+				case Value.OP_LOADFIELD_FLT:
+				case Value.OP_LOADFIELD_STR:
+				{
+					return OpcodeType.LoadField;
+				}
+
+				case Value.OP_SAVEFIELD_UINT:
+				case Value.OP_SAVEFIELD_FLT:
+				case Value.OP_SAVEFIELD_STR:
+				{
+					return OpcodeType.SaveField;
+				}
+
+				case Value.OP_STR_TO_UINT:
+				case Value.OP_FLT_TO_UINT:
+				{
+					return OpcodeType.ConvertToUInt;
+				}
+
+				case Value.OP_STR_TO_FLT:
+				case Value.OP_UINT_TO_FLT:
+				{
+					return OpcodeType.ConvertToFloat;
+				}
+
+				case Value.OP_FLT_TO_STR:
+				case Value.OP_UINT_TO_STR:
+				{
+					return OpcodeType.ConvertToString;
+				}
+
+				case Value.OP_STR_TO_NONE:
+				case Value.OP_STR_TO_NONE_2:
+				case Value.OP_FLT_TO_NONE:
+				case Value.OP_UINT_TO_NONE:
+				{
+					return OpcodeType.ConvertToNone;
+				}
+
+				case Value.OP_LOADIMMED_UINT:
+				{
+					return OpcodeType.LoadImmedUInt;
+				}
+
+				case Value.OP_LOADIMMED_FLT:
+				{
+					return OpcodeType.LoadImmedFloat;
+				}
+
+				case Value.OP_TAG_TO_STR:
+				case Value.OP_LOADIMMED_STR:
+				{
+					return OpcodeType.LoadImmedString;
+				}
+
+				case Value.OP_LOADIMMED_IDENT:
+				{
+					return OpcodeType.LoadImmedIdent;
+				}
+
+				case Value.OP_CALLFUNC:
+				case Value.OP_CALLFUNC_RESOLVE:
+				{
+					return OpcodeType.FunctionCall;
+				}
+
+				case Value.OP_ADVANCE_STR:
+				case Value.OP_ADVANCE_STR_COMMA:
+				case Value.OP_ADVANCE_STR_NUL:
+				{
+					return OpcodeType.AdvanceString;
+				}
+
+				case Value.OP_ADVANCE_STR_APPENDCHAR:
+				{
+					return OpcodeType.AdvanceAppendString;
+				}
+
+				case Value.OP_REWIND_STR:
+				{
+					return OpcodeType.RewindString;
+				}
+
+				case Value.OP_TERMINATE_REWIND_STR:
+				{
+					return OpcodeType.TerminateRewindString;
+				}
+
+				case Value.OP_PUSH:
+				{
+					return OpcodeType.Push;
+				}
+
+				case Value.OP_PUSH_FRAME:
+				{
+					return OpcodeType.PushFrame;
+				}
+
+				case Value.OP_BREAK:
+				{
+					return OpcodeType.DebugBreak;
+				}
+
+				case Value.UNUSED1:
+				case Value.UNUSED2:
+				{
+					return OpcodeType.Unused;
+				}
+
+				case Value.OP_INVALID:
+				default:
+				{
+					return OpcodeType.Invalid;
+				}
+			}
+		}
 	}
 }

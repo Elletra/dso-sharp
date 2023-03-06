@@ -6,9 +6,9 @@ namespace DSODecompiler.Disassembler
 	{
 		public static Instruction Create (Opcode opcode, uint addr, BytecodeReader reader, bool returnableValue)
 		{
-			switch (opcode.Op)
+			switch (opcode.Type)
 			{
-				case Ops.Value.OP_FUNC_DECL:
+				case OpcodeType.FunctionDecl:
 				{
 					var instruction = new FuncDeclInsn(opcode, addr)
 					{
@@ -29,7 +29,7 @@ namespace DSODecompiler.Disassembler
 					return instruction;
 				}
 
-				case Ops.Value.OP_CREATE_OBJECT:
+				case OpcodeType.CreateObject:
 				{
 					return new CreateObjectInsn(opcode, addr)
 					{
@@ -39,160 +39,116 @@ namespace DSODecompiler.Disassembler
 					};
 				}
 
-				case Ops.Value.OP_ADD_OBJECT:
+				case OpcodeType.AddObject:
 				{
 					return new AddObjectInsn(opcode, addr, reader.ReadBool());
 				}
 
-				case Ops.Value.OP_END_OBJECT:
+				case OpcodeType.EndObject:
 				{
 					return new EndObjectInsn(opcode, addr, reader.ReadBool());
 				}
 
-				case Ops.Value.OP_JMP:
-				case Ops.Value.OP_JMPIF:
-				case Ops.Value.OP_JMPIFF:
-				case Ops.Value.OP_JMPIFNOT:
-				case Ops.Value.OP_JMPIFFNOT:
-				case Ops.Value.OP_JMPIF_NP:
-				case Ops.Value.OP_JMPIFNOT_NP:
+				case OpcodeType.Branch:
 				{
 					return new BranchInsn(opcode, addr, reader.Read());
 				}
 
-				case Ops.Value.OP_RETURN:
+				case OpcodeType.Return:
 				{
 					return new ReturnInsn(opcode, addr, returnableValue);
 				}
 
-				case Ops.Value.OP_CMPEQ:
-				case Ops.Value.OP_CMPGR:
-				case Ops.Value.OP_CMPGE:
-				case Ops.Value.OP_CMPLT:
-				case Ops.Value.OP_CMPLE:
-				case Ops.Value.OP_CMPNE:
-				case Ops.Value.OP_XOR:
-				case Ops.Value.OP_MOD:
-				case Ops.Value.OP_BITAND:
-				case Ops.Value.OP_BITOR:
-				case Ops.Value.OP_SHR:
-				case Ops.Value.OP_SHL:
-				case Ops.Value.OP_AND:
-				case Ops.Value.OP_OR:
-				case Ops.Value.OP_ADD:
-				case Ops.Value.OP_SUB:
-				case Ops.Value.OP_MUL:
-				case Ops.Value.OP_DIV:
+				case OpcodeType.Binary:
 				{
 					return new BinaryInsn(opcode, addr);
 				}
 
-				case Ops.Value.OP_COMPARE_STR:
+				case OpcodeType.BinaryString:
 				{
 					return new StringCompareInsn(opcode, addr);
 				}
 
-				case Ops.Value.OP_NEG:
-				case Ops.Value.OP_NOT:
-				case Ops.Value.OP_NOTF:
-				case Ops.Value.OP_ONESCOMPLEMENT:
+				case OpcodeType.Unary:
 				{
 					return new UnaryInsn(opcode, addr);
 				}
 
-				case Ops.Value.OP_SETCURVAR:
-				case Ops.Value.OP_SETCURVAR_CREATE:
+				case OpcodeType.SetCurVar:
 				{
 					return new SetCurVarInsn(opcode, addr, reader.ReadIdent());
 				}
 
-				case Ops.Value.OP_SETCURVAR_ARRAY:
-				case Ops.Value.OP_SETCURVAR_ARRAY_CREATE:
+				case OpcodeType.SetCurVarArray:
 				{
 					return new SetCurVarArrayInsn(opcode, addr);
 				}
 
-				case Ops.Value.OP_LOADVAR_UINT:
-				case Ops.Value.OP_LOADVAR_FLT:
-				case Ops.Value.OP_LOADVAR_STR:
+				case OpcodeType.LoadVar:
 				{
 					return new LoadVarInsn(opcode, addr);
 				}
 
-				case Ops.Value.OP_SAVEVAR_UINT:
-				case Ops.Value.OP_SAVEVAR_FLT:
-				case Ops.Value.OP_SAVEVAR_STR:
+				case OpcodeType.SaveVar:
 				{
 					return new SaveVarInsn(opcode, addr);
 				}
 
-				case Ops.Value.OP_SETCUROBJECT:
-				case Ops.Value.OP_SETCUROBJECT_NEW:
+				case OpcodeType.SetCurObject:
+				case OpcodeType.SetCurObjectNew:
 				{
 					return new SetCurObjectInsn(opcode, addr);
 				}
 
-				case Ops.Value.OP_SETCURFIELD:
+				case OpcodeType.SetCurField:
 				{
 					return new SetCurFieldInsn(opcode, addr, reader.ReadIdent());
 				}
 
-				case Ops.Value.OP_SETCURFIELD_ARRAY:
+				case OpcodeType.SetCurFieldArray:
 				{
 					return new SetCurFieldArrayInsn(opcode, addr);
 				}
 
-				case Ops.Value.OP_LOADFIELD_UINT:
-				case Ops.Value.OP_LOADFIELD_FLT:
-				case Ops.Value.OP_LOADFIELD_STR:
+				case OpcodeType.LoadField:
 				{
 					return new LoadFieldInsn(opcode, addr);
 				}
 
-				case Ops.Value.OP_SAVEFIELD_UINT:
-				case Ops.Value.OP_SAVEFIELD_FLT:
-				case Ops.Value.OP_SAVEFIELD_STR:
+				case OpcodeType.SaveField:
 				{
 					return new SaveFieldInsn(opcode, addr);
 				}
 
-				case Ops.Value.OP_STR_TO_UINT:
-				case Ops.Value.OP_FLT_TO_UINT:
-				case Ops.Value.OP_STR_TO_FLT:
-				case Ops.Value.OP_UINT_TO_FLT:
-				case Ops.Value.OP_FLT_TO_STR:
-				case Ops.Value.OP_UINT_TO_STR:
-				case Ops.Value.OP_STR_TO_NONE:
-				case Ops.Value.OP_STR_TO_NONE_2:
-				case Ops.Value.OP_FLT_TO_NONE:
-				case Ops.Value.OP_UINT_TO_NONE:
+				case OpcodeType.ConvertToUInt:
+				case OpcodeType.ConvertToFloat:
+				case OpcodeType.ConvertToString:
+				case OpcodeType.ConvertToNone:
 				{
 					return new ConvertToTypeInsn(opcode, addr);
 				}
 
-				case Ops.Value.OP_LOADIMMED_UINT:
+				case OpcodeType.LoadImmedUInt:
 				{
 					return new LoadImmedInsn<uint>(opcode, addr, reader.Read());
 				}
 
-				case Ops.Value.OP_LOADIMMED_FLT:
+				case OpcodeType.LoadImmedFloat:
 				{
 					return new LoadImmedInsn<double>(opcode, addr, reader.ReadDouble());
 				}
 
-				case Ops.Value.OP_TAG_TO_STR:
-				case Ops.Value.OP_LOADIMMED_STR:
+				case OpcodeType.LoadImmedString:
 				{
 					return new LoadImmedInsn<string>(opcode, addr, reader.ReadString());
 				}
 
-				case Ops.Value.OP_LOADIMMED_IDENT:
+				case OpcodeType.LoadImmedIdent:
 				{
 					return new LoadImmedInsn<string>(opcode, addr, reader.ReadIdent());
 				}
 
-				case Ops.Value.OP_CALLFUNC:
-				case Ops.Value.OP_CALLFUNC_RESOLVE:
+				case OpcodeType.FunctionCall:
 				{
 					return new FuncCallInsn(opcode, addr)
 					{
@@ -202,46 +158,43 @@ namespace DSODecompiler.Disassembler
 					};
 				}
 
-				case Ops.Value.OP_ADVANCE_STR:
-				case Ops.Value.OP_ADVANCE_STR_COMMA:
-				case Ops.Value.OP_ADVANCE_STR_NUL:
+				case OpcodeType.AdvanceString:
 				{
 					return new AdvanceStringInsn(opcode, addr);
 				}
 
-				case Ops.Value.OP_ADVANCE_STR_APPENDCHAR:
+				case OpcodeType.AdvanceAppendString:
 				{
 					return new AdvanceStringInsn(opcode, addr, reader.ReadChar());
 				}
 
-				case Ops.Value.OP_REWIND_STR:
-				case Ops.Value.OP_TERMINATE_REWIND_STR:
+				case OpcodeType.RewindString:
+				case OpcodeType.TerminateRewindString:
 				{
 					return new RewindInsn(opcode, addr);
 				}
 
-				case Ops.Value.OP_PUSH:
+				case OpcodeType.Push:
 				{
 					return new PushInsn(opcode, addr);
 				}
 
-				case Ops.Value.OP_PUSH_FRAME:
+				case OpcodeType.PushFrame:
 				{
 					return new PushFrameInsn(opcode, addr);
 				}
 
-				case Ops.Value.OP_BREAK:
+				case OpcodeType.DebugBreak:
 				{
 					return new DebugBreakInsn(opcode, addr);
 				}
 
-				case Ops.Value.UNUSED1:
-				case Ops.Value.UNUSED2:
+				case OpcodeType.Unused:
 				{
 					return new UnusedInsn(opcode, addr);
 				}
 
-				case Ops.Value.OP_INVALID:
+				case OpcodeType.Invalid:
 				default:
 				{
 					return null;

@@ -171,7 +171,7 @@ namespace DSODecompiler.Disassembler
 
 		public SetCurObjectInsn (Opcode op, uint addr) : base(op, addr)
 		{
-			IsNew = op.Op == Ops.Value.OP_SETCUROBJECT_NEW;
+			IsNew = op.Type == OpcodeType.SetCurObjectNew;
 		}
 
 		public override string ToString ()
@@ -280,7 +280,7 @@ namespace DSODecompiler.Disassembler
 
 		public RewindInsn (Opcode op, uint addr) : base(op, addr)
 		{
-			Terminate = op.Op == Ops.Value.OP_TERMINATE_REWIND_STR;
+			Terminate = op.Type == OpcodeType.TerminateRewindString;
 		}
 
 		public override string ToString ()
