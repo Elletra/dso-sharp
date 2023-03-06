@@ -96,7 +96,7 @@ namespace DSODecompiler
 		public static readonly uint MaxValue;
 		public static readonly uint MinValue;
 
-		public enum BranchType
+		public enum OpBranchType
 		{
 			Invalid = -1,
 			Unconditional, // OP_JMP
@@ -104,7 +104,7 @@ namespace DSODecompiler
 			LogicalBranch, // OP_JMPIF_NP, OPJMPIFNOT_NP (for logical and/or)
 		}
 
-		public enum ConvertToType
+		public enum OpConvertToType
 		{
 			Invalid = -1,
 			UInt,
@@ -113,7 +113,7 @@ namespace DSODecompiler
 			None,
 		}
 
-		public enum AdvanceStringType
+		public enum OpAdvanceStringType
 		{
 			Invalid = -1,
 			Default,
@@ -160,10 +160,16 @@ namespace DSODecompiler
 		}
 
 		public Ops Op { get; }
+		public OpBranchType BranchType { get; }
+		public OpConvertToType ConvertToType { get; }
+		public OpAdvanceStringType AdvanceStringType { get; }
 
 		public Opcode (Ops op)
 		{
 			Op = op;
+			BranchType = GetBranchType();
+			ConvertToType = GetConvertToType();
+			AdvanceStringType = GetAdvanceStringType();
 		}
 
 		public bool IsBranch ()
@@ -206,13 +212,13 @@ namespace DSODecompiler
 		public bool IsFuncDecl () => Op == Ops.OP_FUNC_DECL;
 		public bool IsReturn () => Op == Ops.OP_RETURN;
 
-		public BranchType GetBranchType ()
+		protected OpBranchType GetBranchType ()
 		{
 			switch (Op)
 			{
 				case Ops.OP_JMP:
 				{
-					return BranchType.Unconditional;
+					return OpBranchType.Unconditional;
 				}
 
 				case Ops.OP_JMPIF:
@@ -220,42 +226,42 @@ namespace DSODecompiler
 				case Ops.OP_JMPIFNOT:
 				case Ops.OP_JMPIFFNOT:
 				{
-					return BranchType.Conditional;
+					return OpBranchType.Conditional;
 				}
 
 				case Ops.OP_JMPIF_NP:
 				case Ops.OP_JMPIFNOT_NP:
 				{
-					return BranchType.LogicalBranch;
+					return OpBranchType.LogicalBranch;
 				}
 
 				default:
 				{
-					return BranchType.Invalid;
+					return OpBranchType.Invalid;
 				}
 			}
 		}
 
-		public ConvertToType GetConvertToType ()
+		protected OpConvertToType GetConvertToType ()
 		{
 			switch (Op)
 			{
 				case Ops.OP_STR_TO_UINT:
 				case Ops.OP_FLT_TO_UINT:
 				{
-					return ConvertToType.UInt;
+					return OpConvertToType.UInt;
 				}
 
 				case Ops.OP_STR_TO_FLT:
 				case Ops.OP_UINT_TO_FLT:
 				{
-					return ConvertToType.Float;
+					return OpConvertToType.Float;
 				}
 
 				case Ops.OP_FLT_TO_STR:
 				case Ops.OP_UINT_TO_STR:
 				{
-					return ConvertToType.String;
+					return OpConvertToType.String;
 				}
 
 				case Ops.OP_STR_TO_NONE:
@@ -263,43 +269,43 @@ namespace DSODecompiler
 				case Ops.OP_FLT_TO_NONE:
 				case Ops.OP_UINT_TO_NONE:
 				{
-					return ConvertToType.None;
+					return OpConvertToType.None;
 				}
 
 				default:
 				{
-					return ConvertToType.Invalid;
+					return OpConvertToType.Invalid;
 				}
 			}
 		}
 
-		public AdvanceStringType GetAdvanceStringType ()
+		protected OpAdvanceStringType GetAdvanceStringType ()
 		{
 			switch (Op)
 			{
 				case Ops.OP_ADVANCE_STR:
 				{
-					return AdvanceStringType.Default;
+					return OpAdvanceStringType.Default;
 				}
 
 				case Ops.OP_ADVANCE_STR_APPENDCHAR:
 				{
-					return AdvanceStringType.Append;
+					return OpAdvanceStringType.Append;
 				}
 
 				case Ops.OP_ADVANCE_STR_COMMA:
 				{
-					return AdvanceStringType.Comma;
+					return OpAdvanceStringType.Comma;
 				}
 
 				case Ops.OP_ADVANCE_STR_NUL:
 				{
-					return AdvanceStringType.Null;
+					return OpAdvanceStringType.Null;
 				}
 
 				default:
 				{
-					return AdvanceStringType.Invalid;
+					return OpAdvanceStringType.Invalid;
 				}
 			}
 		}
