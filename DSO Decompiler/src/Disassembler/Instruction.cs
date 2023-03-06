@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 
+using DSODecompiler.Opcodes;
+
 namespace DSODecompiler.Disassembler
 {
 	public class Instruction
@@ -92,17 +94,14 @@ namespace DSODecompiler.Disassembler
 	public class BranchInsn : Instruction
 	{
 		public uint TargetAddr { get; }
-		public Opcode.BranchType Type { get; }
-
-		public BranchInsn (Opcode op, uint addr, uint target, Opcode.BranchType type) : base(op, addr)
+		public BranchInsn (Opcode op, uint addr, uint target) : base(op, addr)
 		{
 			TargetAddr = target;
-			Type = type;
 		}
 
 		public override string ToString ()
 		{
-			return $"[@{Addr}, {GetType().Name}, {TargetAddr}, {Type}]";
+			return $"[@{Addr}, {GetType().Name}, {TargetAddr}, {Opcode.BranchType}]";
 		}
 	}
 
@@ -213,16 +212,11 @@ namespace DSODecompiler.Disassembler
 
 	public class ConvertToTypeInsn : Instruction
 	{
-		public Opcode.ConvertToType Type { get; }
-
-		public ConvertToTypeInsn (Opcode op, uint addr, Opcode.ConvertToType type) : base(op, addr)
-		{
-			Type = type;
-		}
+		public ConvertToTypeInsn (Opcode op, uint addr) : base(op, addr) {}
 
 		public override string ToString ()
 		{
-			return $"[@{Addr}, {GetType().Name}, {Type}]";
+			return $"[@{Addr}, {GetType().Name}, {Opcode.ConvertToType}]";
 		}
 	}
 
@@ -257,29 +251,26 @@ namespace DSODecompiler.Disassembler
 
 	public class AdvanceStringInsn : Instruction
 	{
-		public Opcode.AdvanceStringType Type { get; }
 		public char Char { get; }
 		public bool HasChar { get; }
 
-		public AdvanceStringInsn (Opcode op, uint addr, Opcode.AdvanceStringType type, char ch)
+		public AdvanceStringInsn (Opcode op, uint addr, char ch)
 			: base(op, addr)
 		{
-			Type = type;
 			Char = ch;
 			HasChar = true;
 		}
 
-		public AdvanceStringInsn (Opcode op, uint addr, Opcode.AdvanceStringType type = Opcode.AdvanceStringType.Default)
+		public AdvanceStringInsn (Opcode op, uint addr)
 			: base(op, addr)
 		{
-			Type = type;
 			Char = '\0';
 			HasChar = false;
 		}
 
 		public override string ToString ()
 		{
-			return $"[@{Addr}, {GetType().Name}, {Type}{(HasChar ? $", {(byte) Char}" : "")}]";
+			return $"[@{Addr}, {GetType().Name}, {Opcode.AdvanceStringType}{(HasChar ? $", {(byte) Char}" : "")}]";
 		}
 	}
 

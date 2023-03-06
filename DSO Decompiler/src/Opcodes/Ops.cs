@@ -1,11 +1,10 @@
 ﻿using System;
-using DSODecompiler.Disassembler;
 
-namespace DSODecompiler
+namespace DSODecompiler.Opcodes
 {
-	public class Opcode
+	public static class Ops
 	{
-		public enum Ops
+		public enum Value
 		{
 			OP_UINT_TO_FLT,             /* 0x00 */
 			OP_ADVANCE_STR_NUL,         /* 0x01 */
@@ -96,35 +95,9 @@ namespace DSODecompiler
 		public static readonly uint MaxValue;
 		public static readonly uint MinValue;
 
-		public enum OpBranchType
+		static Ops ()
 		{
-			Invalid = -1,
-			Unconditional, // OP_JMP
-			Conditional,   // OP_JMPIF(F), OP_JMPIF(F)NOT
-			LogicalBranch, // OP_JMPIF_NP, OPJMPIFNOT_NP (for logical and/or)
-		}
-
-		public enum OpConvertToType
-		{
-			Invalid = -1,
-			UInt,
-			Float,
-			String,
-			None,
-		}
-
-		public enum OpAdvanceStringType
-		{
-			Invalid = -1,
-			Default,
-			Append,
-			Comma,
-			Null,
-		}
-
-		static Opcode ()
-		{
-			var values = Enum.GetValues(typeof(Ops));
+			var values = Enum.GetValues(typeof(Value));
 			var min = uint.MaxValue;
 			var max = uint.MinValue;
 
@@ -147,169 +120,104 @@ namespace DSODecompiler
 			MaxValue = max;
 		}
 
-		public static bool IsValidOpcode (uint op) => op >= MinValue && op <= MaxValue;
+		public static bool IsValid (uint op) => op >= MinValue && op <= MaxValue;
 
-		public static explicit operator Opcode(uint op)
+		public static BranchType GetBranchType (Value op)
 		{
-			if (!IsValidOpcode(op))
+			switch (op)
 			{
-				throw new InvalidCastException($"Cannot convert uint to Opcode: {op} is not a valid value");
-			}
-
-			return new Opcode((Ops) op);
-		}
-
-		public Ops Op { get; }
-		public OpBranchType BranchType { get; }
-		public OpConvertToType ConvertToType { get; }
-		public OpAdvanceStringType AdvanceStringType { get; }
-
-		public Opcode (Ops op)
-		{
-			Op = op;
-			BranchType = GetBranchType();
-			ConvertToType = GetConvertToType();
-			AdvanceStringType = GetAdvanceStringType();
-		}
-
-		public bool IsBranch ()
-		{
-			switch (Op)
-			{
-				case Ops.OP_JMP:
-				case Ops.OP_JMPIF:
-				case Ops.OP_JMPIFF:
-				case Ops.OP_JMPIFNOT:
-				case Ops.OP_JMPIFFNOT:
-				case Ops.OP_JMPIF_NP:
-				case Ops.OP_JMPIFNOT_NP:
-					return true;
-
-				default:
-					return false;
-			}
-		}
-
-		public bool IsConditionalBranch ()
-		{
-			switch (Op)
-			{
-				case Ops.OP_JMPIF:
-				case Ops.OP_JMPIFF:
-				case Ops.OP_JMPIFNOT:
-				case Ops.OP_JMPIFFNOT:
-				case Ops.OP_JMPIF_NP:
-				case Ops.OP_JMPIFNOT_NP:
-					return true;
-
-				default:
-					return false;
-			}
-		}
-
-		public bool IsUnconditionalBranch () => Op == Ops.OP_JMP;
-		public bool IsLogicalBranch () => Op == Ops.OP_JMPIF_NP || Op == Ops.OP_JMPIFNOT_NP;
-		public bool IsFuncDecl () => Op == Ops.OP_FUNC_DECL;
-		public bool IsReturn () => Op == Ops.OP_RETURN;
-
-		protected OpBranchType GetBranchType ()
-		{
-			switch (Op)
-			{
-				case Ops.OP_JMP:
+				case Value.OP_JMP:
 				{
-					return OpBranchType.Unconditional;
+					return BranchType.Unconditional;
 				}
 
-				case Ops.OP_JMPIF:
-				case Ops.OP_JMPIFF:
-				case Ops.OP_JMPIFNOT:
-				case Ops.OP_JMPIFFNOT:
+				case Value.OP_JMPIF:
+				case Value.OP_JMPIFF:
+				case Value.OP_JMPIFNOT:
+				case Value.OP_JMPIFFNOT:
 				{
-					return OpBranchType.Conditional;
+					return BranchType.Conditional;
 				}
 
-				case Ops.OP_JMPIF_NP:
-				case Ops.OP_JMPIFNOT_NP:
+				case Value.OP_JMPIF_NP:
+				case Value.OP_JMPIFNOT_NP:
 				{
-					return OpBranchType.LogicalBranch;
+					return BranchType.LogicalBranch;
 				}
 
 				default:
 				{
-					return OpBranchType.Invalid;
+					return BranchType.Invalid;
 				}
 			}
 		}
 
-		protected OpConvertToType GetConvertToType ()
+		public static ConvertToType GetConvertToType (Value op)
 		{
-			switch (Op)
+			switch (op)
 			{
-				case Ops.OP_STR_TO_UINT:
-				case Ops.OP_FLT_TO_UINT:
+				case Value.OP_STR_TO_UINT:
+				case Value.OP_FLT_TO_UINT:
 				{
-					return OpConvertToType.UInt;
+					return ConvertToType.UInt;
 				}
 
-				case Ops.OP_STR_TO_FLT:
-				case Ops.OP_UINT_TO_FLT:
+				case Value.OP_STR_TO_FLT:
+				case Value.OP_UINT_TO_FLT:
 				{
-					return OpConvertToType.Float;
+					return ConvertToType.Float;
 				}
 
-				case Ops.OP_FLT_TO_STR:
-				case Ops.OP_UINT_TO_STR:
+				case Value.OP_FLT_TO_STR:
+				case Value.OP_UINT_TO_STR:
 				{
-					return OpConvertToType.String;
+					return ConvertToType.String;
 				}
 
-				case Ops.OP_STR_TO_NONE:
-				case Ops.OP_STR_TO_NONE_2:
-				case Ops.OP_FLT_TO_NONE:
-				case Ops.OP_UINT_TO_NONE:
+				case Value.OP_STR_TO_NONE:
+				case Value.OP_STR_TO_NONE_2:
+				case Value.OP_FLT_TO_NONE:
+				case Value.OP_UINT_TO_NONE:
 				{
-					return OpConvertToType.None;
+					return ConvertToType.None;
 				}
 
 				default:
 				{
-					return OpConvertToType.Invalid;
+					return ConvertToType.Invalid;
 				}
 			}
 		}
 
-		protected OpAdvanceStringType GetAdvanceStringType ()
+		public static AdvanceStringType GetAdvanceStringType (Value op)
 		{
-			switch (Op)
+			switch (op)
 			{
-				case Ops.OP_ADVANCE_STR:
+				case Value.OP_ADVANCE_STR:
 				{
-					return OpAdvanceStringType.Default;
+					return AdvanceStringType.Default;
 				}
 
-				case Ops.OP_ADVANCE_STR_APPENDCHAR:
+				case Value.OP_ADVANCE_STR_APPENDCHAR:
 				{
-					return OpAdvanceStringType.Append;
+					return AdvanceStringType.Append;
 				}
 
-				case Ops.OP_ADVANCE_STR_COMMA:
+				case Value.OP_ADVANCE_STR_COMMA:
 				{
-					return OpAdvanceStringType.Comma;
+					return AdvanceStringType.Comma;
 				}
 
-				case Ops.OP_ADVANCE_STR_NUL:
+				case Value.OP_ADVANCE_STR_NUL:
 				{
-					return OpAdvanceStringType.Null;
+					return AdvanceStringType.Null;
 				}
 
 				default:
 				{
-					return OpAdvanceStringType.Invalid;
+					return AdvanceStringType.Invalid;
 				}
 			}
 		}
-
-		public override string ToString () => IsValidOpcode((uint) Op) ? Op.ToString() : "<UNKNOWN>";
 	}
 }
