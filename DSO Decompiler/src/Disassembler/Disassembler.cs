@@ -12,20 +12,15 @@ namespace DSODecompiler.Disassembler
 		}
 
 		protected Disassembly disassembly = null;
-		protected FileData fileData = null;
-
-		protected uint index = 0;
+		protected BytecodeReader reader = null;
 
 		// This is used to emulate the STR object used in Torque to return values from files/functions.
 		protected bool returnableValue = false;
 
-		protected bool IsAtEnd => index >= fileData.CodeSize;
-
 		public Disassembly Disassemble (FileData data)
 		{
-			fileData = data;
+			reader = new(data);
 			disassembly = new();
-			index = 0;
 			returnableValue = false;
 
 			InitialDisassembly();
@@ -36,7 +31,7 @@ namespace DSODecompiler.Disassembler
 
 		protected void InitialDisassembly ()
 		{
-			while (!IsAtEnd && !HasVisited(index))
+			while (!reader.IsAtEnd)
 			{
 				DisassembleNext();
 			}
@@ -78,8 +73,8 @@ namespace DSODecompiler.Disassembler
 		 */
 		protected void DisassembleNext()
 		{
-			var addr = index;
-			var opcode = Read();
+			var addr = reader.Index;
+			var opcode = reader.Read();
 			var instruction = DisassembleOp((Opcode) opcode, addr);
 
 			if (instruction == null)
@@ -98,18 +93,18 @@ namespace DSODecompiler.Disassembler
 				{
 					var instruction = new FuncDeclInsn(opcode, addr)
 					{
-						Name = ReadIdent(),
-						Namespace = ReadIdent(),
-						Package = ReadIdent(),
-						HasBody = ReadBool(),
-						EndAddr = Read(),
+						Name = reader.ReadIdent(),
+						Namespace = reader.ReadIdent(),
+						Package = reader.ReadIdent(),
+						HasBody = reader.ReadBool(),
+						EndAddr = reader.Read(),
 					};
 
-					var args = Read();
+					var args = reader.Read();
 
 					for (uint i = 0; i < args; i++)
 					{
-						instruction.Arguments.Add(ReadIdent());
+						instruction.Arguments.Add(reader.ReadIdent());
 					}
 
 					return instruction;
@@ -119,9 +114,9 @@ namespace DSODecompiler.Disassembler
 				{
 					var instruction = new CreateObjectInsn(opcode, addr)
 					{
-						ParentName = ReadIdent(),
-						IsDataBlock = ReadBool(),
-						FailJumpAddr = Read(),
+						ParentName = reader.ReadIdent(),
+						IsDataBlock = reader.ReadBool(),
+						FailJumpAddr = reader.Read(),
 					};
 
 					return instruction;
@@ -129,12 +124,12 @@ namespace DSODecompiler.Disassembler
 
 				case Opcode.Ops.OP_ADD_OBJECT:
 				{
-					return new AddObjectInsn(opcode, addr, ReadBool());
+					return new AddObjectInsn(opcode, addr, reader.ReadBool());
 				}
 
 				case Opcode.Ops.OP_END_OBJECT:
 				{
-					return new EndObjectInsn(opcode, addr, ReadBool());
+					return new EndObjectInsn(opcode, addr, reader.ReadBool());
 				}
 
 				case Opcode.Ops.OP_JMP:
@@ -152,9 +147,9 @@ namespace DSODecompiler.Disassembler
 						throw new Exception($"Invalid branch type at {addr}");
 					}
 
-					var target = Read();
+					var target = reader.Read();
 
-					if (target >= fileData.CodeSize)
+					if (target >= reader.CodeSize)
 					{
 						throw new Exception($"Branch at {addr} jumps to invalid address {target}");
 					}
@@ -208,7 +203,7 @@ namespace DSODecompiler.Disassembler
 				case Opcode.Ops.OP_SETCURVAR:
 				case Opcode.Ops.OP_SETCURVAR_CREATE:
 				{
-					return new SetCurVarInsn(opcode, addr, ReadIdent());
+					return new SetCurVarInsn(opcode, addr, reader.ReadIdent());
 				}
 
 				case Opcode.Ops.OP_SETCURVAR_ARRAY:
@@ -247,7 +242,7 @@ namespace DSODecompiler.Disassembler
 
 				case Opcode.Ops.OP_SETCURFIELD:
 				{
-					return new SetCurFieldInsn(opcode, addr, ReadIdent());
+					return new SetCurFieldInsn(opcode, addr, reader.ReadIdent());
 				}
 
 				case Opcode.Ops.OP_SETCURFIELD_ARRAY:
@@ -311,7 +306,7 @@ namespace DSODecompiler.Disassembler
 				{
 					returnableValue = true;
 
-					return new LoadImmedInsn(opcode, addr, Read());
+					return new LoadImmedInsn(opcode, addr, reader.Read());
 				}
 
 				case Opcode.Ops.OP_CALLFUNC:
@@ -321,9 +316,9 @@ namespace DSODecompiler.Disassembler
 
 					return new FuncCallInsn(opcode, addr)
 					{
-						Name = ReadIdent(),
-						Namespace = ReadIdent(),
-						CallType = Read(),
+						Name = reader.ReadIdent(),
+						Namespace = reader.ReadIdent(),
+						CallType = reader.Read(),
 					};
 				}
 
@@ -341,7 +336,7 @@ namespace DSODecompiler.Disassembler
 
 					if (type == Opcode.AdvanceStringType.Append)
 					{
-						return new AdvanceStringInsn(opcode, addr, type, ReadChar());
+						return new AdvanceStringInsn(opcode, addr, type, reader.ReadChar());
 					}
 
 					return new AdvanceStringInsn(opcode, addr, type);
@@ -388,12 +383,5 @@ namespace DSODecompiler.Disassembler
 		{
 			disassembly.Add(instruction);
 		}
-
-		protected uint Read () => fileData.Op(index++);
-		protected bool ReadBool () => Read() != 0;
-		protected char ReadChar () => (char) Read();
-		protected string ReadIdent () => fileData.Identifer(index, Read());
-
-		protected bool HasVisited (uint addr) => disassembly.Has(addr);
 	}
 }
