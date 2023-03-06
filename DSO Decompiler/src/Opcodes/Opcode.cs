@@ -18,6 +18,7 @@ namespace DSODecompiler.Opcodes
 		public BranchType BranchType { get; }
 		public ConvertToType ConvertToType { get; }
 		public AdvanceStringType AdvanceStringType { get; }
+		public ReturnValue ReturnValue { get; }
 
 		public Opcode (Ops.Value op)
 		{
@@ -25,6 +26,7 @@ namespace DSODecompiler.Opcodes
 			BranchType = Ops.GetBranchType(op);
 			ConvertToType = Ops.GetConvertToType(op);
 			AdvanceStringType = Ops.GetAdvanceStringType(op);
+			ReturnValue = Ops.GetReturnValueChange(op);
 		}
 
 		public override string ToString () => Ops.IsValid((uint) Op) ? Op.ToString() : "<UNKNOWN>";

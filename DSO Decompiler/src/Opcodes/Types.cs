@@ -25,4 +25,12 @@
 		Comma,
 		Null,
 	}
+
+	// Whether an instruction modifies the return value of a function or file.
+	public enum ReturnValue
+	{
+		NoChange = -1,
+		ToFalse,
+		ToTrue,
+	}
 }

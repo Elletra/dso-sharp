@@ -219,5 +219,51 @@ namespace DSODecompiler.Opcodes
 				}
 			}
 		}
+
+		public static ReturnValue GetReturnValueChange (Value op)
+		{
+			switch (op)
+			{
+				case Value.OP_RETURN:
+				{
+					return ReturnValue.ToFalse;
+				}
+
+				case Value.OP_LOADVAR_STR:
+				case Value.OP_SAVEVAR_UINT:
+				case Value.OP_SAVEVAR_FLT:
+				case Value.OP_SAVEVAR_STR:
+				case Value.OP_LOADFIELD_STR:
+				case Value.OP_SAVEFIELD_UINT:
+				case Value.OP_SAVEFIELD_FLT:
+				case Value.OP_SAVEFIELD_STR:
+				case Value.OP_FLT_TO_STR:
+				case Value.OP_UINT_TO_STR:
+				case Value.OP_LOADIMMED_UINT:
+				case Value.OP_LOADIMMED_FLT:
+				case Value.OP_TAG_TO_STR:
+				case Value.OP_LOADIMMED_STR:
+				case Value.OP_LOADIMMED_IDENT:
+				case Value.OP_CALLFUNC:
+				case Value.OP_CALLFUNC_RESOLVE:
+				case Value.OP_REWIND_STR:
+				{
+					return ReturnValue.ToTrue;
+				}
+
+				case Value.OP_STR_TO_NONE:
+				case Value.OP_STR_TO_NONE_2:
+				case Value.OP_FLT_TO_NONE:
+				case Value.OP_UINT_TO_NONE:
+				{
+					return ReturnValue.ToFalse;
+				}
+
+				default:
+				{
+					return ReturnValue.NoChange;
+				}
+			}
+		}
 	}
 }
