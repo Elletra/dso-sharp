@@ -4,7 +4,7 @@ namespace DSODecompiler.Disassembler
 {
 	public class Instruction
 	{
-		public Opcodes.Ops Op { get; }
+		public Opcode Opcode { get; }
 		public uint Addr { get; }
 
 		public Instruction Prev { get; set; } = null;
@@ -13,9 +13,9 @@ namespace DSODecompiler.Disassembler
 		public bool HasPrev => Prev != null;
 		public bool HasNext => Next != null;
 
-		public Instruction (Opcodes.Ops op, uint addr)
+		public Instruction (Opcode op, uint addr)
 		{
-			Op = op;
+			Opcode = op;
 			Addr = addr;
 		}
 
@@ -35,7 +35,7 @@ namespace DSODecompiler.Disassembler
 
 		public readonly List<string> Arguments = new();
 
-		public FuncDeclInsn (Opcodes.Ops op, uint addr) : base(op, addr) {}
+		public FuncDeclInsn (Opcode op, uint addr) : base(op, addr) {}
 
 		public override string ToString ()
 		{
@@ -56,7 +56,7 @@ namespace DSODecompiler.Disassembler
 		public bool IsDataBlock { get; set; } = false;
 		public uint FailJumpAddr { get; set; }
 
-		public CreateObjectInsn (Opcodes.Ops op, uint addr) : base(op, addr) {}
+		public CreateObjectInsn (Opcode op, uint addr) : base(op, addr) {}
 
 		public override string ToString ()
 		{
@@ -68,7 +68,7 @@ namespace DSODecompiler.Disassembler
 	{
 		public bool PlaceAtRoot { get; }
 
-		public AddObjectInsn (Opcodes.Ops op, uint addr, bool placeAtRoot) : base(op, addr)
+		public AddObjectInsn (Opcode op, uint addr, bool placeAtRoot) : base(op, addr)
 		{
 			PlaceAtRoot = placeAtRoot;
 		}
@@ -83,7 +83,7 @@ namespace DSODecompiler.Disassembler
 	{
 		public bool Value { get; }
 
-		public EndObjectInsn (Opcodes.Ops op, uint addr, bool value) : base(op, addr)
+		public EndObjectInsn (Opcode op, uint addr, bool value) : base(op, addr)
 		{
 			Value = value;
 		}
@@ -97,9 +97,9 @@ namespace DSODecompiler.Disassembler
 	public class BranchInsn : Instruction
 	{
 		public uint TargetAddr { get; }
-		public Opcodes.BranchType Type { get; }
+		public Opcode.BranchType Type { get; }
 
-		public BranchInsn (Opcodes.Ops op, uint addr, uint target, Opcodes.BranchType type) : base(op, addr)
+		public BranchInsn (Opcode op, uint addr, uint target, Opcode.BranchType type) : base(op, addr)
 		{
 			TargetAddr = target;
 			Type = type;
@@ -115,7 +115,7 @@ namespace DSODecompiler.Disassembler
 	{
 		public bool ReturnsValue { get; }
 
-		public ReturnInsn (Opcodes.Ops op, uint addr, bool returnsValue) : base(op, addr)
+		public ReturnInsn (Opcode op, uint addr, bool returnsValue) : base(op, addr)
 		{
 			ReturnsValue = returnsValue;
 		}
@@ -128,24 +128,24 @@ namespace DSODecompiler.Disassembler
 
 	public class BinaryInsn : Instruction
 	{
-		public BinaryInsn (Opcodes.Ops op, uint addr) : base(op, addr) {}
+		public BinaryInsn (Opcode op, uint addr) : base(op, addr) {}
 	}
 
 	public class StringCompareInsn : Instruction
 	{
-		public StringCompareInsn (Opcodes.Ops op, uint addr) : base(op, addr) {}
+		public StringCompareInsn (Opcode op, uint addr) : base(op, addr) {}
 	}
 
 	public class UnaryInsn : Instruction
 	{
-		public UnaryInsn (Opcodes.Ops op, uint addr) : base(op, addr) {}
+		public UnaryInsn (Opcode op, uint addr) : base(op, addr) {}
 	}
 
 	public class SetCurVarInsn : Instruction
 	{
 		public string Name { get; }
 
-		public SetCurVarInsn (Opcodes.Ops op, uint addr, string name) : base(op, addr)
+		public SetCurVarInsn (Opcode op, uint addr, string name) : base(op, addr)
 		{
 			Name = name;
 		}
@@ -158,24 +158,24 @@ namespace DSODecompiler.Disassembler
 
 	public class SetCurVarArrayInsn : Instruction
 	{
-		public SetCurVarArrayInsn (Opcodes.Ops op, uint addr) : base(op, addr) {}
+		public SetCurVarArrayInsn (Opcode op, uint addr) : base(op, addr) {}
 	}
 
 	public class LoadVarInsn : Instruction
 	{
-		public LoadVarInsn (Opcodes.Ops op, uint addr) : base(op, addr) {}
+		public LoadVarInsn (Opcode op, uint addr) : base(op, addr) {}
 	}
 
 	public class SaveVarInsn : Instruction
 	{
-		public SaveVarInsn (Opcodes.Ops op, uint addr) : base(op, addr) {}
+		public SaveVarInsn (Opcode op, uint addr) : base(op, addr) {}
 	}
 
 	public class SetCurObjectInsn : Instruction
 	{
 		public bool IsNew { get; }
 
-		public SetCurObjectInsn (Opcodes.Ops op, uint addr, bool isNew) : base(op, addr)
+		public SetCurObjectInsn (Opcode op, uint addr, bool isNew) : base(op, addr)
 		{
 			IsNew = isNew;
 		}
@@ -190,7 +190,7 @@ namespace DSODecompiler.Disassembler
 	{
 		public string Name { get; }
 
-		public SetCurFieldInsn (Opcodes.Ops op, uint addr, string name) : base(op, addr)
+		public SetCurFieldInsn (Opcode op, uint addr, string name) : base(op, addr)
 		{
 			Name = name;
 		}
@@ -203,24 +203,24 @@ namespace DSODecompiler.Disassembler
 
 	public class SetCurFieldArrayInsn : Instruction
 	{
-		public SetCurFieldArrayInsn (Opcodes.Ops op, uint addr) : base(op, addr) {}
+		public SetCurFieldArrayInsn (Opcode op, uint addr) : base(op, addr) {}
 	}
 
 	public class LoadFieldInsn : Instruction
 	{
-		public LoadFieldInsn (Opcodes.Ops op, uint addr) : base(op, addr) {}
+		public LoadFieldInsn (Opcode op, uint addr) : base(op, addr) {}
 	}
 
 	public class SaveFieldInsn : Instruction
 	{
-		public SaveFieldInsn (Opcodes.Ops op, uint addr) : base(op, addr) {}
+		public SaveFieldInsn (Opcode op, uint addr) : base(op, addr) {}
 	}
 
 	public class ConvertToTypeInsn : Instruction
 	{
-		public Opcodes.ConvertToType Type { get; }
+		public Opcode.ConvertToType Type { get; }
 
-		public ConvertToTypeInsn (Opcodes.Ops op, uint addr, Opcodes.ConvertToType type) : base(op, addr)
+		public ConvertToTypeInsn (Opcode op, uint addr, Opcode.ConvertToType type) : base(op, addr)
 		{
 			Type = type;
 		}
@@ -237,7 +237,7 @@ namespace DSODecompiler.Disassembler
 		// to do until later, so we just store the raw table index.
 		public uint Value { get; }
 
-		public LoadImmedInsn (Opcodes.Ops op, uint addr, uint value) : base(op, addr)
+		public LoadImmedInsn (Opcode op, uint addr, uint value) : base(op, addr)
 		{
 			Value = value;
 		}
@@ -254,7 +254,7 @@ namespace DSODecompiler.Disassembler
 		public string Namespace { get; set; } = null;
 		public uint CallType { get; set; } = 0;
 
-		public FuncCallInsn (Opcodes.Ops op, uint addr) : base(op, addr) {}
+		public FuncCallInsn (Opcode op, uint addr) : base(op, addr) {}
 
 		public override string ToString ()
 		{
@@ -264,11 +264,11 @@ namespace DSODecompiler.Disassembler
 
 	public class AdvanceStringInsn : Instruction
 	{
-		public Opcodes.AdvanceStringType Type { get; }
+		public Opcode.AdvanceStringType Type { get; }
 		public char Char { get; }
 		public bool HasChar { get; }
 
-		public AdvanceStringInsn (Opcodes.Ops op, uint addr, Opcodes.AdvanceStringType type, char ch)
+		public AdvanceStringInsn (Opcode op, uint addr, Opcode.AdvanceStringType type, char ch)
 			: base(op, addr)
 		{
 			Type = type;
@@ -276,7 +276,7 @@ namespace DSODecompiler.Disassembler
 			HasChar = true;
 		}
 
-		public AdvanceStringInsn (Opcodes.Ops op, uint addr, Opcodes.AdvanceStringType type = Opcodes.AdvanceStringType.Default)
+		public AdvanceStringInsn (Opcode op, uint addr, Opcode.AdvanceStringType type = Opcode.AdvanceStringType.Default)
 			: base(op, addr)
 		{
 			Type = type;
@@ -294,7 +294,7 @@ namespace DSODecompiler.Disassembler
 	{
 		public bool Terminate { get; }
 
-		public RewindInsn (Opcodes.Ops op, uint addr, bool terminate = false) : base(op, addr)
+		public RewindInsn (Opcode op, uint addr, bool terminate = false) : base(op, addr)
 		{
 			Terminate = terminate;
 		}
@@ -307,21 +307,21 @@ namespace DSODecompiler.Disassembler
 
 	public class PushInsn : Instruction
 	{
-		public PushInsn (Opcodes.Ops op, uint addr) : base(op, addr) {}
+		public PushInsn (Opcode op, uint addr) : base(op, addr) {}
 	}
 
 	public class PushFrameInsn : Instruction
 	{
-		public PushFrameInsn (Opcodes.Ops op, uint addr) : base(op, addr) {}
+		public PushFrameInsn (Opcode op, uint addr) : base(op, addr) {}
 	}
 
 	public class DebugBreakInsn : Instruction
 	{
-		public DebugBreakInsn (Opcodes.Ops op, uint addr) : base(op, addr) {}
+		public DebugBreakInsn (Opcode op, uint addr) : base(op, addr) {}
 	}
 
 	public class UnusedInsn : Instruction
 	{
-		public UnusedInsn (Opcodes.Ops op, uint addr) : base(op, addr) {}
+		public UnusedInsn (Opcode op, uint addr) : base(op, addr) {}
 	}
 }

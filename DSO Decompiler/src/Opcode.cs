@@ -3,7 +3,7 @@ using DSODecompiler.Disassembler;
 
 namespace DSODecompiler
 {
-	public static class Opcodes
+	public class Opcode
 	{
 		public enum Ops
 		{
@@ -122,7 +122,7 @@ namespace DSODecompiler
 			Null,
 		}
 
-		static Opcodes ()
+		static Opcode ()
 		{
 			var values = Enum.GetValues(typeof(Ops));
 			var min = uint.MaxValue;
@@ -147,14 +147,28 @@ namespace DSODecompiler
 			MaxValue = max;
 		}
 
-		public static bool IsBranch (uint op) => IsBranch((Ops) op);
-		public static bool IsConditionalBranch (uint op) => IsConditionalBranch((Ops) op);
-		public static bool IsUnconditionalBranch (uint op) => IsUnconditionalBranch((Ops) op);
-		public static bool IsLogicalBranch (uint op) => IsLogicalBranch((Ops) op);
+		public static bool IsValidOpcode (uint op) => op >= MinValue && op <= MaxValue;
 
-		public static bool IsBranch (Ops op)
+		public static explicit operator Opcode(uint op)
 		{
-			switch (op)
+			if (!IsValidOpcode(op))
+			{
+				throw new InvalidCastException($"Cannot convert uint to Opcode: {op} is not a valid value");
+			}
+
+			return new Opcode((Ops) op);
+		}
+
+		public Ops Op { get; }
+
+		public Opcode (Ops op)
+		{
+			Op = op;
+		}
+
+		public bool IsBranch ()
+		{
+			switch (Op)
 			{
 				case Ops.OP_JMP:
 				case Ops.OP_JMPIF:
@@ -170,9 +184,9 @@ namespace DSODecompiler
 			}
 		}
 
-		public static bool IsConditionalBranch (Ops op)
+		public bool IsConditionalBranch ()
 		{
-			switch (op)
+			switch (Op)
 			{
 				case Ops.OP_JMPIF:
 				case Ops.OP_JMPIFF:
@@ -187,23 +201,14 @@ namespace DSODecompiler
 			}
 		}
 
-		public static bool IsUnconditionalBranch (Ops op) => op == Ops.OP_JMP;
-		public static bool IsLogicalBranch (Ops op) => op == Ops.OP_JMPIF_NP || op == Ops.OP_JMPIFNOT_NP;
+		public bool IsUnconditionalBranch () => Op == Ops.OP_JMP;
+		public bool IsLogicalBranch () => Op == Ops.OP_JMPIF_NP || Op == Ops.OP_JMPIFNOT_NP;
+		public bool IsFuncDecl () => Op == Ops.OP_FUNC_DECL;
+		public bool IsReturn () => Op == Ops.OP_RETURN;
 
-		public static bool IsFuncDecl (uint op) => IsFuncDecl((Ops) op);
-		public static bool IsFuncDecl (Ops op) => op == Ops.OP_FUNC_DECL;
-
-		public static bool IsReturn (uint op) => IsReturn((Ops) op);
-		public static bool IsReturn (Ops op) => op == Ops.OP_RETURN;
-
-		public static string OpcodeToString (Ops op) => IsValidOpcode((uint) op) ? op.ToString() : "<UNKNOWN>";
-		public static string OpcodeToString (uint op) => OpcodeToString((Ops) op);
-
-		public static bool IsValidOpcode (uint op) => op >= MinValue && op <= MaxValue;
-
-		public static BranchType GetBranchType (Ops op)
+		public BranchType GetBranchType ()
 		{
-			switch (op)
+			switch (Op)
 			{
 				case Ops.OP_JMP:
 				{
@@ -231,9 +236,9 @@ namespace DSODecompiler
 			}
 		}
 
-		public static ConvertToType GetConvertToType (Ops op)
+		public ConvertToType GetConvertToType ()
 		{
-			switch (op)
+			switch (Op)
 			{
 				case Ops.OP_STR_TO_UINT:
 				case Ops.OP_FLT_TO_UINT:
@@ -268,9 +273,9 @@ namespace DSODecompiler
 			}
 		}
 
-		public static AdvanceStringType GetAdvanceStringType (Ops op)
+		public AdvanceStringType GetAdvanceStringType ()
 		{
-			switch (op)
+			switch (Op)
 			{
 				case Ops.OP_ADVANCE_STR:
 				{
@@ -298,5 +303,7 @@ namespace DSODecompiler
 				}
 			}
 		}
+
+		public override string ToString () => IsValidOpcode((uint) Op) ? Op.ToString() : "<UNKNOWN>";
 	}
 }

@@ -62,25 +62,25 @@ namespace DSODecompiler.Disassembler
 			while (!IsAtEnd && !HasVisited(index))
 			{
 				var addr = index;
-				var op = Read();
-				var instruction = DisassembleOp((Opcodes.Ops) op, addr);
+				var opcode = Read();
+				var instruction = DisassembleOp((Opcode) opcode, addr);
 
 				if (instruction == null)
 				{
-					throw new Exception($"Invalid opcode {op} at {addr}");
+					throw new Exception($"Invalid opcode {opcode} at {addr}");
 				}
 
 				ProcessInstruction(instruction);
 			}
 		}
 
-		protected Instruction DisassembleOp (Opcodes.Ops op, uint addr)
+		protected Instruction DisassembleOp (Opcode opcode, uint addr)
 		{
-			switch (op)
+			switch (opcode.Op)
 			{
-				case Opcodes.Ops.OP_FUNC_DECL:
+				case Opcode.Ops.OP_FUNC_DECL:
 				{
-					var instruction = new FuncDeclInsn(op, addr)
+					var instruction = new FuncDeclInsn(opcode, addr)
 					{
 						Name = ReadIdent(),
 						Namespace = ReadIdent(),
@@ -99,9 +99,9 @@ namespace DSODecompiler.Disassembler
 					return instruction;
 				}
 
-				case Opcodes.Ops.OP_CREATE_OBJECT:
+				case Opcode.Ops.OP_CREATE_OBJECT:
 				{
-					var instruction = new CreateObjectInsn(op, addr)
+					var instruction = new CreateObjectInsn(opcode, addr)
 					{
 						ParentName = ReadIdent(),
 						IsDataBlock = ReadBool(),
@@ -111,27 +111,27 @@ namespace DSODecompiler.Disassembler
 					return instruction;
 				}
 
-				case Opcodes.Ops.OP_ADD_OBJECT:
+				case Opcode.Ops.OP_ADD_OBJECT:
 				{
-					return new AddObjectInsn(op, addr, ReadBool());
+					return new AddObjectInsn(opcode, addr, ReadBool());
 				}
 
-				case Opcodes.Ops.OP_END_OBJECT:
+				case Opcode.Ops.OP_END_OBJECT:
 				{
-					return new EndObjectInsn(op, addr, ReadBool());
+					return new EndObjectInsn(opcode, addr, ReadBool());
 				}
 
-				case Opcodes.Ops.OP_JMP:
-				case Opcodes.Ops.OP_JMPIF:
-				case Opcodes.Ops.OP_JMPIFF:
-				case Opcodes.Ops.OP_JMPIFNOT:
-				case Opcodes.Ops.OP_JMPIFFNOT:
-				case Opcodes.Ops.OP_JMPIF_NP:
-				case Opcodes.Ops.OP_JMPIFNOT_NP:
+				case Opcode.Ops.OP_JMP:
+				case Opcode.Ops.OP_JMPIF:
+				case Opcode.Ops.OP_JMPIFF:
+				case Opcode.Ops.OP_JMPIFNOT:
+				case Opcode.Ops.OP_JMPIFFNOT:
+				case Opcode.Ops.OP_JMPIF_NP:
+				case Opcode.Ops.OP_JMPIFNOT_NP:
 				{
-					var type = Opcodes.GetBranchType(op);
+					var type = opcode.GetBranchType();
 
-					if (type == Opcodes.BranchType.Invalid)
+					if (type == Opcode.BranchType.Invalid)
 					{
 						throw new Exception($"Invalid branch type at {addr}");
 					}
@@ -146,167 +146,167 @@ namespace DSODecompiler.Disassembler
 					queue.Enqueue(target);
 					disassembly.AddBranchTarget(target);
 
-					return new BranchInsn(op, addr, target, type);
+					return new BranchInsn(opcode, addr, target, type);
 				}
 
-				case Opcodes.Ops.OP_RETURN:
+				case Opcode.Ops.OP_RETURN:
 				{
-					var instruction = new ReturnInsn(op, addr, returnsValue: returnableValue);
+					var instruction = new ReturnInsn(opcode, addr, returnsValue: returnableValue);
 					returnableValue = false;
 
 					return instruction;
 				}
 
-				case Opcodes.Ops.OP_CMPEQ:
-				case Opcodes.Ops.OP_CMPGR:
-				case Opcodes.Ops.OP_CMPGE:
-				case Opcodes.Ops.OP_CMPLT:
-				case Opcodes.Ops.OP_CMPLE:
-				case Opcodes.Ops.OP_CMPNE:
-				case Opcodes.Ops.OP_XOR:
-				case Opcodes.Ops.OP_MOD:
-				case Opcodes.Ops.OP_BITAND:
-				case Opcodes.Ops.OP_BITOR:
-				case Opcodes.Ops.OP_SHR:
-				case Opcodes.Ops.OP_SHL:
-				case Opcodes.Ops.OP_AND:
-				case Opcodes.Ops.OP_OR:
-				case Opcodes.Ops.OP_ADD:
-				case Opcodes.Ops.OP_SUB:
-				case Opcodes.Ops.OP_MUL:
-				case Opcodes.Ops.OP_DIV:
+				case Opcode.Ops.OP_CMPEQ:
+				case Opcode.Ops.OP_CMPGR:
+				case Opcode.Ops.OP_CMPGE:
+				case Opcode.Ops.OP_CMPLT:
+				case Opcode.Ops.OP_CMPLE:
+				case Opcode.Ops.OP_CMPNE:
+				case Opcode.Ops.OP_XOR:
+				case Opcode.Ops.OP_MOD:
+				case Opcode.Ops.OP_BITAND:
+				case Opcode.Ops.OP_BITOR:
+				case Opcode.Ops.OP_SHR:
+				case Opcode.Ops.OP_SHL:
+				case Opcode.Ops.OP_AND:
+				case Opcode.Ops.OP_OR:
+				case Opcode.Ops.OP_ADD:
+				case Opcode.Ops.OP_SUB:
+				case Opcode.Ops.OP_MUL:
+				case Opcode.Ops.OP_DIV:
 				{
-					return new BinaryInsn(op, addr);
+					return new BinaryInsn(opcode, addr);
 				}
 
-				case Opcodes.Ops.OP_COMPARE_STR:
+				case Opcode.Ops.OP_COMPARE_STR:
 				{
-					return new StringCompareInsn(op, addr);
+					return new StringCompareInsn(opcode, addr);
 				}
 
-				case Opcodes.Ops.OP_NEG:
-				case Opcodes.Ops.OP_NOT:
-				case Opcodes.Ops.OP_NOTF:
-				case Opcodes.Ops.OP_ONESCOMPLEMENT:
+				case Opcode.Ops.OP_NEG:
+				case Opcode.Ops.OP_NOT:
+				case Opcode.Ops.OP_NOTF:
+				case Opcode.Ops.OP_ONESCOMPLEMENT:
 				{
-					return new UnaryInsn(op, addr);
+					return new UnaryInsn(opcode, addr);
 				}
 
-				case Opcodes.Ops.OP_SETCURVAR:
-				case Opcodes.Ops.OP_SETCURVAR_CREATE:
+				case Opcode.Ops.OP_SETCURVAR:
+				case Opcode.Ops.OP_SETCURVAR_CREATE:
 				{
-					return new SetCurVarInsn(op, addr, ReadIdent());
+					return new SetCurVarInsn(opcode, addr, ReadIdent());
 				}
 
-				case Opcodes.Ops.OP_SETCURVAR_ARRAY:
-				case Opcodes.Ops.OP_SETCURVAR_ARRAY_CREATE:
+				case Opcode.Ops.OP_SETCURVAR_ARRAY:
+				case Opcode.Ops.OP_SETCURVAR_ARRAY_CREATE:
 				{
-					return new SetCurVarArrayInsn(op, addr);
+					return new SetCurVarArrayInsn(opcode, addr);
 				}
 
-				case Opcodes.Ops.OP_LOADVAR_STR:
-				{
-					returnableValue = true;
-
-					return new LoadVarInsn(op, addr);
-				}
-
-				case Opcodes.Ops.OP_LOADVAR_UINT:
-				case Opcodes.Ops.OP_LOADVAR_FLT:
-				{
-					return new LoadVarInsn(op, addr);
-				}
-
-				case Opcodes.Ops.OP_SAVEVAR_UINT:
-				case Opcodes.Ops.OP_SAVEVAR_FLT:
-				case Opcodes.Ops.OP_SAVEVAR_STR:
+				case Opcode.Ops.OP_LOADVAR_STR:
 				{
 					returnableValue = true;
 
-					return new SaveVarInsn(op, addr);
+					return new LoadVarInsn(opcode, addr);
 				}
 
-				case Opcodes.Ops.OP_SETCUROBJECT:
-				case Opcodes.Ops.OP_SETCUROBJECT_NEW:
+				case Opcode.Ops.OP_LOADVAR_UINT:
+				case Opcode.Ops.OP_LOADVAR_FLT:
 				{
-					return new SetCurObjectInsn(op, addr, op == Opcodes.Ops.OP_SETCUROBJECT_NEW);
+					return new LoadVarInsn(opcode, addr);
 				}
 
-				case Opcodes.Ops.OP_SETCURFIELD:
-				{
-					return new SetCurFieldInsn(op, addr, ReadIdent());
-				}
-
-				case Opcodes.Ops.OP_SETCURFIELD_ARRAY:
-				{
-					return new SetCurFieldArrayInsn(op, addr);
-				}
-
-				case Opcodes.Ops.OP_LOADFIELD_STR:
+				case Opcode.Ops.OP_SAVEVAR_UINT:
+				case Opcode.Ops.OP_SAVEVAR_FLT:
+				case Opcode.Ops.OP_SAVEVAR_STR:
 				{
 					returnableValue = true;
 
-					return new LoadFieldInsn(op, addr);
+					return new SaveVarInsn(opcode, addr);
 				}
 
-				case Opcodes.Ops.OP_LOADFIELD_UINT:
-				case Opcodes.Ops.OP_LOADFIELD_FLT:
+				case Opcode.Ops.OP_SETCUROBJECT:
+				case Opcode.Ops.OP_SETCUROBJECT_NEW:
 				{
-					return new LoadFieldInsn(op, addr);
+					return new SetCurObjectInsn(opcode, addr, opcode.Op == Opcode.Ops.OP_SETCUROBJECT_NEW);
 				}
 
-				case Opcodes.Ops.OP_SAVEFIELD_UINT:
-				case Opcodes.Ops.OP_SAVEFIELD_FLT:
-				case Opcodes.Ops.OP_SAVEFIELD_STR:
+				case Opcode.Ops.OP_SETCURFIELD:
 				{
-					returnableValue = true;
-
-					return new SaveFieldInsn(op, addr);
+					return new SetCurFieldInsn(opcode, addr, ReadIdent());
 				}
 
-				case Opcodes.Ops.OP_STR_TO_UINT:
-				case Opcodes.Ops.OP_FLT_TO_UINT:
-				case Opcodes.Ops.OP_STR_TO_FLT:
-				case Opcodes.Ops.OP_UINT_TO_FLT:
+				case Opcode.Ops.OP_SETCURFIELD_ARRAY:
 				{
-					return new ConvertToTypeInsn(op, addr, Opcodes.ConvertToType.Float);
+					return new SetCurFieldArrayInsn(opcode, addr);
 				}
 
-				case Opcodes.Ops.OP_FLT_TO_STR:
-				case Opcodes.Ops.OP_UINT_TO_STR:
+				case Opcode.Ops.OP_LOADFIELD_STR:
 				{
 					returnableValue = true;
 
-					return new ConvertToTypeInsn(op, addr, Opcodes.ConvertToType.String);
+					return new LoadFieldInsn(opcode, addr);
 				}
 
-				case Opcodes.Ops.OP_STR_TO_NONE:
-				case Opcodes.Ops.OP_STR_TO_NONE_2:
-				case Opcodes.Ops.OP_FLT_TO_NONE:
-				case Opcodes.Ops.OP_UINT_TO_NONE:
+				case Opcode.Ops.OP_LOADFIELD_UINT:
+				case Opcode.Ops.OP_LOADFIELD_FLT:
+				{
+					return new LoadFieldInsn(opcode, addr);
+				}
+
+				case Opcode.Ops.OP_SAVEFIELD_UINT:
+				case Opcode.Ops.OP_SAVEFIELD_FLT:
+				case Opcode.Ops.OP_SAVEFIELD_STR:
+				{
+					returnableValue = true;
+
+					return new SaveFieldInsn(opcode, addr);
+				}
+
+				case Opcode.Ops.OP_STR_TO_UINT:
+				case Opcode.Ops.OP_FLT_TO_UINT:
+				case Opcode.Ops.OP_STR_TO_FLT:
+				case Opcode.Ops.OP_UINT_TO_FLT:
+				{
+					return new ConvertToTypeInsn(opcode, addr, Opcode.ConvertToType.Float);
+				}
+
+				case Opcode.Ops.OP_FLT_TO_STR:
+				case Opcode.Ops.OP_UINT_TO_STR:
+				{
+					returnableValue = true;
+
+					return new ConvertToTypeInsn(opcode, addr, Opcode.ConvertToType.String);
+				}
+
+				case Opcode.Ops.OP_STR_TO_NONE:
+				case Opcode.Ops.OP_STR_TO_NONE_2:
+				case Opcode.Ops.OP_FLT_TO_NONE:
+				case Opcode.Ops.OP_UINT_TO_NONE:
 				{
 					returnableValue = false;
 
-					return new ConvertToTypeInsn(op, addr, Opcodes.ConvertToType.None);
+					return new ConvertToTypeInsn(opcode, addr, Opcode.ConvertToType.None);
 				}
 
-				case Opcodes.Ops.OP_LOADIMMED_UINT:
-				case Opcodes.Ops.OP_LOADIMMED_FLT:
-				case Opcodes.Ops.OP_TAG_TO_STR:
-				case Opcodes.Ops.OP_LOADIMMED_STR:
-				case Opcodes.Ops.OP_LOADIMMED_IDENT:
+				case Opcode.Ops.OP_LOADIMMED_UINT:
+				case Opcode.Ops.OP_LOADIMMED_FLT:
+				case Opcode.Ops.OP_TAG_TO_STR:
+				case Opcode.Ops.OP_LOADIMMED_STR:
+				case Opcode.Ops.OP_LOADIMMED_IDENT:
 				{
 					returnableValue = true;
 
-					return new LoadImmedInsn(op, addr, Read());
+					return new LoadImmedInsn(opcode, addr, Read());
 				}
 
-				case Opcodes.Ops.OP_CALLFUNC:
-				case Opcodes.Ops.OP_CALLFUNC_RESOLVE:
+				case Opcode.Ops.OP_CALLFUNC:
+				case Opcode.Ops.OP_CALLFUNC_RESOLVE:
 				{
 					returnableValue = true;
 
-					return new FuncCallInsn(op, addr)
+					return new FuncCallInsn(opcode, addr)
 					{
 						Name = ReadIdent(),
 						Namespace = ReadIdent(),
@@ -314,56 +314,56 @@ namespace DSODecompiler.Disassembler
 					};
 				}
 
-				case Opcodes.Ops.OP_ADVANCE_STR:
-				case Opcodes.Ops.OP_ADVANCE_STR_APPENDCHAR:
-				case Opcodes.Ops.OP_ADVANCE_STR_COMMA:
-				case Opcodes.Ops.OP_ADVANCE_STR_NUL:
+				case Opcode.Ops.OP_ADVANCE_STR:
+				case Opcode.Ops.OP_ADVANCE_STR_APPENDCHAR:
+				case Opcode.Ops.OP_ADVANCE_STR_COMMA:
+				case Opcode.Ops.OP_ADVANCE_STR_NUL:
 				{
-					var type = Opcodes.GetAdvanceStringType(op);
+					var type = opcode.GetAdvanceStringType();
 
-					if (type == Opcodes.AdvanceStringType.Invalid)
+					if (type == Opcode.AdvanceStringType.Invalid)
 					{
 						throw new Exception($"Invalid advance string type at {addr}");
 					}
 
-					if (type == Opcodes.AdvanceStringType.Append)
+					if (type == Opcode.AdvanceStringType.Append)
 					{
-						return new AdvanceStringInsn(op, addr, type, ReadChar());
+						return new AdvanceStringInsn(opcode, addr, type, ReadChar());
 					}
 
-					return new AdvanceStringInsn(op, addr, type);
+					return new AdvanceStringInsn(opcode, addr, type);
 				}
 
-				case Opcodes.Ops.OP_REWIND_STR:
-				case Opcodes.Ops.OP_TERMINATE_REWIND_STR:
+				case Opcode.Ops.OP_REWIND_STR:
+				case Opcode.Ops.OP_TERMINATE_REWIND_STR:
 				{
 					returnableValue = true;
 
-					return new RewindInsn(op, addr, op == Opcodes.Ops.OP_TERMINATE_REWIND_STR);
+					return new RewindInsn(opcode, addr, opcode.Op == Opcode.Ops.OP_TERMINATE_REWIND_STR);
 				}
 
-				case Opcodes.Ops.OP_PUSH:
+				case Opcode.Ops.OP_PUSH:
 				{
-					return new PushInsn(op, addr);
+					return new PushInsn(opcode, addr);
 				}
 
-				case Opcodes.Ops.OP_PUSH_FRAME:
+				case Opcode.Ops.OP_PUSH_FRAME:
 				{
-					return new PushFrameInsn(op, addr);
+					return new PushFrameInsn(opcode, addr);
 				}
 
-				case Opcodes.Ops.OP_BREAK:
+				case Opcode.Ops.OP_BREAK:
 				{
-					return new DebugBreakInsn(op, addr);
+					return new DebugBreakInsn(opcode, addr);
 				}
 
-				case Opcodes.Ops.UNUSED1:
-				case Opcodes.Ops.UNUSED2:
+				case Opcode.Ops.UNUSED1:
+				case Opcode.Ops.UNUSED2:
 				{
-					return new UnusedInsn(op, addr);
+					return new UnusedInsn(opcode, addr);
 				}
 
-				case Opcodes.Ops.OP_INVALID:
+				case Opcode.Ops.OP_INVALID:
 				default:
 				{
 					return null;
