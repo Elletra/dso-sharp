@@ -29,39 +29,38 @@ namespace DSODecompiler.ControlFlow
 
 		protected void BuildInitialGraph (Disassembly disassembly)
 		{
-			new DisassemblyTraverser().Traverse(disassembly, Visit, TraverseFrom);
+			var instructions = disassembly.GetInstructions();
+
+			foreach (var instruction in instructions)
+			{
+				ControlFlowNode newNode = null;
+
+				if (!instruction.HasPrev)
+				{
+					currNode = cfg.AddOrGet(instruction.Addr);
+				}
+				else if (IsControlBlockStart(instruction, disassembly) || (currNode != null && IsControlBlockEnd(currNode.LastInstruction)))
+				{
+					newNode = cfg.AddOrGet(instruction.Addr);
+				}
+
+				if (newNode != null)
+				{
+					if (currNode != null)
+					{
+						cfg.Connect(currNode.Addr, newNode.Addr);
+					}
+
+					currNode = newNode;
+				}
+
+				currNode.LastInstruction = instruction;
+			}
 		}
 
 		protected void ConnectBranches ()
 		{
 			cfg.Iterate(ConnectBranch);
-		}
-
-		protected void Visit (Instruction instruction, Disassembly disassembly)
-		{
-			ControlFlowNode newNode = null;
-
-			if (IsControlBlockStart(instruction, disassembly) || IsControlBlockEnd(currNode.LastInstruction))
-			{
-				newNode = cfg.AddOrGet(instruction.Addr);
-			}
-
-			if (newNode != null)
-			{
-				if (currNode != null)
-				{
-					cfg.Connect(currNode.Addr, newNode.Addr);
-				}
-
-				currNode = newNode;
-			}
-
-			currNode.LastInstruction = instruction;
-		}
-
-		protected void TraverseFrom (Instruction instruction, Disassembly disassembly)
-		{
-			currNode = cfg.AddOrGet(instruction.Addr);
 		}
 
 		protected bool IsControlBlockStart (Instruction instruction, Disassembly disassembly)

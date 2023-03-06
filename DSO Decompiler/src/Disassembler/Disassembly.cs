@@ -27,68 +27,32 @@ namespace DSODecompiler.Disassembler
 
 			return true;
 		}
-	}
 
-	public class DisassemblyTraverser
-	{
-		public delegate void VisitFn (Instruction instruction, Disassembly disassembly);
-		public delegate void TraverseFromFn (Instruction instruction, Disassembly disassembly);
-
-		protected Queue<Instruction> queue = null;
-		protected HashSet<Instruction> visited = null;
-
-		protected VisitFn visitFunc;
-		protected TraverseFromFn traverseFromFunc;
-
-		public void Traverse (Disassembly disassembly, VisitFn visitFn, TraverseFromFn traverseFromFn)
+		public IEnumerable<Instruction> GetInstructions ()
 		{
-			visitFunc = visitFn ?? DefaultVisitFunc;
-			traverseFromFunc = traverseFromFn ?? DefaultTraverseFromFunc;
-			queue = new();
-			visited = new();
+			var queue = new Queue<Instruction>();
+			var visited = new HashSet<Instruction>();
 
-			StartTraverse(disassembly);
-		}
+			queue.Enqueue(EntryPoint);
 
-		protected void StartTraverse (Disassembly disassembly)
-		{
-			queue.Enqueue(disassembly.EntryPoint);
-
-			while (queue.Count > 0 && !HasVisited(queue.Peek()))
+			while (queue.Count > 0 && !visited.Contains(queue.Peek()))
 			{
-				TraverseFrom(queue.Dequeue(), disassembly);
+				var instruction = queue.Dequeue();
+
+				while (instruction != null)
+				{
+					yield return instruction;
+
+					visited.Add(instruction);
+
+					if (instruction is BranchInsn branch && Has(branch.Addr))
+					{
+						queue.Enqueue(Get(branch.Addr));
+					}
+
+					instruction = instruction.Next;
+				}
 			}
 		}
-
-		protected void TraverseFrom (Instruction fromInsn, Disassembly disassembly)
-		{
-			traverseFromFunc(fromInsn, disassembly);
-
-			var instruction = fromInsn;
-
-			while (instruction != null)
-			{
-				Visit(instruction, disassembly);
-
-				instruction = instruction.Next;
-			}
-		}
-
-		protected void Visit (Instruction instruction, Disassembly disassembly)
-		{
-			visitFunc(instruction, disassembly);
-
-			if (instruction is BranchInsn branch && disassembly.Has(branch.TargetAddr))
-			{
-				queue.Enqueue(disassembly[branch.TargetAddr]);
-			}
-
-			visited.Add(instruction);
-		}
-
-		protected bool HasVisited (Instruction instruction) => visited.Contains(instruction);
-
-		protected void DefaultVisitFunc (Instruction instruction, Disassembly disassembly) {}
-		protected void DefaultTraverseFromFunc (Instruction instruction, Disassembly disassembly) {}
 	}
 }

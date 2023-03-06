@@ -10,6 +10,9 @@ namespace DSODecompiler.Disassembler
 		public Instruction Prev { get; set; } = null;
 		public Instruction Next { get; set; } = null;
 
+		public bool HasPrev => Prev != null;
+		public bool HasNext => Next != null;
+
 		public Instruction (Opcodes.Ops op, uint addr)
 		{
 			Op = op;

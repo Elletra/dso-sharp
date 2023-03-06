@@ -139,6 +139,28 @@ namespace DSODecompiler.ControlFlow
 		}
 
 		/// <summary>
+		/// Calculates the postorder of nodes in the given CFG and returns an array of the nodes
+		/// indexed by their postorder value.<br />
+		/// <br />
+		/// NOTE: This function modifies the `Postorder` property of CFG nodes.
+		/// </summary>
+		/// <param name="graph"></param>
+		/// <returns></returns>
+		protected static ControlFlowNode[] CalculatePostorder (ControlFlowGraph graph)
+		{
+			var nodes = new ControlFlowNode[graph.Count];
+			var postorder = 0;
+
+			graph.PostorderDFS((ControlFlowNode node) =>
+			{
+				node.Postorder = postorder++;
+				nodes[node.Postorder] = node;
+			});
+
+			return nodes;
+		}
+
+		/// <summary>
 		/// "A Simple, Fast Dominance Algorithm" by Keith Cooper, Timothy Harvey, and Ken Kennedy:<br />
 		/// https://www.cs.rice.edu/~keith/EMBED/dom.pdf
 		/// </summary>
@@ -164,28 +186,6 @@ namespace DSODecompiler.ControlFlow
 			}
 
 			return finger1;
-		}
-
-		/// <summary>
-		/// Calculates the postorder of nodes in the given CFG and returns an array of the nodes
-		/// indexed by their postorder value.<br />
-		/// <br />
-		/// NOTE: This function modifies the `Postorder` property of CFG nodes.
-		/// </summary>
-		/// <param name="graph"></param>
-		/// <returns></returns>
-		protected static ControlFlowNode[] CalculatePostorder (ControlFlowGraph graph)
-		{
-			var nodes = new ControlFlowNode[graph.Count];
-			var postorder = 0;
-
-			graph.PostorderDFS((ControlFlowNode node) =>
-			{
-				node.Postorder = postorder++;
-				nodes[node.Postorder] = node;
-			});
-
-			return nodes;
 		}
 	}
 }

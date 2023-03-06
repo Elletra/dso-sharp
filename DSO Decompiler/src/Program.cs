@@ -12,17 +12,19 @@ namespace DSODecompiler
 		{
 			var loader = new FileLoader();
 			var fileData = loader.LoadFile("init.cs.dso", 210);
-			var disassembler = new Disassembler.Disassembler();
-			var disassembly = disassembler.Disassemble(fileData);
+			var disassembly = new Disassembler.Disassembler().Disassemble(fileData);
+
+			for (var insn = disassembly.EntryPoint; insn != null; insn = insn.Next)
+			{
+				Console.WriteLine("{0,8}    {1}", insn.Addr, insn);
+			}
 
 			var cfgBuilder = new CFGBuilder();
 			var cfg = cfgBuilder.Build(disassembly);
 
-			cfg.PreorderDFS(PrintCFG);
-
 			DominanceCalculator.CalculateDominators(cfg);
 
-			Console.WriteLine($"Found {DominanceCalculator.FindLoops(cfg)} loop(s).");
+			Console.WriteLine($"\nFound {DominanceCalculator.FindLoops(cfg)} loop(s).");
 		}
 
 		static private void PrintCFG (ControlFlowNode node)
