@@ -1,5 +1,8 @@
 ﻿using System;
 
+/**
+ * This is a bit of a mess, isn't it...
+ */
 namespace DSODecompiler.Opcodes
 {
 	public static class Ops
