@@ -41,17 +41,17 @@ namespace DSODecompiler.Disassembler
 
 				case OpcodeType.AddObject:
 				{
-					return new AddObjectInsn(opcode, addr, reader.ReadBool());
+					return new AddObjectInsn(opcode, addr, placeAtRoot: reader.ReadBool());
 				}
 
 				case OpcodeType.EndObject:
 				{
-					return new EndObjectInsn(opcode, addr, reader.ReadBool());
+					return new EndObjectInsn(opcode, addr, value: reader.ReadBool());
 				}
 
 				case OpcodeType.Branch:
 				{
-					return new BranchInsn(opcode, addr, reader.Read());
+					return new BranchInsn(opcode, addr, target: reader.Read());
 				}
 
 				case OpcodeType.Return:
@@ -76,7 +76,7 @@ namespace DSODecompiler.Disassembler
 
 				case OpcodeType.SetCurVar:
 				{
-					return new SetCurVarInsn(opcode, addr, reader.ReadIdent());
+					return new SetCurVarInsn(opcode, addr, name: reader.ReadIdent());
 				}
 
 				case OpcodeType.SetCurVarArray:
@@ -95,14 +95,18 @@ namespace DSODecompiler.Disassembler
 				}
 
 				case OpcodeType.SetCurObject:
-				case OpcodeType.SetCurObjectNew:
 				{
 					return new SetCurObjectInsn(opcode, addr);
 				}
 
+				case OpcodeType.SetCurObjectNew:
+				{
+					return new SetCurObjectNewInsn(opcode, addr);
+				}
+
 				case OpcodeType.SetCurField:
 				{
-					return new SetCurFieldInsn(opcode, addr, reader.ReadIdent());
+					return new SetCurFieldInsn(opcode, addr, name: reader.ReadIdent());
 				}
 
 				case OpcodeType.SetCurFieldArray:

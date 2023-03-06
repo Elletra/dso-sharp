@@ -4,7 +4,7 @@ using DSODecompiler.Opcodes;
 
 namespace DSODecompiler.Disassembler
 {
-	public class Instruction
+	public abstract class Instruction
 	{
 		public Opcode Opcode { get; }
 		public uint Addr { get; }
@@ -167,17 +167,12 @@ namespace DSODecompiler.Disassembler
 
 	public class SetCurObjectInsn : Instruction
 	{
-		public bool IsNew { get; }
+		public SetCurObjectInsn (Opcode op, uint addr) : base(op, addr) {}
+	}
 
-		public SetCurObjectInsn (Opcode op, uint addr) : base(op, addr)
-		{
-			IsNew = op.Type == OpcodeType.SetCurObjectNew;
-		}
-
-		public override string ToString ()
-		{
-			return $"[@{Addr}, {GetType().Name}, {IsNew}]";
-		}
+	public class SetCurObjectNewInsn : Instruction
+	{
+		public SetCurObjectNewInsn (Opcode op, uint addr) : base(op, addr) { }
 	}
 
 	public class SetCurFieldInsn : Instruction
@@ -276,17 +271,7 @@ namespace DSODecompiler.Disassembler
 
 	public class RewindInsn : Instruction
 	{
-		public bool Terminate { get; }
-
-		public RewindInsn (Opcode op, uint addr) : base(op, addr)
-		{
-			Terminate = op.Type == OpcodeType.TerminateRewindString;
-		}
-
-		public override string ToString ()
-		{
-			return $"[@{Addr}, {GetType().Name}, {Terminate}]";
-		}
+		public RewindInsn (Opcode op, uint addr) : base(op, addr) {}
 	}
 
 	public class PushInsn : Instruction
