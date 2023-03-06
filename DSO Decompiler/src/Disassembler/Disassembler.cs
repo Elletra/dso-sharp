@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-using DSODecompiler.Loader;
+﻿using DSODecompiler.Loader;
 
 namespace DSODecompiler.Disassembler
 {
@@ -15,63 +13,81 @@ namespace DSODecompiler.Disassembler
 
 		protected Disassembly disassembly = null;
 		protected FileData fileData = null;
-		protected Queue<uint> queue = null;
-		protected Instruction prevInsn = null;
+
+		protected uint index = 0;
 
 		// This is used to emulate the STR object used in Torque to return values from files/functions.
 		protected bool returnableValue = false;
-
-		protected uint index = 0;
 
 		protected bool IsAtEnd => index >= fileData.CodeSize;
 
 		public Disassembly Disassemble (FileData data)
 		{
-			disassembly = new();
 			fileData = data;
-			queue = new();
+			disassembly = new();
 			index = 0;
+			returnableValue = false;
 
-			StartDisassemble();
+			InitialDisassembly();
+			MarkBranchTargets();
 
 			return disassembly;
 		}
 
-		protected void StartDisassemble ()
+		protected void InitialDisassembly ()
 		{
-			queue.Enqueue(0);
-
-			/* The queue should typically only have 1 item in it. The reason we use a queue at all
-			   is to disassemble instructions that jump to the middle of an instruction to try to
-			   avoid disassembly.
-
-			   I highly, *highly* doubt there are DSO files that actually do that, but it's still
-			   good to do this... */
-			while (queue.Count > 0)
+			while (!IsAtEnd && !HasVisited(index))
 			{
-				DisassembleFromAddr(queue.Dequeue());
+				DisassembleNext();
 			}
 		}
 
-		protected void DisassembleFromAddr (uint fromAddr)
+		/* Since branches can jump backwards, we can't reliably do it on the first pass. */
+		protected void MarkBranchTargets()
 		{
-			index = fromAddr;
-			prevInsn = null;
-			returnableValue = false;
-
-			while (!IsAtEnd && !HasVisited(index))
+			foreach (var instruction in disassembly.GetInstructions())
 			{
-				var addr = index;
-				var opcode = Read();
-				var instruction = DisassembleOp((Opcode) opcode, addr);
-
-				if (instruction == null)
+				if (instruction is BranchInsn branch)
 				{
-					throw new Exception($"Invalid opcode {opcode} at {addr}");
-				}
+					/* See TODO below. */
+					if (!disassembly.Has(branch.TargetAddr))
+					{
+						throw new Exception($"Invalid branch target {branch.TargetAddr}");
+					}
 
-				ProcessInstruction(instruction);
+					disassembly[branch.TargetAddr].IsBranchTarget = true;
+				}
 			}
+		}
+
+		/**
+		 * Disassembles the next instruction.
+		 *
+		 * Right now we're just doing a linear sweep, but that doesn't handle certain anti-disassembly
+		 * techniques like jumping to the middle of an instruction.
+		 *
+		 * No DSO files do this currently to my knowledge, and probably never will, but I do want
+		 * to support that eventually. I tried to with the initial version of this decompiler, but
+		 * it became too complicated too quickly, so I'm going to hold off on it for now. I just want
+		 * a working decompiler that works with what we have now (e.g. Blockland and The Forgettable Dungeon).
+		 *
+		 * Maybe someday I will implement a recursive descent method instead, because right now it's
+		 * very easy to break this decompiler, but for now I'll just keep it simple...
+		 *
+		 * Tentative TODO: Maybe someday.
+		 */
+		protected void DisassembleNext()
+		{
+			var addr = index;
+			var opcode = Read();
+			var instruction = DisassembleOp((Opcode) opcode, addr);
+
+			if (instruction == null)
+			{
+				throw new Exception($"Invalid opcode {opcode} at {addr}");
+			}
+
+			ProcessInstruction(instruction);
 		}
 
 		protected Instruction DisassembleOp (Opcode opcode, uint addr)
@@ -142,9 +158,6 @@ namespace DSODecompiler.Disassembler
 					{
 						throw new Exception($"Branch at {addr} jumps to invalid address {target}");
 					}
-
-					queue.Enqueue(target);
-					disassembly.AddBranchTarget(target);
 
 					return new BranchInsn(opcode, addr, target, type);
 				}
@@ -373,23 +386,7 @@ namespace DSODecompiler.Disassembler
 
 		protected void ProcessInstruction (Instruction instruction)
 		{
-			if (prevInsn != null)
-			{
-				prevInsn.Next = instruction;
-				instruction.Prev = prevInsn;
-
-				/* We do this for instructions that jump in the middle of an instruction. If we're
-				   disassembling from one, then there will eventually be an instruction we've
-				   already visited that comes next, so we want to hook them up. */
-				if (disassembly.Has(index))
-				{
-					instruction.Next = disassembly[index];
-				}
-			}
-
 			disassembly.Add(instruction);
-
-			prevInsn = instruction;
 		}
 
 		protected uint Read () => fileData.Op(index++);

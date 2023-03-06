@@ -6,12 +6,7 @@ namespace DSODecompiler.Disassembler
 	{
 		public Opcode Opcode { get; }
 		public uint Addr { get; }
-
-		public Instruction Prev { get; set; } = null;
-		public Instruction Next { get; set; } = null;
-
-		public bool HasPrev => Prev != null;
-		public bool HasNext => Next != null;
+		public bool IsBranchTarget { get; set; } = false;
 
 		public Instruction (Opcode op, uint addr)
 		{

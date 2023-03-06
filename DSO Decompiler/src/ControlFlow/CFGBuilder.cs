@@ -29,17 +29,28 @@ namespace DSODecompiler.ControlFlow
 
 		protected void BuildInitialGraph (Disassembly disassembly)
 		{
-			var instructions = disassembly.GetInstructions();
+			foreach (var instruction in disassembly.GetInstructions())
+			{
+				HandleInstruction(instruction);
+			}
+		}
 
-			foreach (var instruction in instructions)
+		protected void ConnectBranches ()
+		{
+			cfg.Iterate(ConnectBranch);
+		}
+
+		protected void HandleInstruction (Instruction instruction)
+		{
+			if (currNode == null)
+			{
+				currNode = cfg.AddOrGet(instruction.Addr);
+			}
+			else
 			{
 				ControlFlowNode newNode = null;
 
-				if (!instruction.HasPrev)
-				{
-					currNode = cfg.AddOrGet(instruction.Addr);
-				}
-				else if (IsControlBlockStart(instruction, disassembly) || IsControlBlockEnd(currNode.LastInstruction))
+				if (IsControlBlockStart(instruction) || IsControlBlockEnd(currNode.LastInstruction))
 				{
 					newNode = cfg.AddOrGet(instruction.Addr);
 				}
@@ -53,19 +64,14 @@ namespace DSODecompiler.ControlFlow
 
 					currNode = newNode;
 				}
-
-				currNode.LastInstruction = instruction;
 			}
+
+			currNode.LastInstruction = instruction;
 		}
 
-		protected void ConnectBranches ()
+		protected bool IsControlBlockStart (Instruction instruction)
 		{
-			cfg.Iterate(ConnectBranch);
-		}
-
-		protected bool IsControlBlockStart (Instruction instruction, Disassembly disassembly)
-		{
-			return disassembly.IsBranchTarget(instruction.Addr);
+			return instruction.IsBranchTarget;
 		}
 
 		protected bool IsControlBlockEnd (Instruction instruction)

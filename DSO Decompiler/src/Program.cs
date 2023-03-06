@@ -14,7 +14,7 @@ namespace DSODecompiler
 			var fileData = loader.LoadFile("init.cs.dso", 210);
 			var disassembly = new Disassembler.Disassembler().Disassemble(fileData);
 
-			for (var insn = disassembly.EntryPoint; insn != null; insn = insn.Next)
+			foreach (var insn in disassembly.GetInstructions())
 			{
 				Console.WriteLine("{0,8}    {1}", insn.Addr, insn);
 			}
