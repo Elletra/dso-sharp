@@ -39,7 +39,7 @@ namespace DSODecompiler.ControlFlow
 				{
 					currNode = cfg.AddOrGet(instruction.Addr);
 				}
-				else if (IsControlBlockStart(instruction, disassembly) || (currNode != null && IsControlBlockEnd(currNode.LastInstruction)))
+				else if (IsControlBlockStart(instruction, disassembly) || IsControlBlockEnd(currNode.LastInstruction))
 				{
 					newNode = cfg.AddOrGet(instruction.Addr);
 				}
