@@ -7,14 +7,15 @@ namespace DSODecompiler.Disassembler
 		protected List<Instruction> instructions = new();
 		protected Dictionary<uint, Instruction> addrToInstruction = new();
 
+		public int Count => instructions.Count;
+
 		public Instruction EntryPoint { get => Get(0); }
 
 		public bool Has (uint addr) => addrToInstruction.ContainsKey(addr);
-		public Instruction Get (uint addr) => Has(addr) ? addrToInstruction[addr] : null;
-		public Instruction this[uint addr] => Get(addr);
+		public bool HasAt (uint index) => index < instructions.Count;
 
-		public bool HasAt (int index) => index < instructions.Count;
-		public Instruction GetAt (int index) => HasAt(index) ? instructions[index] : null;
+		public Instruction Get (uint addr) => Has(addr) ? addrToInstruction[addr] : null;
+		public Instruction GetAt (uint index) => HasAt(index) ? instructions[(int) index] : null;
 
 		public bool Add (Instruction instruction)
 		{
