@@ -1,36 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace DSODecompiler.Util
 {
 	public class Multidictionary<K, V>
 	{
-		private Dictionary<K, HashSet<V>> storage = new Dictionary<K, HashSet<V>> ();
+		private Dictionary<K, HashSet<V>> storage = new();
 
 		public bool Add (K key, V value)
 		{
-			if (!ContainsKey (key))
+			if (!ContainsKey(key))
 			{
-				storage.Add (key, new HashSet<V> ());
+				storage.Add(key, new());
 			}
 
-			return storage[key].Add (value);
+			return storage[key].Add(value);
 		}
 
 		public bool Remove (K key, V value)
 		{
-			if (!ContainsKey (key))
+			if (!ContainsKey(key))
 			{
 				return false;
 			}
 
-			return storage[key].Remove (value);
+			return storage[key].Remove(value);
 		}
 
-		public bool ContainsKey (K key) => storage.ContainsKey (key);
-		public bool ContainsValue (K key, V value) => ContainsKey (key) && storage[key].Contains (value);
-		public void Clear () => storage.Clear ();
+		public bool ContainsKey (K key) => storage.ContainsKey(key);
+		public bool ContainsValue (K key, V value) => ContainsKey(key) && storage[key].Contains(value);
+		public void Clear () => storage.Clear();
 
 		public IEnumerator<KeyValuePair<K, V>> GetEnumerator ()
 		{
@@ -40,7 +38,7 @@ namespace DSODecompiler.Util
 
 				foreach (var value in set)
 				{
-					yield return new KeyValuePair<K, V> (pair.Key, value);
+					yield return new(pair.Key, value);
 				}
 			}
 		}
