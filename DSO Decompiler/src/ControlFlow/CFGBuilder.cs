@@ -66,6 +66,11 @@ namespace DSODecompiler.ControlFlow
 				}
 			}
 
+			if (currNode.FirstInstruction == null)
+			{
+				currNode.FirstInstruction = instruction;
+			}
+
 			currNode.LastInstruction = instruction;
 		}
 

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+
 using DSODecompiler.Disassembler;
 
 namespace DSODecompiler.ControlFlow
@@ -10,15 +12,15 @@ namespace DSODecompiler.ControlFlow
 	/// D to get to N.<br />
 	/// <br />
 	/// Nodes can have multiple dominators, but we only care about the immediate dominator, which
-	/// is the dominator that all other dominators of a node have to go through get to said node.
+	/// is the very last dominator before the node itself.
 	/// </summary>
 	public class DominanceCalculator
 	{
-		public class Exception : System.Exception
+		public class DominanceException : Exception
 		{
-			public Exception () {}
-			public Exception (string message) : base(message) {}
-			public Exception (string message, System.Exception inner) : base(message, inner) {}
+			public DominanceException () {}
+			public DominanceException (string message) : base(message) {}
+			public DominanceException (string message, Exception inner) : base(message, inner) {}
 		}
 
 		/// <summary>
@@ -68,7 +70,7 @@ namespace DSODecompiler.ControlFlow
 
 					if (newIDom == null)
 					{
-						throw new Exception($"Could not find predecessor of {node.Postorder}");
+						throw new DominanceException($"Could not find predecessor of {node.Postorder}");
 					}
 
 					/* Calculate new immediate dominator. */
@@ -89,13 +91,13 @@ namespace DSODecompiler.ControlFlow
 				}
 			}
 
-			// Set immediate dominator back to `null` because a node cannot be the immediate
-			// dominator of itself.
+			// Set immediate dominator back to `null` because a node cannot be the immediate dominator
+			// of itself.
 			entryPoint.ImmediateDom = null;
 		}
 
 		/// <summary>
-		/// Finds loop ends and marks them by changing `IsLoopStart` and `IsLoopEnd` properties.
+		/// Finds loop bounds and marks them by changing the `NumLoopsTo` and `IsLoopEnd` properties of instructions.
 		/// </summary>
 		/// <param name="graph"></param>
 		/// <returns>Number of loops found.</returns>
@@ -107,12 +109,10 @@ namespace DSODecompiler.ControlFlow
 			{
 				if (node.ImmediateDom == null && node != graph.EntryPoint)
 				{
-					throw new Exception("Immediate dominator is null! Make sure you call CalculateDominators() before FindLoops()");
+					throw new DominanceException("Immediate dominator is null! Make sure you call CalculateDominators() before FindLoops()");
 				}
 
-				var last = node.LastInstruction;
-
-				if (last is not BranchInsn branch)
+				if (node.LastInstruction is not BranchInsn branch)
 				{
 					return;
 				}
@@ -125,12 +125,11 @@ namespace DSODecompiler.ControlFlow
 					if (target.Addr > node.Addr)
 					{
 						// Back edge somehow jumps forward??
-						throw new Exception($"Node at {target.Addr} dominates earlier node at {node.Addr}");
+						throw new DominanceException($"Node at {target.Addr} dominates earlier node at {node.Addr}");
 					}
 
-					target.IsLoopStart = true;
-					node.IsLoopEnd = true;
-
+					branch.IsLoopEnd = true;
+					target.FirstInstruction.NumLoopsTo++;
 					numLoops++;
 				}
 			});
@@ -146,7 +145,7 @@ namespace DSODecompiler.ControlFlow
 		/// </summary>
 		/// <param name="graph"></param>
 		/// <returns></returns>
-		protected static ControlFlowNode[] CalculatePostorder (ControlFlowGraph graph)
+		private static ControlFlowNode[] CalculatePostorder (ControlFlowGraph graph)
 		{
 			var nodes = new ControlFlowNode[graph.Count];
 			var postorder = 0;
@@ -167,7 +166,7 @@ namespace DSODecompiler.ControlFlow
 		/// <param name="node1"></param>
 		/// <param name="node2"></param>
 		/// <returns></returns>
-		protected static ControlFlowNode FindCommonDominator (ControlFlowNode node1, ControlFlowNode node2)
+		private static ControlFlowNode FindCommonDominator (ControlFlowNode node1, ControlFlowNode node2)
 		{
 			var finger1 = node1;
 			var finger2 = node2;

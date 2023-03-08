@@ -11,10 +11,8 @@ namespace DSODecompiler.ControlFlow
 
 		public ControlFlowNode ImmediateDom { get; set; } = null;
 
-		public bool IsLoopStart { get; set; } = false;
-		public bool IsLoopEnd { get; set; } = false;
-
-		// We don't need to store all the instructions -- We just need the last one.
+		// We don't need to store all the instructions, just the first and last ones.
+		public Instruction FirstInstruction { get; set; } = null;
 		public Instruction LastInstruction { get; set; } = null;
 
 		public readonly List<ControlFlowNode> Predecessors = new();
@@ -26,7 +24,7 @@ namespace DSODecompiler.ControlFlow
 		}
 
 		/// <summary>
-		/// Calculates if this node dominates the node specified.
+		/// Calculates if this node dominates the node specified.<br />
 		/// <br />
 		/// NOTE: Requires dominators to be calculated first.
 		/// </summary>

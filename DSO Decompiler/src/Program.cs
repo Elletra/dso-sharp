@@ -14,36 +14,28 @@ namespace DSODecompiler
 			var fileData = loader.LoadFile("init.cs.dso", 210);
 			var disassembly = new Disassembler.Disassembler().Disassemble(fileData);
 
-			foreach (var insn in disassembly.GetInstructions())
-			{
-				Console.WriteLine("{0,8}    {1}", insn.Addr, insn);
-			}
-
-			var cfgBuilder = new CFGBuilder();
-			var cfg = cfgBuilder.Build(disassembly);
+			var cfg = new CFGBuilder().Build(disassembly);
 
 			DominanceCalculator.CalculateDominators(cfg);
 
 			Console.WriteLine($"\nFound {DominanceCalculator.FindLoops(cfg)} loop(s).");
-		}
 
-		static private void PrintCFG (ControlFlowNode node)
-		{
-			Console.Write("{0,8}    {1,-100}", node.Addr, node.LastInstruction);
-
-			if (node.Successors.Count > 0)
+			foreach (var insn in disassembly.GetInstructions())
 			{
-				Console.Write("=>{");
-
-				foreach (var succ in node.Successors)
+				if (insn.IsLoopStart)
 				{
-					Console.Write($"{succ.Addr},");
+					Console.Write($">> {insn.NumLoopsTo}  ");
 				}
 
-				Console.Write("}");
+				if (insn is BranchInsn branch)
+				{
+					Console.Write("#{0,8}    {1}    {2}\n", insn.Addr, branch.IsLoopEnd, insn);
+				}
+				else
+				{
+					Console.Write("#{0,8}    {1}\n", insn.Addr, insn);
+				}
 			}
-
-			Console.Write("\n");
 		}
 	}
 }

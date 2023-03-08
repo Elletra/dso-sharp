@@ -8,7 +8,11 @@ namespace DSODecompiler.Disassembler
 	{
 		public Opcode Opcode { get; }
 		public uint Addr { get; }
-		public bool IsBranchTarget { get; set; } = false;
+		public uint NumBranchesTo { get; set; } = 0;
+		public uint NumLoopsTo { get; set; } = 0;
+
+		public bool IsBranchTarget => NumBranchesTo > 0;
+		public bool IsLoopStart => NumLoopsTo > 0;
 
 		public Instruction (Opcode op, uint addr)
 		{
@@ -94,6 +98,8 @@ namespace DSODecompiler.Disassembler
 	public class BranchInsn : Instruction
 	{
 		public uint TargetAddr { get; }
+		public bool IsLoopEnd { get; set; } = false;
+
 		public BranchInsn (Opcode op, uint addr, uint target) : base(op, addr)
 		{
 			TargetAddr = target;

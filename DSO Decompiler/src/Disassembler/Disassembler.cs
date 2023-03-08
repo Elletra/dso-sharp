@@ -53,7 +53,7 @@ namespace DSODecompiler.Disassembler
 						throw new DisassemblerException($"Invalid branch target {branch.TargetAddr}");
 					}
 
-					disassembly[branch.TargetAddr].IsBranchTarget = true;
+					disassembly.Get(branch.TargetAddr).NumBranchesTo++;
 				}
 			}
 		}
@@ -158,7 +158,7 @@ namespace DSODecompiler.Disassembler
 						throw new DisassemblerException($"Invalid BranchType at {addr}");
 					}
 
-					if (branch.TargetAddr >= reader.CodeSize)
+					if (branch.TargetAddr >= reader.Size)
 					{
 						throw new DisassemblerException($"Branch at {addr} jumps to invalid address {branch.TargetAddr}");
 					}
