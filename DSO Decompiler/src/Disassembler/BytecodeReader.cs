@@ -1,6 +1,7 @@
 ﻿using System;
 
 using DSODecompiler.Loader;
+using DSODecompiler.Opcodes;
 
 namespace DSODecompiler.Disassembler
 {
@@ -22,14 +23,10 @@ namespace DSODecompiler.Disassembler
 		public int Size => fileData.CodeSize;
 		public bool IsAtEnd => index >= fileData.CodeSize;
 
-		public BytecodeReader(FileData data, uint startIndex = 0)
+		public BytecodeReader(FileData data)
 		{
 			fileData = data;
-
-			if (!Seek(startIndex))
-			{
-				throw new ArgumentOutOfRangeException($"`startIndex` out of range");
-			}
+			index = 0;
 		}
 
 		public uint Read () => fileData.Op(index++);
@@ -38,26 +35,13 @@ namespace DSODecompiler.Disassembler
 		public string ReadIdent () => fileData.Identifer(index, Read());
 		public string ReadString () => fileData.StringTableValue(Read(), global: !InFunction);
 		public double ReadDouble () => fileData.FloatTableValue(Read(), global: !InFunction);
+		public Opcode ReadOpcode () => (Opcode) Read();
 
 		public uint Peek () => fileData.Op(index);
 		public bool PeekBool () => Peek() != 0;
 		public char PeekChar () => (char) Peek();
+		public Opcode PeekOpcode () => (Opcode) Peek();
 
-		public bool Seek (uint toIndex)
-		{
-			if (toIndex >= Size)
-			{
-				if (Size > 0)
-				{
-					index = (uint) Size - 1;
-				}
-
-				return false;
-			}
-
-			index = toIndex;
-
-			return true;
-		}
+		public void Skip (uint amount = 1) => index += amount;
 	}
 }

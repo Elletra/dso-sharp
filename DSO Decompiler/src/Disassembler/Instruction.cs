@@ -8,295 +8,266 @@ namespace DSODecompiler.Disassembler
 	{
 		public Opcode Opcode { get; }
 		public uint Addr { get; }
-		public uint NumBranchesTo { get; set; } = 0;
-		public uint NumLoopsTo { get; set; } = 0;
 
-		public bool IsBranchTarget => NumBranchesTo > 0;
-		public bool IsLoopStart => NumLoopsTo > 0;
-
-		public Instruction (Opcode op, uint addr)
+		public Instruction (Opcode opcode, uint addr)
 		{
-			Opcode = op;
+			Opcode = opcode;
 			Addr = addr;
 		}
-
-		public override string ToString ()
-		{
-			return $"[@{Addr}, {GetType().Name}]";
-		}
 	}
 
-	public class FuncDeclInsn : Instruction
+	/// <summary>
+	/// An instruction that does not have any arguments.
+	/// </summary>
+	public abstract class SimpleInstruction : Instruction
 	{
-		public string Name { get; set; } = null;
-		public string Namespace { get; set; } = null;
-		public string Package { get; set; } = null;
-		public bool HasBody { get; set; }
-		public uint EndAddr { get; set; }
-
-		public readonly List<string> Arguments = new();
-
-		public FuncDeclInsn (Opcode op, uint addr) : base(op, addr) {}
-
-		public override string ToString ()
-		{
-			var str = $"[@{Addr}, {GetType().Name}, \"{Name}\", \"{Namespace}\", \"{Package}\", {HasBody}, {EndAddr}";
-
-			foreach (var arg in Arguments)
-			{
-				str += $", {arg}";
-			}
-
-			return $"{str}]";
-		}
+		public SimpleInstruction (Opcode opcode, uint addr) : base (opcode, addr) {}
 	}
 
-	public class CreateObjectInsn : Instruction
+	public class FunctionInstruction : Instruction
 	{
-		public string ParentName { get; set; } = null;
-		public bool IsDataBlock { get; set; } = false;
-		public uint FailJumpAddr { get; set; }
+		public string Name { get; } = null;
+		public string Namespace { get; } = null;
+		public string Package { get; } = null;
+		public bool HasBody { get; }
+		public uint EndAddr { get; }
 
-		public CreateObjectInsn (Opcode op, uint addr) : base(op, addr) {}
+		public List<string> Arguments { get; } = new();
 
-		public override string ToString ()
+		public FunctionInstruction (Opcode opcode, uint addr, string name, string ns, string package, bool hasBody, uint endAddr)
+			: base (opcode, addr)
 		{
-			return $"[@{Addr}, {GetType().Name}, \"{ParentName}\", {IsDataBlock}, {FailJumpAddr}]";
+			Name = name;
+			Namespace = ns;
+			Package = package;
+			HasBody = hasBody;
+			EndAddr = endAddr;
 		}
 	}
 
-	public class AddObjectInsn : Instruction
+	public class CreateObjectInstruction : Instruction
+	{
+		public string ParentName { get; } = null;
+		public bool IsDataBlock { get; }
+		public uint FailJumpAddr { get; }
+
+		public CreateObjectInstruction (Opcode opcode, uint addr, string parent, bool isDataBlock, uint failJumpAddr)
+			: base (opcode, addr)
+		{
+			ParentName = parent;
+			IsDataBlock = isDataBlock;
+			FailJumpAddr = failJumpAddr;
+		}
+	}
+
+	public class AddObjectInstruction : Instruction
 	{
 		public bool PlaceAtRoot { get; }
 
-		public AddObjectInsn (Opcode op, uint addr, bool placeAtRoot) : base(op, addr)
+		public AddObjectInstruction (Opcode opcode, uint addr, bool placeAtRoot) : base (opcode, addr)
 		{
 			PlaceAtRoot = placeAtRoot;
 		}
-
-		public override string ToString ()
-		{
-			return $"[@{Addr}, {GetType().Name}, {PlaceAtRoot}]";
-		}
 	}
 
-	public class EndObjectInsn : Instruction
+	public class EndObjectInstruction : Instruction
 	{
+		// Can either be isDataBlock or placeAtRoot, for some reason...
 		public bool Value { get; }
 
-		public EndObjectInsn (Opcode op, uint addr, bool value) : base(op, addr)
+		public EndObjectInstruction (Opcode opcode, uint addr, bool value) : base (opcode, addr)
 		{
 			Value = value;
 		}
-
-		public override string ToString ()
-		{
-			return $"[@{Addr}, {GetType().Name}, {Value}]";
-		}
 	}
 
-	public class BranchInsn : Instruction
+	public class BranchInstruction : Instruction
 	{
 		public uint TargetAddr { get; }
-		public bool IsLoopEnd { get; set; } = false;
 
-		public BranchInsn (Opcode op, uint addr, uint target) : base(op, addr)
-		{
-			TargetAddr = target;
-		}
+		public bool IsUnconditional => Opcode.Op == Opcode.Value.OP_JMP;
+		public bool IsConditional => !IsUnconditional;
 
-		public override string ToString ()
+		public BranchInstruction (Opcode opcode, uint addr, uint targetAddr) : base (opcode, addr)
 		{
-			return $"[@{Addr}, {GetType().Name}, {TargetAddr}, {Opcode.BranchType}]";
+			TargetAddr = targetAddr;
 		}
 	}
 
-	public class ReturnInsn : Instruction
+	public class ReturnInstruction : SimpleInstruction
 	{
-		public bool ReturnsValue { get; }
-
-		public ReturnInsn (Opcode op, uint addr, bool returnsValue) : base(op, addr)
-		{
-			ReturnsValue = returnsValue;
-		}
-
-		public override string ToString ()
-		{
-			return $"[@{Addr}, {GetType().Name}, {ReturnsValue}]";
-		}
+		public ReturnInstruction (Opcode opcode, uint addr) : base (opcode, addr) {}
 	}
 
-	public class BinaryInsn : Instruction
+	public class BinaryInstruction : SimpleInstruction
 	{
-		public BinaryInsn (Opcode op, uint addr) : base(op, addr) {}
+		public BinaryInstruction (Opcode opcode, uint addr) : base(opcode, addr) {}
 	}
 
-	public class StringCompareInsn : Instruction
+	public class BinaryStringInstruction : SimpleInstruction
 	{
-		public StringCompareInsn (Opcode op, uint addr) : base(op, addr) {}
+		public BinaryStringInstruction (Opcode opcode, uint addr) : base(opcode, addr) {}
 	}
 
-	public class UnaryInsn : Instruction
+	public class UnaryInstruction : SimpleInstruction
 	{
-		public UnaryInsn (Opcode op, uint addr) : base(op, addr) {}
+		public UnaryInstruction (Opcode opcode, uint addr) : base(opcode, addr) {}
 	}
 
-	public class SetCurVarInsn : Instruction
+	public class VariableInstruction : Instruction
 	{
 		public string Name { get; }
 
-		public SetCurVarInsn (Opcode op, uint addr, string name) : base(op, addr)
+		public VariableInstruction (Opcode opcode, uint addr, string name) : base (opcode, addr)
 		{
 			Name = name;
 		}
-
-		public override string ToString ()
-		{
-			return $"[@{Addr}, {GetType().Name}, \"{Name}\"]";
-		}
 	}
 
-	public class SetCurVarArrayInsn : Instruction
+	public class VariableArrayInstruction : SimpleInstruction
 	{
-		public SetCurVarArrayInsn (Opcode op, uint addr) : base(op, addr) {}
+		public VariableArrayInstruction (Opcode opcode, uint addr) : base(opcode, addr) {}
 	}
 
-	public class LoadVarInsn : Instruction
+	public class LoadVariableInstruction : SimpleInstruction
 	{
-		public LoadVarInsn (Opcode op, uint addr) : base(op, addr) {}
+		public LoadVariableInstruction (Opcode opcode, uint addr) : base (opcode, addr) {}
 	}
 
-	public class SaveVarInsn : Instruction
+	public class SaveVariableInstruction : SimpleInstruction
 	{
-		public SaveVarInsn (Opcode op, uint addr) : base(op, addr) {}
+		public SaveVariableInstruction (Opcode opcode, uint addr) : base(opcode, addr) {}
 	}
 
-	public class SetCurObjectInsn : Instruction
+	public class ObjectInstruction : SimpleInstruction
 	{
-		public SetCurObjectInsn (Opcode op, uint addr) : base(op, addr) {}
+		public ObjectInstruction (Opcode opcode, uint addr) : base(opcode, addr) {}
 	}
 
-	public class SetCurObjectNewInsn : Instruction
+	public class ObjectNewInstruction : SimpleInstruction
 	{
-		public SetCurObjectNewInsn (Opcode op, uint addr) : base(op, addr) { }
+		public ObjectNewInstruction (Opcode opcode, uint addr) : base(opcode, addr) {}
 	}
 
-	public class SetCurFieldInsn : Instruction
+	public class FieldInstruction : Instruction
 	{
 		public string Name { get; }
 
-		public SetCurFieldInsn (Opcode op, uint addr, string name) : base(op, addr)
+		public FieldInstruction (Opcode opcode, uint addr, string name) : base (opcode, addr)
 		{
 			Name = name;
 		}
-
-		public override string ToString ()
-		{
-			return $"[@{Addr}, {GetType().Name}, \"{Name}\"]";
-		}
 	}
 
-	public class SetCurFieldArrayInsn : Instruction
+	public class FieldArrayInstruction : SimpleInstruction
 	{
-		public SetCurFieldArrayInsn (Opcode op, uint addr) : base(op, addr) {}
+		public FieldArrayInstruction (Opcode opcode, uint addr) : base(opcode, addr) {}
 	}
 
-	public class LoadFieldInsn : Instruction
+	public class LoadFieldInstruction : SimpleInstruction
 	{
-		public LoadFieldInsn (Opcode op, uint addr) : base(op, addr) {}
+		public LoadFieldInstruction (Opcode opcode, uint addr) : base(opcode, addr) {}
 	}
 
-	public class SaveFieldInsn : Instruction
+	public class SaveFieldInstruction : SimpleInstruction
 	{
-		public SaveFieldInsn (Opcode op, uint addr) : base(op, addr) {}
+		public SaveFieldInstruction (Opcode opcode, uint addr) : base(opcode, addr) {}
 	}
 
-	public class ConvertToTypeInsn : Instruction
+	public class ConvertToTypeInstruction : SimpleInstruction
 	{
-		public ConvertToTypeInsn (Opcode op, uint addr) : base(op, addr) {}
+		public TypeReq Type => Opcode.TypeReq;
 
-		public override string ToString ()
-		{
-			return $"[@{Addr}, {GetType().Name}, {Opcode.ConvertToType}]";
-		}
+		public ConvertToTypeInstruction (Opcode opcode, uint addr) : base (opcode, addr) {}
 	}
 
-	public class LoadImmedInsn<T> : Instruction
+	public class ImmediateInstruction<T> : Instruction
 	{
 		public T Value { get; }
 
-		public LoadImmedInsn (Opcode op, uint addr, T value) : base(op, addr)
+		public ImmediateInstruction (Opcode opcode, uint addr, T value) : base (opcode, addr)
 		{
 			Value = value;
 		}
-
-		public override string ToString ()
-		{
-			return $"[@{Addr}, {GetType().Name}, {Value}]";
-		}
 	}
 
-	public class FuncCallInsn : Instruction
+	public class CallInstruction : Instruction
 	{
-		public string Name { get; set; } = null;
-		public string Namespace { get; set; } = null;
-		public uint CallType { get; set; } = 0;
-
-		public FuncCallInsn (Opcode op, uint addr) : base(op, addr) {}
-
-		public override string ToString ()
+		public enum Type : byte
 		{
-			return $"[@{Addr}, {GetType().Name}, \"{Name}\", \"{Namespace}\", {CallType}]";
+			FunctionCall,
+			MethodCall,
+			ParentCall,
+		}
+
+		public string Name { get; } = null;
+		public string Namespace { get; } = null;
+		public Type CallType { get; }
+
+		public CallInstruction (Opcode opcode, uint addr, string name, string ns, uint callType)
+			: base (opcode, addr)
+		{
+			Name = name;
+			Namespace = ns;
+			CallType = (Type) callType;
 		}
 	}
 
-	public class AdvanceStringInsn : Instruction
+	public class StringInstruction : SimpleInstruction
+	{
+		public StringInstruction (Opcode opcode, uint addr) : base(opcode, addr) {}
+	}
+
+	public class AppendStringInstruction : Instruction
 	{
 		public char Char { get; }
-		public bool HasChar { get; }
 
-		public AdvanceStringInsn (Opcode op, uint addr, char ch)
-			: base(op, addr)
+		public AppendStringInstruction (Opcode opcode, uint addr, char ch) : base(opcode, addr)
 		{
 			Char = ch;
-			HasChar = true;
-		}
-
-		public AdvanceStringInsn (Opcode op, uint addr)
-			: base(op, addr)
-		{
-			Char = '\0';
-			HasChar = false;
-		}
-
-		public override string ToString ()
-		{
-			return $"[@{Addr}, {GetType().Name}, {Opcode.AdvanceStringType}{(HasChar ? $", {(byte) Char}" : "")}]";
 		}
 	}
 
-	public class RewindInsn : Instruction
+	public class NullStringInstruction : SimpleInstruction
 	{
-		public RewindInsn (Opcode op, uint addr) : base(op, addr) {}
+		public NullStringInstruction (Opcode opcode, uint addr) : base(opcode, addr) {}
 	}
 
-	public class PushInsn : Instruction
+	public class CommaStringInstruction : SimpleInstruction
 	{
-		public PushInsn (Opcode op, uint addr) : base(op, addr) {}
+		public CommaStringInstruction (Opcode opcode, uint addr) : base(opcode, addr) {}
 	}
 
-	public class PushFrameInsn : Instruction
+	public class RewindInstruction : SimpleInstruction
 	{
-		public PushFrameInsn (Opcode op, uint addr) : base(op, addr) {}
+		public RewindInstruction (Opcode opcode, uint addr) : base(opcode, addr) {}
 	}
 
-	public class DebugBreakInsn : Instruction
+	public class TerminateRewindInstruction : SimpleInstruction
 	{
-		public DebugBreakInsn (Opcode op, uint addr) : base(op, addr) {}
+		public TerminateRewindInstruction (Opcode opcode, uint addr) : base(opcode, addr) {}
 	}
 
-	public class UnusedInsn : Instruction
+	public class PushInstruction : SimpleInstruction
 	{
-		public UnusedInsn (Opcode op, uint addr) : base(op, addr) {}
+		public PushInstruction (Opcode opcode, uint addr) : base(opcode, addr) {}
+	}
+
+	public class PushFrameInstruction : SimpleInstruction
+	{
+		public PushFrameInstruction (Opcode opcode, uint addr) : base(opcode, addr) {}
+	}
+
+	public class DebugBreakInstruction : SimpleInstruction
+	{
+		public DebugBreakInstruction (Opcode opcode, uint addr) : base(opcode, addr) {}
+	}
+
+	/// <summary>
+	/// Some games (e.g. Blockland) have weird, unused "filler" instructions that don't do anything.
+	/// </summary>
+	public class UnusedInstruction : SimpleInstruction
+	{
+		public UnusedInstruction (Opcode opcode, uint addr) : base(opcode, addr) {}
 	}
 }
