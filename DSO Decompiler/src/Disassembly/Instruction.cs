@@ -2,7 +2,7 @@
 
 using DSODecompiler.Opcodes;
 
-namespace DSODecompiler.Disassembler
+namespace DSODecompiler.Disassembly
 {
 	public abstract class Instruction
 	{
@@ -14,6 +14,8 @@ namespace DSODecompiler.Disassembler
 			Opcode = opcode;
 			Addr = addr;
 		}
+
+		public override string ToString () => $"{GetType().Name}({Addr}, {Opcode})";
 	}
 
 	/// <summary>
@@ -43,6 +45,20 @@ namespace DSODecompiler.Disassembler
 			HasBody = hasBody;
 			EndAddr = endAddr;
 		}
+
+		public override string ToString ()
+		{
+			/* The proper, more efficient way would probably be to use a StringBuilder, but this
+			   works well enough... */
+			var str = $"{GetType().Name}({Addr}, {Opcode}, {Name}, {Namespace}, {Package}, {HasBody}, {EndAddr}";
+
+			foreach (var arg in Arguments)
+			{
+				str += $", {arg}";
+			}
+
+			return $"{str})";
+		}
 	}
 
 	public class CreateObjectInstruction : Instruction
@@ -58,6 +74,8 @@ namespace DSODecompiler.Disassembler
 			IsDataBlock = isDataBlock;
 			FailJumpAddr = failJumpAddr;
 		}
+
+		public override string ToString () => $"{GetType().Name}({Addr}, {Opcode}, {ParentName}, {IsDataBlock}, {FailJumpAddr})";
 	}
 
 	public class AddObjectInstruction : Instruction
@@ -68,6 +86,8 @@ namespace DSODecompiler.Disassembler
 		{
 			PlaceAtRoot = placeAtRoot;
 		}
+
+		public override string ToString () => $"{GetType().Name}({Addr}, {Opcode}, {PlaceAtRoot})";
 	}
 
 	public class EndObjectInstruction : Instruction
@@ -79,6 +99,8 @@ namespace DSODecompiler.Disassembler
 		{
 			Value = value;
 		}
+
+		public override string ToString () => $"{GetType().Name}({Addr}, {Opcode}, {Value})";
 	}
 
 	public class BranchInstruction : Instruction
@@ -92,6 +114,8 @@ namespace DSODecompiler.Disassembler
 		{
 			TargetAddr = targetAddr;
 		}
+
+		public override string ToString () => $"{GetType().Name}({Addr}, {Opcode}, {TargetAddr})";
 	}
 
 	public class ReturnInstruction : SimpleInstruction
@@ -122,6 +146,8 @@ namespace DSODecompiler.Disassembler
 		{
 			Name = name;
 		}
+
+		public override string ToString () => $"{GetType().Name}({Addr}, {Opcode}, {Name})";
 	}
 
 	public class VariableArrayInstruction : SimpleInstruction
@@ -157,6 +183,8 @@ namespace DSODecompiler.Disassembler
 		{
 			Name = name;
 		}
+
+		public override string ToString () => $"{GetType().Name}({Addr}, {Opcode}, {Name})";
 	}
 
 	public class FieldArrayInstruction : SimpleInstruction
@@ -178,7 +206,9 @@ namespace DSODecompiler.Disassembler
 	{
 		public TypeReq Type => Opcode.TypeReq;
 
-		public ConvertToTypeInstruction (Opcode opcode, uint addr) : base (opcode, addr) {}
+		public ConvertToTypeInstruction (Opcode opcode, uint addr) : base (opcode, addr) { }
+
+		public override string ToString () => $"{GetType().Name}({Addr}, {Opcode}, {Type})";
 	}
 
 	public class ImmediateInstruction<T> : Instruction
@@ -188,6 +218,22 @@ namespace DSODecompiler.Disassembler
 		public ImmediateInstruction (Opcode opcode, uint addr, T value) : base (opcode, addr)
 		{
 			Value = value;
+		}
+
+		public override string ToString ()
+		{
+			var str = $"{GetType().Name}({Addr}, {Opcode}, ";
+
+			if (typeof(T) == typeof(string))
+			{
+				str += $"\"{Value}\"";
+			}
+			else
+			{
+				str += Value;
+			}
+
+			return $"{str})";
 		}
 	}
 
@@ -211,6 +257,8 @@ namespace DSODecompiler.Disassembler
 			Namespace = ns;
 			CallType = (Type) callType;
 		}
+
+		public override string ToString () => $"{GetType().Name}({Addr}, {Opcode}, {Name}, {Namespace}, {CallType})";
 	}
 
 	public class StringInstruction : SimpleInstruction
@@ -226,6 +274,8 @@ namespace DSODecompiler.Disassembler
 		{
 			Char = ch;
 		}
+
+		public override string ToString () => $"{GetType().Name}({Addr}, {Opcode}, {(uint) Char})";
 	}
 
 	public class NullStringInstruction : SimpleInstruction

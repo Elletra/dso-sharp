@@ -3,7 +3,7 @@
 using DSODecompiler.Loader;
 using DSODecompiler.Opcodes;
 
-namespace DSODecompiler.Disassembler
+namespace DSODecompiler.Disassembly
 {
 	public class BytecodeReader
 	{
@@ -35,12 +35,10 @@ namespace DSODecompiler.Disassembler
 		public string ReadIdent () => fileData.Identifer(index, Read());
 		public string ReadString () => fileData.StringTableValue(Read(), global: !InFunction);
 		public double ReadDouble () => fileData.FloatTableValue(Read(), global: !InFunction);
-		public Opcode ReadOpcode () => (Opcode) Read();
 
 		public uint Peek () => fileData.Op(index);
 		public bool PeekBool () => Peek() != 0;
 		public char PeekChar () => (char) Peek();
-		public Opcode PeekOpcode () => (Opcode) Peek();
 
 		public void Skip (uint amount = 1) => index += amount;
 	}
