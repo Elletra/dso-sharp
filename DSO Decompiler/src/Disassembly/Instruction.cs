@@ -92,7 +92,7 @@ namespace DSODecompiler.Disassembly
 
 	public class EndObjectInstruction : Instruction
 	{
-		// Can either be isDataBlock or placeAtRoot, for some reason...
+		// Can either be isDataBlock or placeAtRoot.
 		public bool Value { get; }
 
 		public EndObjectInstruction (Opcode opcode, uint addr, bool value) : base (opcode, addr)
@@ -120,7 +120,14 @@ namespace DSODecompiler.Disassembly
 
 	public class ReturnInstruction : SimpleInstruction
 	{
-		public ReturnInstruction (Opcode opcode, uint addr) : base (opcode, addr) {}
+		public bool ReturnsValue { get; }
+
+		public ReturnInstruction (Opcode opcode, uint addr, bool returnsValue) : base (opcode, addr)
+		{
+			ReturnsValue = returnsValue;
+		}
+
+		public override string ToString () => $"{GetType().Name}({Addr}, {Opcode}, {ReturnsValue})";
 	}
 
 	public class BinaryInstruction : SimpleInstruction

@@ -149,7 +149,7 @@ namespace DSODecompiler.Disassembly
 
 				case Opcode.Value.OP_RETURN:
 				{
-					return new ReturnInstruction(opcode, addr);
+					return new ReturnInstruction(opcode, addr, returnableValue);
 				}
 
 				case Opcode.Value.OP_CMPEQ:
@@ -363,6 +363,13 @@ namespace DSODecompiler.Disassembly
 
 		protected void ProcessInstruction (Instruction instruction)
 		{
+			ValidateInstruction(instruction);
+			SetReturnableValue(instruction);
+			Push(instruction);
+		}
+
+		protected void ValidateInstruction (Instruction instruction)
+		{
 			switch (instruction)
 			{
 				case FunctionInstruction func:
@@ -386,8 +393,30 @@ namespace DSODecompiler.Disassembly
 					break;
 				}
 			}
+		}
 
-			Push(instruction);
+		protected void SetReturnableValue (Instruction instruction)
+		{
+			switch (instruction.Opcode.ReturnValue)
+			{
+				case ReturnValue.ToFalse:
+				{
+					returnableValue = false;
+					break;
+				}
+
+				case ReturnValue.ToTrue:
+				{
+					returnableValue = true;
+					break;
+				}
+
+				case ReturnValue.NoChange:
+				default:
+				{
+					break;
+				}
+			}
 		}
 
 		protected void Push (Instruction instruction)
