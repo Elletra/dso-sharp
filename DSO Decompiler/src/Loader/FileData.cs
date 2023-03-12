@@ -55,9 +55,9 @@ namespace DSODecompiler.Loader
 		protected double[] globalFloats;
 		protected double[] funcFloats;
 
-		protected Dictionary<uint, uint> identTable = new Dictionary<uint, uint>();
+		protected Dictionary<uint, uint> identTable = new();
 
-		protected List<uint> lineBreakPairs = new List<uint>();
+		protected List<uint> lineBreakPairs = new();
 
 		public uint Version => version;
 

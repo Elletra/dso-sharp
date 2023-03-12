@@ -21,7 +21,7 @@ namespace DSODecompiler.Opcodes
 
 	public class Opcode
 	{
-		public enum Value : byte
+		public enum Value : uint
 		{
 			OP_UINT_TO_FLT,             /* 0x00 */
 			OP_ADVANCE_STR_NUL,         /* 0x01 */
@@ -109,7 +109,7 @@ namespace DSODecompiler.Opcodes
 			OP_FUNC_DECL,               /* 0x53 */
 		};
 
-		public static bool IsValid (uint op) => Enum.IsDefined(typeof(Value), (int) op);
+		public static bool IsValid (uint op) => Enum.IsDefined(typeof(Value), op);
 
 		protected static ReturnValue GetReturnValue (Value op)
 		{
