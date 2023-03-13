@@ -144,9 +144,42 @@ namespace DSODecompiler.Util
 			}
 		}
 
+		/// <summary>
+		/// Iterative postorder traversal on a cyclic graph... Good lord.<br /><br />
+		///
+		/// I did not come up with this algorithm, though I certainly tried.<br /><br />
+		///
+		/// Full credit goes to <see href="https://stackoverflow.com/a/50646181">Hans Olsson</see> on Stack Overflow.
+		/// </summary>
+		/// <returns></returns>
 		public IEnumerable<N> PostorderDFS ()
 		{
-			throw new NotImplementedException($"TODO: Implement me!");
+			var visited = new HashSet<N>();
+			var stack = new Stack<(N, bool)>();
+
+			stack.Push((EntryPoint, false));
+
+			while (stack.Count > 0)
+			{
+				var (node, visitNode) = stack.Pop();
+
+				if (visitNode)
+				{
+					yield return node;
+				}
+				else if (!visited.Contains(node))
+				{
+					visited.Add(node);
+					stack.Push((node, true));
+
+					var count = node.Successors.Count;
+
+					for (var i = count - 1; i >= 0; i--)
+					{
+						stack.Push((node.Successors[i], false));
+					}
+				}
+			}
 		}
 	}
 }
