@@ -40,21 +40,6 @@ namespace DSODecompiler.Disassembler
 			}
 		}
 
-		// Since branches can jump backwards, we have to do this part in a second pass.
-		protected void CollectBranches ()
-		{
-			foreach (var instruction in disassembly)
-			{
-				if (instruction is BranchInstruction branch)
-				{
-					if (!disassembly.AddBranch(branch.Addr, branch.TargetAddr))
-					{
-						throw new DisassemblerException($"Branch at {branch.Addr} already exists");
-					}
-				}
-			}
-		}
-
 		protected void DisassembleNext ()
 		{
 			var addr = reader.Index;
@@ -432,6 +417,52 @@ namespace DSODecompiler.Disassembler
 					break;
 				}
 			}
+		}
+
+
+		// Since branches can jump backwards, we have to do this part in a second pass.
+		protected void CollectBranches ()
+		{
+			foreach (var instruction in disassembly)
+			{
+				if (instruction is BranchInstruction branch)
+				{
+					CollectBranch(branch);
+				}
+			}
+		}
+
+		protected void CollectBranch (BranchInstruction branch)
+		{
+			var source = branch.Addr;
+			var target = branch.TargetAddr;
+
+			ValidateBranch(source, target);
+			AddBranch(source, target);
+		}
+
+		protected void ValidateBranch (uint source, uint target)
+		{
+			if (disassembly.HasBranch(source))
+			{
+				throw new DisassemblerException($"Branch at {source} already exists");
+			}
+
+			if (target >= reader.Size)
+			{
+				throw new DisassemblerException($"Branch to invalid address {target}");
+			}
+
+			/* See TODO for DisassembleOpcode(). */
+			if (!disassembly.HasInstruction(target))
+			{
+				throw new DisassemblerException($"Branch to non-existent instruction at {target}");
+			}
+		}
+
+		protected void AddBranch (uint source, uint target)
+		{
+			disassembly.AddBranch(source, target);
 		}
 
 		protected void Push (Instruction instruction)
