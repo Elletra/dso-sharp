@@ -28,6 +28,11 @@ namespace DSODecompiler.ControlFlow
 					CreateAndConnect(instruction);
 				}
 
+				if (instruction is FunctionInstruction func && func.HasBody)
+				{
+					cfg.AddEdge(currNode, cfg.AddOrGet(func.EndAddr));
+				}
+
 				currNode.Instructions.Add(instruction);
 			}
 		}
