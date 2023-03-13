@@ -387,6 +387,8 @@ namespace DSODecompiler.Disassembler
 							throw new DisassemblerException($"Function at {func.Addr} has invalid end address {func.EndAddr}");
 						}
 
+						disassembly.AddFunctionEnd(func.EndAddr);
+
 						reader.FunctionEnd = func.EndAddr;
 					}
 

@@ -28,11 +28,6 @@ namespace DSODecompiler.ControlFlow
 					CreateAndConnect(instruction);
 				}
 
-				if (instruction is FunctionInstruction func && func.HasBody)
-				{
-					cfg.AddEdge(currNode, cfg.AddOrGet(func.EndAddr));
-				}
-
 				currNode.Instructions.Add(instruction);
 			}
 		}
@@ -46,18 +41,26 @@ namespace DSODecompiler.ControlFlow
 				cfg.AddEdge(currNode, node);
 			}
 
+			if (instruction is FunctionInstruction func && func.HasBody)
+			{
+				cfg.AddEdge(node, cfg.AddOrGet(func.EndAddr));
+			}
+
 			currNode = node;
 		}
 
-		protected bool IsBlockStart (Instruction instruction) => disassembly.HasBranchTarget(instruction.Addr);
+		protected bool IsBlockStart (Instruction instruction)
+		{
+			return disassembly.HasBranchTarget(instruction.Addr) || disassembly.HasFunctionEnd(instruction.Addr);
+		}
 
 		protected bool IsBlockEnd (Instruction instruction)
 		{
 			switch (instruction)
 			{
+				/* For most CFG implementations, return statements also end blocks, but for our purposes they don't... */
 				case FunctionInstruction:
 				case BranchInstruction:
-				case ReturnInstruction:
 				{
 					return true;
 				}
@@ -71,12 +74,7 @@ namespace DSODecompiler.ControlFlow
 
 		protected bool ShouldConnectToNext (Instruction instruction)
 		{
-			if (instruction is BranchInstruction branch)
-			{
-				return !branch.IsUnconditional;
-			}
-
-			return !(instruction is ReturnInstruction);
+			return instruction is not BranchInstruction branch || !branch.IsUnconditional;
 		}
 
 		/**

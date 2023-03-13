@@ -24,6 +24,7 @@ namespace DSODecompiler.Disassembler
 		protected Dictionary<uint, Instruction> addrToInstruction = new();
 		protected Dictionary<uint, Branch> branches = new();
 		protected Multidictionary<uint, Branch> branchTargets = new();
+		protected HashSet<uint> functionEnds = new();
 
 		public int NumInstructions => instructions.Count;
 		public int NumBranches => branches.Count;
@@ -74,5 +75,8 @@ namespace DSODecompiler.Disassembler
 
 		public IEnumerable<Branch> GetBranches () => branches.Values;
 		public IEnumerable<Branch> GetBranchesTo (uint target) => branchTargets.GetValues(target);
+
+		public void AddFunctionEnd (uint endAddr) => functionEnds.Add(endAddr);
+		public bool HasFunctionEnd (uint endAddr) => functionEnds.Contains(endAddr);
 	}
 }
