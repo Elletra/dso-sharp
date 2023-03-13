@@ -1,9 +1,6 @@
-﻿using System;
+﻿using DSODecompiler.Loader;
 
-using DSODecompiler.Loader;
-using DSODecompiler.Opcodes;
-
-namespace DSODecompiler.Disassembly
+namespace DSODecompiler.Disassembler
 {
 	public class BytecodeReader
 	{
@@ -13,7 +10,7 @@ namespace DSODecompiler.Disassembly
 		public uint FunctionEnd { get; set; } = 0;
 
 		/* There's probably a stupid way to nest function declarations inside each other, and that
-		   would require having a function stack instead, but since we're keeping it simple for now,
+		   would require having something more complicated, but we're keeping it simple for now, so
 		   let's just do it this way.
 
 		   Tentative TODO: Maybe someday. */

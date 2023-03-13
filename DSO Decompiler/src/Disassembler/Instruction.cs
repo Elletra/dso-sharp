@@ -2,7 +2,7 @@
 
 using DSODecompiler.Opcodes;
 
-namespace DSODecompiler.Disassembly
+namespace DSODecompiler.Disassembler
 {
 	public abstract class Instruction
 	{

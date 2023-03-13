@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using DSODecompiler.Loader;
 using DSODecompiler.Opcodes;
 
-namespace DSODecompiler.Disassembly
+namespace DSODecompiler.Disassembler
 {
 	public class Disassembler
 	{

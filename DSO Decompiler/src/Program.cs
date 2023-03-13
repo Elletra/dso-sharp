@@ -1,6 +1,6 @@
 ﻿using System;
 
-using DSODecompiler.Disassembly;
+using DSODecompiler.Disassembler;
 using DSODecompiler.Loader;
 
 namespace DSODecompiler
@@ -11,7 +11,7 @@ namespace DSODecompiler
 		{
 			var loader = new FileLoader();
 			var fileData = loader.LoadFile("test.cs.dso", 210);
-			var disassembler = new Disassembler();
+			var disassembler = new Disassembler.Disassembler();
 			var instructions = disassembler.Disassemble(fileData);
 
 			foreach (var instruction in instructions)
