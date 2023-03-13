@@ -16,20 +16,20 @@ namespace DSODecompiler.Disassembler
 		}
 
 		protected BytecodeReader reader = null;
-		protected List<Instruction> instructions = null;
+		protected Disassembly disassembly = null;
 
 		// This is used to emulate the STR object used in Torque to return values from files/functions.
 		protected bool returnableValue = false;
 
-		// FIXME: Make this return something else?
-		public List<Instruction> Disassemble (FileData fileData)
+		public Disassembly Disassemble (FileData fileData)
 		{
 			reader = new(fileData);
-			instructions = new();
+			disassembly = new();
 
 			Disassemble();
+			CollectBranches();
 
-			return instructions;
+			return disassembly;
 		}
 
 		protected void Disassemble ()
@@ -37,6 +37,21 @@ namespace DSODecompiler.Disassembler
 			while (!reader.IsAtEnd)
 			{
 				DisassembleNext();
+			}
+		}
+
+		// Since branches can jump backwards, we have to do this part in a second pass.
+		protected void CollectBranches ()
+		{
+			foreach (var instruction in disassembly)
+			{
+				if (instruction is BranchInstruction branch)
+				{
+					if (!disassembly.AddBranch(branch.Addr, branch.TargetAddr))
+					{
+						throw new DisassemblerException($"Branch at {branch.Addr} already exists");
+					}
+				}
 			}
 		}
 
@@ -421,7 +436,7 @@ namespace DSODecompiler.Disassembler
 
 		protected void Push (Instruction instruction)
 		{
-			instructions.Add(instruction);
+			disassembly.AddInstruction(instruction);
 		}
 	}
 }
