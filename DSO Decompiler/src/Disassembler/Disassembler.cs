@@ -382,6 +382,11 @@ namespace DSODecompiler.Disassembler
 							throw new DisassemblerException($"Nested function at {func.Addr}");
 						}
 
+						if (func.EndAddr >= reader.Size)
+						{
+							throw new DisassemblerException($"Function at {func.Addr} has invalid end address {func.EndAddr}");
+						}
+
 						reader.FunctionEnd = func.EndAddr;
 					}
 
