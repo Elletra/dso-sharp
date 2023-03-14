@@ -19,18 +19,8 @@ namespace DSODecompiler.Util
 
 		private readonly Dictionary<K, N> nodes = new();
 
-		public virtual N EntryPoint
-		{
-			get
-			{
-				foreach (var pair in nodes)
-				{
-					return pair.Value;
-				}
-
-				return null;
-			}
-		}
+		// TODO: There must be a better way than allowing users to manually set the entry point.
+		public virtual N EntryPoint { get; set; } = null;
 
 		public int Count => nodes.Count;
 

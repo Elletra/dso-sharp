@@ -1,6 +1,7 @@
 ﻿using System;
 
 using DSODecompiler.ControlFlow;
+using DSODecompiler.ControlFlow.Structure;
 using DSODecompiler.Disassembler;
 using DSODecompiler.Loader;
 
@@ -11,16 +12,16 @@ namespace DSODecompiler
 		static void Main (string[] args)
 		{
 			var loader = new FileLoader();
-			var fileData = loader.LoadFile("test.cs.dso", 210);
+			var fileData = loader.LoadFile("allGameScripts.cs.dso", 210);
 			var disassembler = new Disassembler.Disassembler();
 			var disassembly = disassembler.Disassemble(fileData);
 
-			foreach (var instruction in disassembly)
+			/*foreach (var instruction in disassembly)
 			{
 				Console.WriteLine("{0,8}    {1}", instruction.Addr, instruction);
-			}
+			}*/
 
-			Console.WriteLine($"\n==== Branches: {disassembly.NumBranches} ====\n");
+			/*Console.WriteLine($"\n==== Branches: {disassembly.NumBranches} ====\n");
 
 			foreach (var branch in disassembly.GetBranches())
 			{
@@ -32,32 +33,45 @@ namespace DSODecompiler
 
 					Console.WriteLine($" {insn.IsUnconditional}");
 				}
-			}
+			}*/
 
-			Console.WriteLine("\n==== Control Flow Graph ====\n");
+			var controlFlowData = new ControlFlowData(disassembly);
+			var totalLoops = 0;
 
-			var cfg = new ControlFlowGraphBuilder().Build(disassembly);
-
-			foreach (var node in cfg.PreorderDFS())
+			foreach (var graph in controlFlowData.ControlFlowGraphs)
 			{
-				Console.Write($"{node.Addr}    {node}=>{{");
-
-				var count = node.Successors.Count;
-
-				for (var i = 0; i < count; i++)
+				if (graph.IsFunction)
 				{
-					var successor = node.Successors[i];
+					Console.WriteLine(graph.FunctionHeader);
+				}
+				else
+				{
+					Console.WriteLine($"\nBLOCK at {graph.EntryPoint.Addr}:");
 
-					Console.Write(successor.Addr);
-
-					if (i < count - 1)
+					/*foreach (var node in graph.PreorderDFS())
 					{
-						Console.Write(", ");
-					}
+						foreach (var instruction in node.Instructions)
+						{
+							Console.WriteLine($"    {instruction}");
+							break;
+						}
+
+						break;
+					}*/
+
+					Console.Write("\n");
 				}
 
-				Console.Write($"}}    <{node.LastInstruction}>\n");
+				Console.Write("Num loops: ");
+
+				var count = controlFlowData.DominatorGraphs[graph].FindLoops().Count;
+				totalLoops += count;
+
+				Console.Write(count);
+				Console.Write("\n\n");
 			}
+
+			Console.WriteLine($"\n## Total Loops: {totalLoops}");
 		}
 	}
 }

@@ -1,52 +1,75 @@
-﻿using DSODecompiler.Disassembler;
+﻿using System.Collections.Generic;
+
+using DSODecompiler.Disassembler;
 
 namespace DSODecompiler.ControlFlow
 {
 	public class ControlFlowGraphBuilder
 	{
-		protected ControlFlowGraph cfg = null;
+		protected List<ControlFlowGraph> graphs = null;
+		protected ControlFlowGraph currGraph = null;
 		protected ControlFlowNode currNode = null;
 		protected Disassembly disassembly = null;
 
-		public ControlFlowGraph Build (Disassembly disasm)
+		public List<ControlFlowGraph> Build (Disassembly disasm)
 		{
-			cfg = new ControlFlowGraph();
 			disassembly = disasm;
+			graphs = new();
+			currGraph = null;
+			currNode = null;
 
 			BuildInitialGraph();
 			ConnectBranches();
 
-			return cfg;
+			return graphs;
 		}
 
 		protected void BuildInitialGraph ()
 		{
 			foreach (var instruction in disassembly)
 			{
-				if (currNode == null || IsBlockStart(instruction) || IsBlockEnd(currNode.LastInstruction))
+				var isFunction = instruction is FunctionInstruction;
+
+				if (currGraph == null || isFunction || IsFunctionEnd(instruction))
 				{
-					CreateAndConnect(instruction);
+					currGraph = isFunction ? new(instruction as FunctionInstruction) : new();
+					currNode = null;
+
+					graphs.Add(currGraph);
 				}
 
-				currNode.Instructions.Add(instruction);
+				if (!isFunction)
+				{
+					if (currNode == null || IsBlockStart(instruction) || IsBlockEnd(currNode.LastInstruction))
+					{
+						CreateAndConnect(instruction);
+					}
+
+					if (currGraph.EntryPoint == null)
+					{
+						currGraph.EntryPoint = currNode;
+					}
+
+					currNode.Instructions.Add(instruction);
+				}
 			}
 		}
 
 		protected void CreateAndConnect (Instruction instruction)
 		{
-			var node = cfg.AddOrGet(instruction.Addr);
+			var node = currGraph.AddOrGet(instruction.Addr);
 
 			if (currNode != null && ShouldConnectToNext(currNode.LastInstruction))
 			{
-				cfg.AddEdge(currNode, node);
-			}
-
-			if (instruction is FunctionInstruction func && func.HasBody)
-			{
-				cfg.AddEdge(node, cfg.AddOrGet(func.EndAddr));
+				currGraph.AddEdge(currNode, node);
 			}
 
 			currNode = node;
+		}
+
+		protected bool IsFunctionEnd (Instruction instruction)
+		{
+			return currGraph.IsFunction && instruction.Addr >= currGraph.FunctionHeader.EndAddr;
 		}
 
 		protected bool IsBlockStart (Instruction instruction)
@@ -56,20 +79,8 @@ namespace DSODecompiler.ControlFlow
 
 		protected bool IsBlockEnd (Instruction instruction)
 		{
-			switch (instruction)
-			{
-				/* For most CFG implementations, return statements also end blocks, but for our purposes they don't... */
-				case FunctionInstruction:
-				case BranchInstruction:
-				{
-					return true;
-				}
-
-				default:
-				{
-					return false;
-				}
-			}
+			/* For most CFG implementations, return statements also end blocks, but for our purposes they don't... */
+			return instruction is BranchInstruction;
 		}
 
 		protected bool ShouldConnectToNext (Instruction instruction)
@@ -83,11 +94,14 @@ namespace DSODecompiler.ControlFlow
 		 */
 		protected void ConnectBranches ()
 		{
-			foreach (var node in cfg)
+			foreach (var graph in graphs)
 			{
-				if (node.LastInstruction is BranchInstruction branch)
+				foreach (var node in graph)
 				{
-					cfg.AddEdge(node, cfg.AddOrGet(branch.TargetAddr));
+					if (node.LastInstruction is BranchInstruction branch)
+					{
+						graph.AddEdge(node, graph.AddOrGet(branch.TargetAddr));
+					}
 				}
 			}
 		}

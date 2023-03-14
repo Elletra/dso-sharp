@@ -19,8 +19,11 @@ namespace DSODecompiler.ControlFlow
 
 	public class ControlFlowGraph : DirectedGraph<uint, ControlFlowNode>
 	{
-		public override ControlFlowNode EntryPoint => Get(0);
+		public FunctionInstruction FunctionHeader { get; } = null;
 
+		public bool IsFunction => FunctionHeader != null;
+
+		public ControlFlowGraph (FunctionInstruction func = null) => FunctionHeader = func;
 		public ControlFlowNode AddOrGet (uint addr) => Has(addr) ? Get(addr) : Add(addr, new ControlFlowNode(addr));
 	}
 }
