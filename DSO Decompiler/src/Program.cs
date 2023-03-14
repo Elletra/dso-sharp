@@ -1,6 +1,7 @@
 ﻿using System;
 
 using DSODecompiler.ControlFlow;
+using DSODecompiler.ControlFlow.Structure;
 using DSODecompiler.Disassembler;
 using DSODecompiler.Loader;
 
@@ -35,7 +36,8 @@ namespace DSODecompiler
 			}*/
 
 			var controlFlowData = new ControlFlowData(disassembly);
-			var totalLoops = 0;
+
+			uint totalLoops = 0;
 
 			foreach (var graph in controlFlowData.ControlFlowGraphs)
 			{
@@ -61,7 +63,7 @@ namespace DSODecompiler
 					Console.Write("\n");
 				}
 
-				totalLoops += controlFlowData.DominatorGraphs[graph].FindLoops().Count;
+				totalLoops += graph.GetLoopCount();
 			}
 
 			Console.WriteLine($"\n## Total Loops: {totalLoops}");

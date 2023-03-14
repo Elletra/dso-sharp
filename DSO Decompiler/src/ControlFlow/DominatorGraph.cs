@@ -33,6 +33,7 @@ namespace DSODecompiler.ControlFlow
 			cfg = graph;
 
 			Build();
+			FindLoops();
 		}
 
 		public ControlFlowNode ImmediateDom (ControlFlowNode node)
@@ -68,14 +69,13 @@ namespace DSODecompiler.ControlFlow
 		}
 
 		/// <summary>
-		/// Finds loop bounds and adds their address to a hash set.
+		/// Finds loop bounds and marks them.<br /><br />
+		///
+		/// NOTE: This function mutates the `IsLoopStart` and `IsLoopEnd` properties of the graph nodes.
 		/// </summary>
 		/// <param name="graph"></param>
-		/// <returns>Addresses of loop nodes.</returns>
-		public HashSet<uint> FindLoops ()
+		private void FindLoops ()
 		{
-			var loopEnds = new HashSet<uint>();
-
 			foreach (var node in cfg.PreorderDFS())
 			{
 				if (node.LastInstruction is not BranchInstruction branch)
@@ -91,7 +91,7 @@ namespace DSODecompiler.ControlFlow
 				var target = cfg.Get(branch.TargetAddr);
 
 				// Is this a loop?
-				if (Dominates(target, node))
+				if (Dominates(target, node, strictly: false))
 				{
 					if (target.Addr > node.Addr)
 					{
@@ -99,11 +99,10 @@ namespace DSODecompiler.ControlFlow
 						throw new DominatorGraphException($"Node at {target.Addr} dominates earlier node at {node.Addr}");
 					}
 
-					loopEnds.Add(node.Addr);
+					target.IsLoopStart = true;
+					node.IsLoopEnd = true;
 				}
 			}
-
-			return loopEnds;
 		}
 
 		/// <summary>

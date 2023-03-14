@@ -17,7 +17,7 @@ namespace DSODecompiler.Util
 			public N LastSuccessor => Successors.Count > 0 ? Successors[^1] : null;
 		}
 
-		private readonly Dictionary<K, N> nodes = new();
+		protected readonly Dictionary<K, N> nodes = new();
 
 		// TODO: There must be a better way than allowing users to manually set the entry point.
 		public virtual N EntryPoint { get; set; } = null;
