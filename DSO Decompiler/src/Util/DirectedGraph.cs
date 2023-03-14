@@ -9,6 +9,12 @@ namespace DSODecompiler.Util
 		{
 			public List<N> Predecessors { get; } = new();
 			public List<N> Successors { get; } = new();
+
+			public N FirstPredecessor => Predecessors.Count > 0 ? Predecessors[0] : null;
+			public N FirstSuccessor => Successors.Count > 0 ? Successors[0] : null;
+
+			public N LastPredecessor => Predecessors.Count > 0 ? Predecessors[^1] : null;
+			public N LastSuccessor => Successors.Count > 0 ? Successors[^1] : null;
 		}
 
 		private readonly Dictionary<K, N> nodes = new();
@@ -25,6 +31,8 @@ namespace DSODecompiler.Util
 				return null;
 			}
 		}
+
+		public int Count => nodes.Count;
 
 		public N Add (K key, N node)
 		{
