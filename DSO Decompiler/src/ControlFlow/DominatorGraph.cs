@@ -121,8 +121,6 @@ namespace DSODecompiler.ControlFlow
 
 			foreach (var (node, order) in reversePostorder)
 			{
-				immediateDoms[node] = null;
-
 				nodes.Add(order, node);
 			}
 
@@ -144,35 +142,24 @@ namespace DSODecompiler.ControlFlow
 
 					ControlFlowNode newIDom = null;
 
-					/* Find first predecessor whose dominator has been calculated. */
-
-					var predecessors = new HashSet<ControlFlowNode>();
-
 					foreach (ControlFlowNode pred in node.Predecessors)
 					{
-						if (newIDom == null && ImmediateDom(pred) != null)
+						if (immediateDoms.ContainsKey(pred))
 						{
-							newIDom = pred;
-						}
-						else
-						{
-							predecessors.Add(pred);
+							if (newIDom == null)
+							{
+								newIDom = pred;
+							}
+							else
+							{
+								newIDom = FindCommonDominator(pred, newIDom);
+							}
 						}
 					}
 
 					if (newIDom == null)
 					{
 						throw new DominatorGraphException($"Could not find new immediate dominator for node at {node.Addr}");
-					}
-
-					/* Calculate new immediate dominator. */
-
-					foreach (var pred in predecessors)
-					{
-						if (ImmediateDom(pred) != null)
-						{
-							newIDom = FindCommonDominator(pred, newIDom);
-						}
 					}
 
 					if (ImmediateDom(node) != newIDom)
