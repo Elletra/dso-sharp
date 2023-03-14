@@ -1,7 +1,6 @@
 ﻿using System;
 
 using DSODecompiler.ControlFlow;
-using DSODecompiler.ControlFlow.Structure;
 using DSODecompiler.Disassembler;
 using DSODecompiler.Loader;
 
@@ -62,13 +61,7 @@ namespace DSODecompiler
 					Console.Write("\n");
 				}
 
-				Console.Write("Num loops: ");
-
-				var count = controlFlowData.DominatorGraphs[graph].FindLoops().Count;
-				totalLoops += count;
-
-				Console.Write(count);
-				Console.Write("\n\n");
+				totalLoops += controlFlowData.DominatorGraphs[graph].FindLoops().Count;
 			}
 
 			Console.WriteLine($"\n## Total Loops: {totalLoops}");
