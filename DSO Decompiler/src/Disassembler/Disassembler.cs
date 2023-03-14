@@ -355,9 +355,9 @@ namespace DSODecompiler.Disassembler
 
 		protected void ProcessAddress (uint addr)
 		{
-			if (reader.InFunction && addr >= reader.FunctionEnd)
+			if (reader.InFunction && addr >= reader.Function.EndAddr)
 			{
-				reader.FunctionEnd = 0;
+				reader.Function = null;
 			}
 		}
 
@@ -389,7 +389,23 @@ namespace DSODecompiler.Disassembler
 
 						disassembly.AddFunctionEnd(func.EndAddr);
 
-						reader.FunctionEnd = func.EndAddr;
+						reader.Function = func;
+					}
+
+					break;
+				}
+
+				case BranchInstruction branch:
+				{
+					if (reader.InFunction)
+					{
+						var addr = branch.Addr;
+						var target = branch.TargetAddr;
+
+						if (target <= reader.Function.Addr || target >= reader.Function.EndAddr)
+						{
+							throw new DisassemblerException($"Branch at {addr} jumps out of function to {target}");
+						}
 					}
 
 					break;

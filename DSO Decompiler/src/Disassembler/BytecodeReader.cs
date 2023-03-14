@@ -7,14 +7,15 @@ namespace DSODecompiler.Disassembler
 		protected FileData fileData = null;
 		protected uint index = 0;
 
-		public uint FunctionEnd { get; set; } = 0;
+		public FunctionInstruction Function { get; set; } = null;
+
 
 		/* There's probably a stupid way to nest function declarations inside each other, and that
 		   would require having something more complicated, but we're keeping it simple for now, so
 		   let's just do it this way.
 
 		   Tentative TODO: Maybe someday. */
-		public bool InFunction => FunctionEnd > 0;
+		public bool InFunction => Function != null;
 
 		public uint Index => index;
 		public int Size => fileData.CodeSize;
