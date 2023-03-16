@@ -36,6 +36,28 @@ namespace DSODecompiler.Util
 			return node;
 		}
 
+		public bool Remove (K key)
+		{
+			if (!Has(key))
+			{
+				return false;
+			}
+
+			var node = Get(key);
+
+			foreach (var predecessor in node.Predecessors)
+			{
+				RemoveEdge(predecessor, node);
+			}
+
+			foreach (var successor in node.Successors)
+			{
+				RemoveEdge(node, successor);
+			}
+
+			return nodes.Remove(key);
+		}
+
 		public bool Has (K key) => nodes.ContainsKey(key);
 		public N Get (K key) => Has(key) ? nodes[key] : null;
 
@@ -116,8 +138,9 @@ namespace DSODecompiler.Util
 			}
 		}
 
-		public IEnumerable<N> PreorderDFS ()
+		public List<N> PreorderDFS ()
 		{
+			var list = new List<N>();
 			var node = EntryPoint;
 			var visited = new HashSet<N>();
 			var queue = new Queue<N>();
@@ -128,8 +151,7 @@ namespace DSODecompiler.Util
 			{
 				node = queue.Dequeue();
 
-				yield return node;
-
+				list.Add(node);
 				visited.Add(node);
 
 				foreach (var successor in node.Successors)
@@ -140,6 +162,8 @@ namespace DSODecompiler.Util
 					}
 				}
 			}
+
+			return list;
 		}
 
 		/// <summary>
@@ -150,8 +174,9 @@ namespace DSODecompiler.Util
 		/// Full credit goes to <see href="https://stackoverflow.com/a/50646181">Hans Olsson</see> on Stack Overflow.
 		/// </summary>
 		/// <returns></returns>
-		public IEnumerable<N> PostorderDFS ()
+		public List<N> PostorderDFS ()
 		{
+			var list = new List<N>();
 			var visited = new HashSet<N>();
 			var stack = new Stack<(N, bool)>();
 
@@ -163,7 +188,7 @@ namespace DSODecompiler.Util
 
 				if (visitNode)
 				{
-					yield return node;
+					list.Add(node);
 				}
 				else if (!visited.Contains(node))
 				{
@@ -178,6 +203,8 @@ namespace DSODecompiler.Util
 					}
 				}
 			}
+
+			return list;
 		}
 	}
 }
