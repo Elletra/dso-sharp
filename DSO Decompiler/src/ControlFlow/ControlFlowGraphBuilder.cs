@@ -28,17 +28,28 @@ namespace DSODecompiler.ControlFlow
 		{
 			foreach (var instruction in disassembly)
 			{
-				var isFunction = instruction is FunctionInstruction;
-
-				if (currGraph == null || isFunction || IsFunctionEnd(instruction))
+				/* Special handling for empty functions. */
+				if (instruction is FunctionInstruction func && !func.HasBody)
 				{
-					currGraph = isFunction ? new(instruction as FunctionInstruction) : new();
+					graphs.Add(new(func));
+
+					currGraph = null;
+					currNode = null;
+
+					continue;
+				}
+
+				var isFuncStart = instruction is FunctionInstruction;
+
+				if (currGraph == null || isFuncStart || IsFunctionEnd(instruction))
+				{
+					currGraph = isFuncStart ? new(instruction as FunctionInstruction) : new();
 					currNode = null;
 
 					graphs.Add(currGraph);
 				}
 
-				if (!isFunction)
+				if (!isFuncStart)
 				{
 					if (currNode == null || IsBlockStart(instruction) || IsBlockEnd(currNode.LastInstruction))
 					{
