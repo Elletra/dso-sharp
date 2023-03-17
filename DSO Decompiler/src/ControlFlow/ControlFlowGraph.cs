@@ -14,8 +14,8 @@ namespace DSODecompiler.ControlFlow
 		public bool IsLoopStart { get; set; } = false;
 		public bool IsLoopEnd { get; set; } = false;
 
-		public Instruction FirstInstruction => Instructions[0];
-		public Instruction LastInstruction => Instructions[^1];
+		public Instruction FirstInstruction => Instructions.Count > 0 ? Instructions[0] : null;
+		public Instruction LastInstruction => Instructions.Count > 0 ? Instructions[^1] : null;
 
 		public ControlFlowNode (uint addr) => Addr = addr;
 	}
