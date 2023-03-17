@@ -31,7 +31,12 @@ namespace DSODecompiler.ControlFlow
 				/* Special handling for empty functions. */
 				if (instruction is FunctionInstruction func && !func.HasBody)
 				{
-					graphs.Add(new(func));
+					var graph = new ControlFlowGraph(func);
+
+					graphs.Add(graph);
+					graph.Add(func.Addr, new ControlFlowNode(func.Addr));
+
+					graph.EntryPoint = graph.Get(func.Addr);
 
 					currGraph = null;
 					currNode = null;
