@@ -3,20 +3,20 @@ using System.Collections.Generic;
 
 namespace DSODecompiler.Util
 {
-	public class DirectedGraph<K, N> where N : DirectedGraph<K, N>.Node
+	public class GraphNode
 	{
-		public class Node
-		{
-			public List<N> Predecessors { get; } = new();
-			public List<N> Successors { get; } = new();
+		public List<GraphNode> Predecessors { get; } = new();
+		public List<GraphNode> Successors { get; } = new();
 
-			public N FirstPredecessor => Predecessors.Count > 0 ? Predecessors[0] : null;
-			public N FirstSuccessor => Successors.Count > 0 ? Successors[0] : null;
+		public GraphNode FirstPredecessor => Predecessors.Count > 0 ? Predecessors[0] : null;
+		public GraphNode FirstSuccessor => Successors.Count > 0 ? Successors[0] : null;
 
-			public N LastPredecessor => Predecessors.Count > 0 ? Predecessors[^1] : null;
-			public N LastSuccessor => Successors.Count > 0 ? Successors[^1] : null;
-		}
+		public GraphNode LastPredecessor => Predecessors.Count > 0 ? Predecessors[^1] : null;
+		public GraphNode LastSuccessor => Successors.Count > 0 ? Successors[^1] : null;
+	}
 
+	public class DirectedGraph<K, N> where N : GraphNode
+	{
 		protected readonly Dictionary<K, N> nodes = new();
 
 		// TODO: There must be a better way than allowing users to manually set the entry point.
@@ -45,12 +45,12 @@ namespace DSODecompiler.Util
 
 			var node = Get(key);
 
-			foreach (var predecessor in node.Predecessors)
+			foreach (N predecessor in node.Predecessors)
 			{
 				RemoveEdge(predecessor, node);
 			}
 
-			foreach (var successor in node.Successors)
+			foreach (N successor in node.Successors)
 			{
 				RemoveEdge(node, successor);
 			}
@@ -154,7 +154,7 @@ namespace DSODecompiler.Util
 				list.Add(node);
 				visited.Add(node);
 
-				foreach (var successor in node.Successors)
+				foreach (N successor in node.Successors)
 				{
 					if (!visited.Contains(successor))
 					{
@@ -199,7 +199,7 @@ namespace DSODecompiler.Util
 
 					for (var i = count - 1; i >= 0; i--)
 					{
-						stack.Push((node.Successors[i], false));
+						stack.Push((node.Successors[i] as N, false));
 					}
 				}
 			}
