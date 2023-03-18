@@ -340,7 +340,7 @@ namespace DSODecompiler.Disassembler
 	}
 
 	/// <summary>
-	/// Some games (e.g. Blockland) have weird, unused "filler" instructions that don't do anything.
+	/// Some games (e.g. Blockland and Tribes 2) have unused instructions that don't do anything.
 	/// </summary>
 	public class UnusedInstruction : SimpleInstruction
 	{
