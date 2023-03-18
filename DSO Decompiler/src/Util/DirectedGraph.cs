@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace DSODecompiler.Util
 {
@@ -126,6 +125,31 @@ namespace DSODecompiler.Util
 
 		public bool HasEdge (N from, N to) => from.Successors.Contains(to);
 
+		public N FirstSuccessor (N node) => node.Successors.Count > 0 ? node.Successors[0] as N : null;
+
+		public List<N> GetSuccessors (N node)
+		{
+			var list = new List<N>();
+
+			node.Successors.ForEach(successor => list.Add((N) successor));
+
+			return list;
+		}
+
+		/// <summary>
+		/// Reconnects successors from `nodeFrom` to `nodeTo`.
+		/// </summary>
+		/// <param name="nodeFrom"></param>
+		/// <param name="nodeTo"></param>
+		public void ReplaceSuccessors (N nodeFrom, N nodeTo)
+		{
+			foreach (N successor in GetSuccessors(nodeFrom))
+			{
+				RemoveEdge(nodeFrom, successor);
+				AddEdge(nodeTo, successor);
+			}
+		}
+
 		/// <summary>
 		/// Iterates over all the nodes, even if they're not connected to anything.
 		/// </summary>
@@ -154,7 +178,7 @@ namespace DSODecompiler.Util
 				list.Add(node);
 				visited.Add(node);
 
-				foreach (N successor in node.Successors)
+				foreach (N successor in GetSuccessors(node))
 				{
 					if (!visited.Contains(successor))
 					{
@@ -195,11 +219,12 @@ namespace DSODecompiler.Util
 					visited.Add(node);
 					stack.Push((node, true));
 
-					var count = node.Successors.Count;
+					var successors = GetSuccessors(node);
+					var count = successors.Count;
 
 					for (var i = count - 1; i >= 0; i--)
 					{
-						stack.Push((node.Successors[i] as N, false));
+						stack.Push((successors[i], false));
 					}
 				}
 			}
