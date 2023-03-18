@@ -116,7 +116,12 @@ namespace DSODecompiler.ControlFlow
 				{
 					if (node.LastInstruction is BranchInstruction branch)
 					{
-						graph.AddEdge(node, graph.AddOrGet(branch.TargetAddr));
+						if (!graph.Has(branch.TargetAddr))
+						{
+							throw new KeyNotFoundException($"Branch to non-existent CFG node at {branch.TargetAddr}");
+						}
+
+						graph.AddEdge(node, graph.Get(branch.TargetAddr));
 					}
 				}
 			}
