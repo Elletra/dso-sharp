@@ -254,7 +254,6 @@ namespace DSODecompiler.Disassembler
 				case Opcode.Value.OP_FLT_TO_STR:
 				case Opcode.Value.OP_UINT_TO_STR:
 				case Opcode.Value.OP_STR_TO_NONE:
-				case Opcode.Value.OP_STR_TO_NONE_2:
 				case Opcode.Value.OP_FLT_TO_NONE:
 				case Opcode.Value.OP_UINT_TO_NONE:
 				{
@@ -341,6 +340,7 @@ namespace DSODecompiler.Disassembler
 
 				case Opcode.Value.UNUSED1:
 				case Opcode.Value.UNUSED2:
+				case Opcode.Value.UNUSED3:
 				{
 					return new UnusedInstruction(opcode, addr);
 				}

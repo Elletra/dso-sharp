@@ -33,7 +33,7 @@ namespace DSODecompiler.Opcodes
 			OP_CALLFUNC_RESOLVE,        /* 0x07 */
 			OP_FLT_TO_UINT,             /* 0x08 */
 			OP_FLT_TO_STR,              /* 0x09 */
-			OP_STR_TO_NONE_2,           /* 0x0A */
+			UNUSED3,                    /* 0x0A */
 			OP_LOADVAR_UINT,            /* 0x0B */
 			OP_SAVEVAR_STR,             /* 0x0C */
 			OP_JMPIFNOT,                /* 0x0D */
@@ -124,7 +124,6 @@ namespace DSODecompiler.Opcodes
 				case Value.OP_JMPIF_NP:
 				case Value.OP_JMPIFNOT_NP:
 				case Value.OP_STR_TO_NONE:
-				case Value.OP_STR_TO_NONE_2:
 				case Value.OP_FLT_TO_NONE:
 				case Value.OP_UINT_TO_NONE:
 				{
@@ -185,7 +184,6 @@ namespace DSODecompiler.Opcodes
 				}
 
 				case Value.OP_STR_TO_NONE:
-				case Value.OP_STR_TO_NONE_2:
 				case Value.OP_FLT_TO_NONE:
 				case Value.OP_UINT_TO_NONE:
 				{
