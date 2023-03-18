@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using DSODecompiler.Disassembler;
+using DSODecompiler.Util;
 
 namespace DSODecompiler.ControlFlow
 {
@@ -14,7 +14,7 @@ namespace DSODecompiler.ControlFlow
 	/// Nodes can have multiple dominators, but we only care about the immediate dominator, which
 	/// is the very last dominator before the node itself.
 	/// </summary>
-	public class DominatorGraph
+	public class DominatorGraph<K, N> where N : GraphNode
 	{
 		public class DominatorGraphException : Exception
 		{
@@ -23,20 +23,19 @@ namespace DSODecompiler.ControlFlow
 			public DominatorGraphException (string message, Exception inner) : base(message, inner) {}
 		}
 
-		private readonly ControlFlowGraph cfg = null;
+		private readonly DirectedGraph<K, N> digraph = null;
 
-		private readonly Dictionary<ControlFlowNode, int> reversePostorder = new();
-		private readonly Dictionary<ControlFlowNode, ControlFlowNode> immediateDoms = new();
+		private readonly Dictionary<N, int> reversePostorder = new();
+		private readonly Dictionary<N, N> immediateDoms = new();
 
-		public DominatorGraph (ControlFlowGraph graph)
+		public DominatorGraph (DirectedGraph<K, N> graph)
 		{
-			cfg = graph;
+			digraph = graph;
 
 			Build();
-			FindLoops();
 		}
 
-		public ControlFlowNode ImmediateDom (ControlFlowNode node)
+		public N ImmediateDom (N node)
 		{
 			return immediateDoms.ContainsKey(node) ? immediateDoms[node] : null;
 		}
@@ -50,7 +49,7 @@ namespace DSODecompiler.ControlFlow
 		/// Whether we're checking for strict domination (i.e. A node cannot strictly dominate itself).
 		/// </param>
 		/// <returns></returns>
-		public bool Dominates (ControlFlowNode node1, ControlFlowNode node2, bool strictly = false)
+		public bool Dominates (N node1, N node2, bool strictly = false)
 		{
 			// All nodes dominate themselves, but not strictly.
 			if (node1 == node2)
@@ -69,43 +68,6 @@ namespace DSODecompiler.ControlFlow
 		}
 
 		/// <summary>
-		/// Finds loop bounds and marks them.<br /><br />
-		///
-		/// NOTE: This function mutates the `IsLoopStart` and `IsLoopEnd` properties of the graph nodes.
-		/// </summary>
-		/// <param name="graph"></param>
-		private void FindLoops ()
-		{
-			foreach (var node in cfg.PreorderDFS())
-			{
-				if (node.LastInstruction is not BranchInstruction branch)
-				{
-					continue;
-				}
-
-				if (!cfg.Has(branch.TargetAddr))
-				{
-					throw new DominatorGraphException($"Control flow graph does not contain node at branch target {branch.TargetAddr}");
-				}
-
-				var target = cfg.Get(branch.TargetAddr);
-
-				// Is this a loop?
-				if (Dominates(target, node, strictly: false))
-				{
-					if (target.Addr > node.Addr)
-					{
-						// Back edge somehow jumps forward??
-						throw new DominatorGraphException($"Node at {target.Addr} dominates earlier node at {node.Addr}");
-					}
-
-					target.IsLoopStart = true;
-					node.IsLoopEnd = true;
-				}
-			}
-		}
-
-		/// <summary>
 		/// Calculates the immediate dominator of every node in `cfg`.<br /><br />
 		///
 		/// "A Simple, Fast Dominance Algorithm" by Keith Cooper, Timothy Harvey, and Ken Kennedy:<br />
@@ -115,8 +77,8 @@ namespace DSODecompiler.ControlFlow
 		{
 			BuildReversePostorder();
 
-			var entry = cfg.EntryPoint;
-			var nodes = new SortedList<int, ControlFlowNode>();
+			var entry = digraph.EntryPoint;
+			var nodes = new SortedList<int, N>();
 
 			foreach (var (node, order) in reversePostorder)
 			{
@@ -139,9 +101,9 @@ namespace DSODecompiler.ControlFlow
 						continue;
 					}
 
-					ControlFlowNode newIDom = null;
+					N newIDom = null;
 
-					foreach (ControlFlowNode pred in node.Predecessors)
+					foreach (N pred in node.Predecessors)
 					{
 						if (immediateDoms.ContainsKey(pred))
 						{
@@ -158,7 +120,7 @@ namespace DSODecompiler.ControlFlow
 
 					if (newIDom == null)
 					{
-						throw new DominatorGraphException($"Could not find new immediate dominator for node at {node.Addr}");
+						throw new DominatorGraphException($"Could not find new immediate dominator for node at {node}");
 					}
 
 					if (ImmediateDom(node) != newIDom)
@@ -181,7 +143,7 @@ namespace DSODecompiler.ControlFlow
 		/// <param name="node1"></param>
 		/// <param name="node2"></param>
 		/// <returns></returns>
-		private ControlFlowNode FindCommonDominator (ControlFlowNode node1, ControlFlowNode node2)
+		private N FindCommonDominator (N node1, N node2)
 		{
 			var finger1 = node1;
 			var finger2 = node2;
@@ -204,9 +166,9 @@ namespace DSODecompiler.ControlFlow
 
 		private void BuildReversePostorder ()
 		{
-			var order = cfg.Count - 1;
+			var order = digraph.Count - 1;
 
-			foreach (var node in cfg.PostorderDFS())
+			foreach (var node in digraph.PostorderDFS())
 			{
 				reversePostorder[node] = order--;
 			}
