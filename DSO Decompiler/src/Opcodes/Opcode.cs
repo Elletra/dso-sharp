@@ -116,6 +116,13 @@ namespace DSODecompiler.Opcodes
 			switch (op)
 			{
 				case Value.OP_RETURN:
+				case Value.OP_JMP:
+				case Value.OP_JMPIF:
+				case Value.OP_JMPIFF:
+				case Value.OP_JMPIFNOT:
+				case Value.OP_JMPIFFNOT:
+				case Value.OP_JMPIF_NP:
+				case Value.OP_JMPIFNOT_NP:
 				case Value.OP_STR_TO_NONE:
 				case Value.OP_STR_TO_NONE_2:
 				case Value.OP_FLT_TO_NONE:
