@@ -257,6 +257,9 @@ namespace DSODecompiler.Disassembler
 	{
 		public T Value { get; }
 
+		public bool IsTaggedString => Opcode.Op == Opcode.Value.OP_TAG_TO_STR;
+		public bool IsIdentifier => Opcode.Op == Opcode.Value.OP_LOADIMMED_IDENT;
+
 		public ImmediateInstruction (Opcode opcode, uint addr, T value) : base (opcode, addr)
 		{
 			Value = value;
