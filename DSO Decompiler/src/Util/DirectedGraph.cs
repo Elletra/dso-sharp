@@ -44,12 +44,12 @@ namespace DSODecompiler.Util
 
 			var node = Get(key);
 
-			foreach (N predecessor in node.Predecessors)
+			foreach (N predecessor in node.Predecessors.ToArray())
 			{
 				RemoveEdge(predecessor, node);
 			}
 
-			foreach (N successor in node.Successors)
+			foreach (N successor in node.Successors.ToArray())
 			{
 				RemoveEdge(node, successor);
 			}

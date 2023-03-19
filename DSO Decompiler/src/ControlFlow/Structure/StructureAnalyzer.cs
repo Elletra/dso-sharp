@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 
 using DSODecompiler.ControlFlow.Structure.Regions;
@@ -40,12 +41,12 @@ namespace DSODecompiler.ControlFlow.Structure
 							throw new NotImplementedException($"Region graph node with more than 2 successors");
 						}
 
-						reduced = ReduceAcyclic(node);
+						reduced = !IsCycleEnd(node) && ReduceAcyclic(node);
 
-						/*if (!reduced && IsCyclic(node))
+						if (!reduced && IsCycleStart(node))
 						{
 							reduced = ReduceCyclic(node);
-						}*/
+						}
 					}
 				}
 			}
@@ -53,40 +54,50 @@ namespace DSODecompiler.ControlFlow.Structure
 			return GetVirtualRegion(entryAddr);
 		}
 
-		/*protected bool IsCyclic (RegionGraphNode node)
+		protected bool IsCycleStart (RegionGraphNode node)
 		{
-			return node.Predecessors.Any(predecessor => predecessor == node || IsBackEdge(predecessor, node));
+			return node.Predecessors.Any(predecessor => IsBackEdge(predecessor as RegionGraphNode, node));
+		}
+
+		protected bool IsCycleEnd (RegionGraphNode node)
+		{
+			return node.Successors.Any(successor => IsBackEdge(node, successor as RegionGraphNode));
 		}
 
 		protected bool IsBackEdge (RegionGraphNode node1, RegionGraphNode node2)
 		{
-			return domGraph.Dominates(node2, node1, strictly: true);
+			return domGraph.Dominates(node2, node1, strictly: false);
 		}
 
 		// TODO: Test expression inversion and comparison.
 		protected bool ReduceCyclic (RegionGraphNode node)
 		{
-			if (!node.IsLoopStart)
-			{
-				return false;
-			}
-
 			var region = node.Region;
 
-			if (region.LastInstruction is not BranchInstruction)
+			if (region.LastInstruction is not BranchInstruction branch)
 			{
 				throw new NotImplementedException($"Cyclic region at {node.Addr} does not end with branch instruction.");
 			}
 
-			foreach (var successor in node.Successors.ToArray())
+			foreach (RegionGraphNode successor in node.Successors.ToArray())
 			{
 				if (successor == node)
 				{
-					var container = new ContainerRegion(successor.Addr);
+					var loop = new LoopRegion()
+					{
+						Infinite = node.Successors.Count == 1 || branch.IsUnconditional
+					};
 
-					region.VirtualRegions.ForEach(vr => container.Children.Add(vr));
-					region.VirtualRegions.Clear();
-					region.VirtualRegions.Add(container);
+					if (HasVirtualRegion(node.Addr))
+					{
+						loop.Body.Add(GetVirtualRegion(node.Addr));
+					}
+					else
+					{
+						loop.Body.CopyInstructions(node.Region);
+					}
+
+					AddVirtualRegion(node.Addr, loop);
 
 					regionGraph.RemoveEdge(node, successor);
 					regionGraph.RemoveEdge(successor, node);
@@ -95,24 +106,35 @@ namespace DSODecompiler.ControlFlow.Structure
 				}
 			}
 
-			foreach (var successor in node.Successors.ToArray())
+			foreach (RegionGraphNode successor in node.Successors.ToArray())
 			{
 				if (successor.FirstSuccessor == node && successor.Predecessors.Count == 1)
 				{
-					var succRegion = successor.Region;
-
-					if (succRegion.LastInstruction is not BranchInstruction branch)
+					if (successor.Region.LastInstruction is not BranchInstruction)
 					{
 						throw new NotImplementedException($"Cyclic region at {node.Addr} does not end with branch instruction.");
 					}
 
-					var container = new ContainerRegion(successor.Addr);
+					var addr = node.Addr;
+					var succAddr = successor.Addr;
 
-					region.VirtualRegions.ForEach(vr => container.Children.Add(vr));
-					succRegion.VirtualRegions.ForEach(vr => container.Children.Add(vr));
+					var loop = new LoopRegion();
 
-					region.VirtualRegions.Clear();
-					region.VirtualRegions.Add(container);
+					if (HasVirtualRegion(addr))
+					{
+						loop.Body.Add(GetVirtualRegion(addr));
+					}
+					else
+					{
+						loop.CopyInstructions(node.Region);
+					}
+
+					if (HasVirtualRegion(succAddr))
+					{
+						loop.Body.Add(GetVirtualRegion(succAddr));
+					}
+
+					AddVirtualRegion(addr, loop);
 
 					regionGraph.RemoveEdge(node, successor);
 					regionGraph.RemoveEdge(successor, node);
@@ -122,12 +144,10 @@ namespace DSODecompiler.ControlFlow.Structure
 			}
 
 			return false;
-		}*/
+		}
 
 		protected bool ReduceAcyclic (RegionGraphNode node)
 		{
-			// TODO: Acyclic nodes that jump backwards.
-
 			var reduced = false;
 
 			switch (node.Successors.Count)
@@ -158,7 +178,6 @@ namespace DSODecompiler.ControlFlow.Structure
 			return reduced;
 		}
 
-		// TODO: Test expression inversion and comparison.
 		protected bool ReduceConditional (RegionGraphNode node)
 		{
 			var region = node.Region;
@@ -176,12 +195,7 @@ namespace DSODecompiler.ControlFlow.Structure
 
 			var reduced = false;
 
-			// This should never happen.
-			if (elseSucc == then)
-			{
-				throw new Exception($"Unexpected conditional inversion at {node.Addr}");
-			}
-			else if (thenSucc == @else)
+			if (thenSucc == @else)
 			{
 				reduced = true;
 
@@ -261,6 +275,10 @@ namespace DSODecompiler.ControlFlow.Structure
 			if (HasVirtualRegion(node.Addr))
 			{
 				sequence.Add(GetVirtualRegion(node));
+			}
+			else
+			{
+				sequence.CopyInstructions(node.Region);
 			}
 
 			if (!HasVirtualRegion(next.Addr))

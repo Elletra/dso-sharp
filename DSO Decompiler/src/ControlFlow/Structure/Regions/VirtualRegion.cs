@@ -70,12 +70,20 @@ namespace DSODecompiler.ControlFlow.Structure.Regions
 
 	public class LoopRegion : VirtualRegion
 	{
-		public bool Infinite { get; }
-		public SequenceRegion Body { get; } = null;
+		public bool Infinite { get; set; }
+		public SequenceRegion Body { get; } = new();
+
+		public LoopRegion () {}
 
 		public LoopRegion (VirtualRegion body, bool infinite)
 		{
 			Body = SequenceRegion.Get(body);
+			Infinite = infinite;
+		}
+
+		public LoopRegion (Region region, bool infinite)
+		{
+			Body.CopyInstructions(region);
 			Infinite = infinite;
 		}
 	}

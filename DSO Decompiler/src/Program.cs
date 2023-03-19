@@ -121,6 +121,12 @@ namespace DSODecompiler
 					seq.Body.ForEach(child => PrintVRegion(child, indent + 1));
 					break;
 				}
+
+				case LoopRegion loop:
+				{
+					PrintVRegion(loop.Body, indent + 1);
+					break;
+				}
 			}
 
 			Console.WriteLine("");
