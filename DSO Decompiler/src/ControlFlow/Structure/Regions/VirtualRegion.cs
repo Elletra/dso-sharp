@@ -8,8 +8,30 @@ namespace DSODecompiler.ControlFlow.Structure.Regions
 	{
 		public List<Instruction> Instructions { get; } = new();
 
-		public void CopyInstructions (Region region) => region.Instructions.ForEach(instruction => Instructions.Add(instruction));
-		public void CopyInstructions (VirtualRegion vr) => vr.Instructions.ForEach(instruction => Instructions.Add(instruction));
+		public void CopyInstructions (Region region) => region.Instructions.ForEach(Instructions.Add);
+		public void CopyInstructions (VirtualRegion vr) => vr.Instructions.ForEach(Instructions.Add);
+	}
+
+	public class RegionContainer : List<VirtualRegion>
+	{
+		public new void Add (VirtualRegion virtualRegion)
+		{
+			/* We extract the instructions and body of `SequenceRegion`s to reduce nesting, as well
+			   as to make sure that loop end blocks stay within the main loop body. */
+			if (virtualRegion is SequenceRegion sequence)
+			{
+				if (virtualRegion.Instructions.Count > 0)
+				{
+					base.Add(new InstructionRegion(virtualRegion));
+				}
+
+				sequence.Body.ForEach(base.Add);
+			}
+			else
+			{
+				base.Add(virtualRegion);
+			}
+		}
 	}
 
 	/// <summary>
@@ -19,6 +41,7 @@ namespace DSODecompiler.ControlFlow.Structure.Regions
 	{
 		public InstructionRegion () {}
 		public InstructionRegion (Region region) => CopyInstructions(region);
+		public InstructionRegion (VirtualRegion vr) => CopyInstructions(vr);
 	}
 
 	/// <summary>
@@ -36,7 +59,7 @@ namespace DSODecompiler.ControlFlow.Structure.Regions
 			return new SequenceRegion() { Body = { vr } };
 		}
 
-		public List<VirtualRegion> Body { get; } = new();
+		public RegionContainer Body { get; } = new();
 
 		public SequenceRegion () {}
 		public SequenceRegion (Region region) => CopyInstructions(region);
@@ -53,28 +76,23 @@ namespace DSODecompiler.ControlFlow.Structure.Regions
 		public void Add (VirtualRegion region) => Body.Add(region);
 	}
 
-	public class GotoRegion : VirtualRegion
-	{
-		public uint TargetAddr { get; }
-
-		public GotoRegion (uint target) => TargetAddr = target;
-	}
-
-	public class BreakRegion : VirtualRegion {}
-	public class ContinueRegion : VirtualRegion {}
 
 	/// <summary>
 	/// A virtual region meant to represent a conditional (if-then or if-then-else).
 	/// </summary>
 	public class ConditionalRegion : VirtualRegion
 	{
-		public List<VirtualRegion> Then { get; } = new();
-		public List<VirtualRegion> Else { get; } = new();
+		public RegionContainer Then { get; } = new();
+		public RegionContainer Else { get; } = new();
 
 		public ConditionalRegion (VirtualRegion then, VirtualRegion @else = null)
 		{
 			Then.Add(then);
-			Else.Add(@else);
+
+			if (@else != null)
+			{
+				Else.Add(@else);
+			}
 		}
 
 		public ConditionalRegion (Region region, VirtualRegion then, VirtualRegion @else = null) : this(then, @else)
@@ -88,15 +106,27 @@ namespace DSODecompiler.ControlFlow.Structure.Regions
 	/// </summary>
 	public class LoopRegion : VirtualRegion
 	{
+		public uint Addr { get; }
 		public bool Infinite { get; set; }
-		public List<VirtualRegion> Body { get; } = new();
+		public RegionContainer Body { get; } = new();
 
-		public LoopRegion () {}
+		public LoopRegion (uint addr) => Addr = addr;
 
-		public LoopRegion (VirtualRegion body, bool infinite)
+		public LoopRegion (uint addr, VirtualRegion body, bool infinite) : this(addr)
 		{
 			Body.Add(body);
+
 			Infinite = infinite;
 		}
 	}
+
+	public class GotoRegion : VirtualRegion
+	{
+		public uint TargetAddr { get; }
+
+		public GotoRegion (uint target) => TargetAddr = target;
+	}
+
+	public class BreakRegion : VirtualRegion {}
+	public class ContinueRegion : VirtualRegion {}
 }
