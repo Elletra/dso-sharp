@@ -8,10 +8,6 @@
     <Authors>Electrk</Authors>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="test.cs" />
-  </ItemGroup>
-
   <PropertyGroup>
      <LangVersion>9.0</LangVersion>
   </PropertyGroup>
