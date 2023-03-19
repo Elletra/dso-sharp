@@ -94,7 +94,7 @@ namespace DSODecompiler.ControlFlow.Structure
 					}
 					else
 					{
-						loop.Body.CopyInstructions(node.Region);
+						loop.Body.Add(new InstructionRegion(node.Region));
 					}
 
 					AddVirtualRegion(node.Addr, loop);
@@ -203,7 +203,7 @@ namespace DSODecompiler.ControlFlow.Structure
 
 				if (!HasVirtualRegion(then.Addr))
 				{
-					AddVirtualRegion(then.Addr, new SequenceRegion(then.Region));
+					AddVirtualRegion(then.Addr, new InstructionRegion(then.Region));
 				}
 
 				AddVirtualRegion(node.Addr, new ConditionalRegion(node.Region, GetVirtualRegion(then)));
@@ -220,12 +220,12 @@ namespace DSODecompiler.ControlFlow.Structure
 
 				if (!HasVirtualRegion(then.Addr))
 				{
-					AddVirtualRegion(then.Addr, new SequenceRegion(then.Region));
+					AddVirtualRegion(then.Addr, new InstructionRegion(then.Region));
 				}
 
 				if (!HasVirtualRegion(@else.Addr))
 				{
-					AddVirtualRegion(@else.Addr, new SequenceRegion(@else.Region));
+					AddVirtualRegion(@else.Addr, new InstructionRegion(@else.Region));
 				}
 
 				AddVirtualRegion(
@@ -283,7 +283,7 @@ namespace DSODecompiler.ControlFlow.Structure
 
 			if (!HasVirtualRegion(next.Addr))
 			{
-				AddVirtualRegion(next.Addr, new SequenceRegion(next.Region));
+				AddVirtualRegion(next.Addr, new InstructionRegion(next.Region));
 			}
 
 			sequence.Add(GetVirtualRegion(next));

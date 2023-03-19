@@ -12,6 +12,18 @@ namespace DSODecompiler.ControlFlow.Structure.Regions
 		public void CopyInstructions (VirtualRegion vr) => vr.Instructions.ForEach(instruction => Instructions.Add(instruction));
 	}
 
+	/// <summary>
+	/// A simple virtual region that only contains instructions (meant to differentiate from VirtualRegion base class).
+	/// </summary>
+	public class InstructionRegion : VirtualRegion
+	{
+		public InstructionRegion () {}
+		public InstructionRegion (Region region) => CopyInstructions(region);
+	}
+
+	/// <summary>
+	/// A virtual region that can contain other virtual regions.
+	/// </summary>
 	public class SequenceRegion : VirtualRegion
 	{
 		public static SequenceRegion Get (VirtualRegion vr)
@@ -51,15 +63,18 @@ namespace DSODecompiler.ControlFlow.Structure.Regions
 	public class BreakRegion : VirtualRegion {}
 	public class ContinueRegion : VirtualRegion {}
 
+	/// <summary>
+	/// A virtual region meant to represent a conditional (if-then or if-then-else).
+	/// </summary>
 	public class ConditionalRegion : VirtualRegion
 	{
-		public SequenceRegion Then { get; } = null;
-		public SequenceRegion Else { get; } = null;
+		public List<VirtualRegion> Then { get; } = new();
+		public List<VirtualRegion> Else { get; } = new();
 
 		public ConditionalRegion (VirtualRegion then, VirtualRegion @else = null)
 		{
-			Then = SequenceRegion.Get(then);
-			Else = SequenceRegion.Get(@else);
+			Then.Add(then);
+			Else.Add(@else);
 		}
 
 		public ConditionalRegion (Region region, VirtualRegion then, VirtualRegion @else = null) : this(then, @else)
@@ -68,22 +83,19 @@ namespace DSODecompiler.ControlFlow.Structure.Regions
 		}
 	}
 
+	/// <summary>
+	/// A virtual region meant to represent a loop.
+	/// </summary>
 	public class LoopRegion : VirtualRegion
 	{
 		public bool Infinite { get; set; }
-		public SequenceRegion Body { get; } = new();
+		public List<VirtualRegion> Body { get; } = new();
 
 		public LoopRegion () {}
 
 		public LoopRegion (VirtualRegion body, bool infinite)
 		{
-			Body = SequenceRegion.Get(body);
-			Infinite = infinite;
-		}
-
-		public LoopRegion (Region region, bool infinite)
-		{
-			Body.CopyInstructions(region);
+			Body.Add(body);
 			Infinite = infinite;
 		}
 	}

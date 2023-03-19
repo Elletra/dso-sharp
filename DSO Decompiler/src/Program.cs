@@ -1,5 +1,5 @@
 ﻿using System;
-using System.IO;
+using System.Collections.Generic;
 
 using DSODecompiler.ControlFlow;
 using DSODecompiler.ControlFlow.Structure;
@@ -84,6 +84,14 @@ namespace DSODecompiler
 				var virtualRegion = analyzer.Analyze(cfg, disassembly);
 
 				PrintVRegion(virtualRegion, 0);
+			}
+		}
+
+		private static void PrintVRegion (List<VirtualRegion> list, int indent)
+		{
+			foreach (var vr in list)
+			{
+				PrintVRegion(vr, indent);
 			}
 		}
 
