@@ -18,9 +18,7 @@ namespace DSODecompiler.ControlFlow.Structure
 	/// "Native x86 Decompilation Using Semantics-Preserving Structural Analysis and Iterative
 	/// Control-Flow Structuring"</see> by Edward J. Schwartz, JongHyup Lee, Maverick Woo, and David Brumley.
 	/// </item>
-	/// <item>
-	/// <see href="https://github.com/uxmal/reko">Reko Decompiler</see> by John Källén, et al.
-	/// </item>
+	/// <item><see href="https://github.com/uxmal/reko">Reko Decompiler</see> by John Källén, et al.</item>
 	/// </list>
 	/// </summary>
 	public class StructureAnalyzer
@@ -96,20 +94,18 @@ namespace DSODecompiler.ControlFlow.Structure
 		// TODO: Test expression inversion and comparison.
 		protected bool ReduceCyclic (RegionGraphNode node)
 		{
-			var region = node.Region;
-
-			if (region.LastInstruction is not BranchInstruction branch)
-			{
-				throw new NotImplementedException($"Cyclic region at {node.Addr} does not end with branch instruction.");
-			}
-
 			foreach (RegionGraphNode successor in node.Successors.ToArray())
 			{
 				if (successor == node)
 				{
+					if (successor.Region.LastInstruction is not BranchInstruction branch)
+					{
+						throw new NotImplementedException($"Cyclic region at {node.Addr} does not end with branch instruction.");
+					}
+
 					var loop = new LoopRegion()
 					{
-						Infinite = node.Successors.Count == 1 || branch.IsUnconditional
+						Infinite = successor.Successors.Count == 1 || branch.IsUnconditional
 					};
 
 					if (HasVirtualRegion(node.Addr))
@@ -134,7 +130,7 @@ namespace DSODecompiler.ControlFlow.Structure
 			{
 				if (successor.FirstSuccessor == node && successor.Predecessors.Count == 1)
 				{
-					if (successor.Region.LastInstruction is not BranchInstruction)
+					if (successor.Region.LastInstruction is not BranchInstruction branch)
 					{
 						throw new NotImplementedException($"Cyclic region at {node.Addr} does not end with branch instruction.");
 					}
@@ -142,7 +138,10 @@ namespace DSODecompiler.ControlFlow.Structure
 					var addr = node.Addr;
 					var succAddr = successor.Addr;
 
-					var loop = new LoopRegion();
+					var loop = new LoopRegion()
+					{
+						Infinite = successor.Successors.Count == 1 || branch.IsUnconditional
+					};
 
 					if (HasVirtualRegion(addr))
 					{
