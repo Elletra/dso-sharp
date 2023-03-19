@@ -106,13 +106,12 @@ namespace DSODecompiler.ControlFlow.Structure.Regions
 	/// </summary>
 	public class LoopRegion : VirtualRegion
 	{
-		public uint Addr { get; }
 		public bool Infinite { get; set; }
 		public RegionContainer Body { get; } = new();
 
-		public LoopRegion (uint addr) => Addr = addr;
+		public LoopRegion () {}
 
-		public LoopRegion (uint addr, VirtualRegion body, bool infinite) : this(addr)
+		public LoopRegion (VirtualRegion body, bool infinite)
 		{
 			Body.Add(body);
 
