@@ -21,37 +21,44 @@ namespace DSODecompiler.ControlFlow.Structure
 			domGraph = new(regionGraph);
 			virtualRegions = new();
 
-			var entryAddr = regionGraph.EntryPoint.Addr;
+			var entryPoint = regionGraph.EntryPoint;
 
-			while (regionGraph.Count > 1)
+			/* Silly edge case where there's one graph node that isn't a loop or branch or anything. */
+			if (regionGraph.Count == 1)
+			{
+				AddVirtualRegion(entryPoint.Addr, new InstructionRegion(entryPoint.Region));
+			}
+
+			do
 			{
 				foreach (var node in regionGraph.PostorderDFS())
 				{
-					if (node.Successors.Count <= 0)
-					{
-						continue;
-					}
-
-					var reduced = true;
-
-					while (reduced)
-					{
-						if (node.Successors.Count > 2)
-						{
-							throw new NotImplementedException($"Region graph node with more than 2 successors");
-						}
-
-						reduced = !IsCycleEnd(node) && ReduceAcyclic(node);
-
-						if (!reduced && IsCycleStart(node))
-						{
-							reduced = ReduceCyclic(node);
-						}
-					}
+					ReduceNode(node);
 				}
 			}
+			while (regionGraph.Count > 1);
 
-			return GetVirtualRegion(entryAddr);
+			return GetVirtualRegion(entryPoint.Addr);
+		}
+
+		protected void ReduceNode (RegionGraphNode node)
+		{
+			var reduced = true;
+
+			while (reduced)
+			{
+				if (node.Successors.Count > 2)
+				{
+					throw new NotImplementedException($"Region graph node with more than 2 successors");
+				}
+
+				reduced = !IsCycleEnd(node) && ReduceAcyclic(node);
+
+				if (!reduced && IsCycleStart(node))
+				{
+					reduced = ReduceCyclic(node);
+				}
+			}
 		}
 
 		protected bool IsCycleStart (RegionGraphNode node)
@@ -178,6 +185,7 @@ namespace DSODecompiler.ControlFlow.Structure
 			return reduced;
 		}
 
+		// TODO: Test expression inversion and comparison.
 		protected bool ReduceConditional (RegionGraphNode node)
 		{
 			var region = node.Region;
