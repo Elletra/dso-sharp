@@ -9,7 +9,6 @@ namespace DSODecompiler.Disassembler
 
 		public FunctionInstruction Function { get; set; } = null;
 
-
 		/* There's probably a stupid way to nest function declarations inside each other, and that
 		   would require having something more complicated, but we're keeping it simple for now, so
 		   let's just do it this way.

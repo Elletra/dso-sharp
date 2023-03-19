@@ -7,6 +7,22 @@ using DSODecompiler.Disassembler;
 
 namespace DSODecompiler.ControlFlow.Structure
 {
+	/// <summary>
+	/// Performs a structural analysis on a control flow graph in order to determine various structures
+	/// in the code, such as loops, if-else statements, etc.<br /><br />
+	///
+	/// <b>Sources:</b><br />
+	/// <list type="number">
+	/// <item>
+	/// <see href="https://www.usenix.org/system/files/conference/usenixsecurity13/sec13-paper_schwartz.pdf">
+	/// "Native x86 Decompilation Using Semantics-Preserving Structural Analysis and Iterative
+	/// Control-Flow Structuring"</see> by Edward J. Schwartz, JongHyup Lee, Maverick Woo, and David Brumley.
+	/// </item>
+	/// <item>
+	/// <see href="https://github.com/uxmal/reko">Reko Decompiler</see> by John Källén, et al.
+	/// </item>
+	/// </list>
+	/// </summary>
 	public class StructureAnalyzer
 	{
 		protected Disassembly disassembly = null;
