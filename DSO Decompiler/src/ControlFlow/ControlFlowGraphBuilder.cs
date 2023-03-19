@@ -101,7 +101,7 @@ namespace DSODecompiler.ControlFlow
 
 		protected bool ShouldConnectToNext (Instruction instruction)
 		{
-			return instruction is not BranchInstruction branch || !branch.IsUnconditional;
+			return instruction is not BranchInstruction branch || branch.IsConditional;
 		}
 
 		/**

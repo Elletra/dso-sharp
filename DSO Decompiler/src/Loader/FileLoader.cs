@@ -7,11 +7,11 @@
 	/// </summary>
 	public class FileLoader
 	{
-		public class Exception : System.Exception
+		public class FileLoaderException : System.Exception
 		{
-			public Exception () {}
-			public Exception (string message) : base (message) {}
-			public Exception (string message, System.Exception inner) : base (message, inner) {}
+			public FileLoaderException () {}
+			public FileLoaderException (string message) : base (message) {}
+			public FileLoaderException (string message, System.Exception inner) : base (message, inner) {}
 		}
 
 		protected FileReader reader = null;
@@ -19,8 +19,8 @@
 		/// <summary>
 		/// Loads a DSO file, parses it, and returns the parsed data.
 		/// </summary>
-		/// <exception cref="FileLoader.Exception">
-		/// `ParseHeader()` throws FileLoader.Exception if the DSO file has the wrong version.
+		/// <exception cref="FileLoaderException">
+		/// <see cref="ParseHeader"/> throws if the DSO file has the wrong version.
 		/// </exception>
 		/// <param name="filePath"></param>
 		/// <param name="version"></param>
@@ -37,7 +37,7 @@
 			ParseStringTable(data, global: false);
 			ParseFloatTable(data, global: false);
 			ParseCode(data);
-			ParseIdentTable(data);
+			ParseIdentifierTable(data);
 
 			return data;
 		}
@@ -46,7 +46,7 @@
 		/// Parses the DSO file header to make sure it has the right version, throwing an exception
 		/// if it does not.
 		/// </summary>
-		/// <exception cref="FileLoader.Exception">If file has the wrong version.</exception>
+		/// <exception cref="FileLoaderException">If file has the wrong version.</exception>
 		/// <param name="data"></param>
 		protected void ParseHeader (FileData data)
 		{
@@ -54,7 +54,7 @@
 
 			if (fileVersion != data.Version)
 			{
-				throw new Exception($"Invalid DSO version: Expected {data.Version}, got {fileVersion}");
+				throw new FileLoaderException($"Invalid DSO version: Expected {data.Version}, got {fileVersion}");
 			}
 		}
 
@@ -113,7 +113,7 @@
 		/// Parses identifier table, replacing bits of the code with proper string table indices.
 		/// </summary>
 		/// <param name="data"></param>
-		protected void ParseIdentTable (FileData data)
+		protected void ParseIdentifierTable (FileData data)
 		{
 			var identifiers = reader.ReadUInt();
 

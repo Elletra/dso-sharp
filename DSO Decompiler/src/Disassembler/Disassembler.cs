@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 using DSODecompiler.Loader;
 using DSODecompiler.Opcodes;
@@ -27,7 +26,7 @@ namespace DSODecompiler.Disassembler
 			disassembly = new();
 
 			Disassemble();
-			CollectBranches();
+			MarkBranches();
 
 			return disassembly;
 		}
@@ -73,22 +72,25 @@ namespace DSODecompiler.Disassembler
 			return DisassembleOpcode(opcode, addr);
 		}
 
-		/**
-		 * Disassembles the next opcode.
-		 *
-		 * Right now we're just doing a linear sweep, but that doesn't handle certain anti-disassembly
-		 * techniques like jumping to the middle of an instruction.
-		 *
-		 * No DSO files currently do this to my knowledge, and probably never will, but I do want
-		 * to support it eventually. I tried to with the initial version of this decompiler, but it
-		 * became too complicated too quickly, so I'm going to hold off on it for now. I just want a
-		 * working decompiler that works with what we have (e.g. Blockland and The Forgettable Dungeon).
-		 *
-		 * Maybe someday I will implement a recursive descent method instead, because right now it's
-		 * very easy to break this decompiler, but for now I'll just keep it simple...
-		 *
-		 * Tentative TODO: Maybe someday.
-		 */
+		/// <summary>
+		/// Disassembles the next opcode.<br/><br/>
+		///
+		/// Right now we're just doing a linear sweep, but that doesn't handle certain anti-disassembly
+		/// techniques like jumping to the middle of an instruction.<br/><br/>
+		///
+		/// No DSO files currently do this to my knowledge, and probably never will, but I do want
+		/// to support it eventually.I tried to with the initial version of this decompiler, but it
+		/// became too complicated too quickly, so I'm going to hold off on it for now. I just want a
+		/// working decompiler that works with what we have (e.g.Blockland and The Forgettable Dungeon).<br/><br/>
+		///
+		/// Maybe someday I will implement a recursive descent method instead, because right now it's
+		/// very easy to break this decompiler, but for now I'll just keep it simple...<br/><br/>
+		///
+		/// TODO: Maybe someday.
+		/// </summary>
+		/// <param name="opcode"></param>
+		/// <param name="addr"></param>
+		/// <returns></returns>
 		protected Instruction DisassembleOpcode (Opcode opcode, uint addr)
 		{
 			switch (opcode.Op)
@@ -376,7 +378,7 @@ namespace DSODecompiler.Disassembler
 				{
 					if (func.HasBody)
 					{
-						/* See TODO in BytecodeReader. */
+						/// See comment for <see cref="BytecodeReader.InFunction"/>.
 						if (reader.InFunction)
 						{
 							throw new DisassemblerException($"Nested function at {func.Addr}");
@@ -444,18 +446,18 @@ namespace DSODecompiler.Disassembler
 
 
 		// Since branches can jump backwards, we have to do this part in a second pass.
-		protected void CollectBranches ()
+		protected void MarkBranches ()
 		{
 			foreach (var instruction in disassembly)
 			{
 				if (instruction is BranchInstruction branch)
 				{
-					CollectBranch(branch);
+					MarkBranch(branch);
 				}
 			}
 		}
 
-		protected void CollectBranch (BranchInstruction branch)
+		protected void MarkBranch (BranchInstruction branch)
 		{
 			var source = branch.Addr;
 			var target = branch.TargetAddr;
@@ -476,7 +478,7 @@ namespace DSODecompiler.Disassembler
 				throw new DisassemblerException($"Branch to invalid address {target}");
 			}
 
-			/* See TODO for DisassembleOpcode(). */
+			/// See summary for <see cref="DisassembleOpcode(Opcode, uint)"/>.
 			if (!disassembly.HasInstruction(target))
 			{
 				throw new DisassemblerException($"Branch to non-existent instruction at {target}");

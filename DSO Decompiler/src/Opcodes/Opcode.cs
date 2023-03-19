@@ -159,8 +159,14 @@ namespace DSODecompiler.Opcodes
 			}
 		}
 
-		/* I believe there are TypeReq for opcodes other than type conversions, but those aren't
-		   necessary for our purposes. TODO: If the need arises. */
+		/// <summary>
+		/// There are TypeReq for opcodes other than type conversions, but that isn't necessary for
+		/// for our purposes.<br/><br/>
+		///
+		/// TODO: If the need arises.
+		/// </summary>
+		/// <param name="op"></param>
+		/// <returns></returns>
 		protected static TypeReq GetTypeReq (Value op)
 		{
 			switch (op)

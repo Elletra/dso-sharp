@@ -16,8 +16,8 @@ namespace DSODecompiler.ControlFlow.Structure.Regions
 	{
 		public new void Add (VirtualRegion virtualRegion)
 		{
-			/* We extract the instructions and body of `SequenceRegion`s to reduce nesting, as well
-			   as to make sure that loop end blocks stay within the main loop body. */
+			/// We extract the instructions and body of <see cref="SequenceRegion"/> to reduce nesting,
+			/// as well as to make sure that loop end blocks stay within the main loop body.
 			if (virtualRegion is SequenceRegion sequence)
 			{
 				if (virtualRegion.Instructions.Count > 0)

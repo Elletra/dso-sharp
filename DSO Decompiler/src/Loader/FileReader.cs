@@ -9,12 +9,12 @@ namespace DSODecompiler.Loader
 	{
 		protected BinaryReader reader = null;
 
+		public bool IsEOF => reader.BaseStream.Position >= reader.BaseStream.Length;
+
 		public FileReader (string filePath)
 		{
 			reader = new BinaryReader(new FileStream(filePath, FileMode.Open));
 		}
-
-		public bool IsEOF () => reader.BaseStream.Position >= reader.BaseStream.Length;
 
 		public byte ReadByte () => reader.ReadByte();
 		public uint ReadUInt () => reader.ReadUInt32();

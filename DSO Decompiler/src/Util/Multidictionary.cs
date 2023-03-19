@@ -3,6 +3,11 @@ using System.Linq;
 
 namespace DSODecompiler.Util
 {
+	/// <summary>
+	/// Utility class for storing multiple values at the same key.
+	/// </summary>
+	/// <typeparam name="K"></typeparam>
+	/// <typeparam name="V"></typeparam>
 	public class Multidictionary<K, V>
 	{
 		private readonly Dictionary<K, HashSet<V>> storage = new();

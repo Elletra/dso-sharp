@@ -12,7 +12,12 @@ namespace DSODecompiler.ControlFlow
 	/// to get to N.<br /><br />
 	///
 	/// Nodes can have multiple dominators, but we only care about the immediate dominator, which
-	/// is the very last dominator before the node itself.
+	/// is the very last dominator before the node itself.<br /><br />
+	///
+	/// <b>Source:</b><br /><br />
+	///
+	/// <see href="https://www.cs.rice.edu/~keith/EMBED/dom.pdf">"A Simple, Fast Dominance Algorithm"</see>
+	/// by Keith Cooper, Timothy Harvey, and Ken Kennedy.
 	/// </summary>
 	public class DominatorGraph<K, N> where N : GraphNode
 	{
@@ -41,7 +46,7 @@ namespace DSODecompiler.ControlFlow
 		}
 
 		/// <summary>
-		/// Checks if `node1` dominates `node2`.
+		/// Checks if <paramref name="node1"/> dominates <paramref name="node2"/>.
 		/// </summary>
 		/// <param name="node1"></param>
 		/// <param name="node2"></param>
@@ -68,10 +73,7 @@ namespace DSODecompiler.ControlFlow
 		}
 
 		/// <summary>
-		/// Calculates the immediate dominator of every node in `cfg`.<br /><br />
-		///
-		/// "A Simple, Fast Dominance Algorithm" by Keith Cooper, Timothy Harvey, and Ken Kennedy:<br />
-		/// https://www.cs.rice.edu/~keith/EMBED/dom.pdf
+		/// Calculates the immediate dominator of every node in <see cref="digraph"/>.
 		/// </summary>
 		private void Build ()
 		{
@@ -131,18 +133,10 @@ namespace DSODecompiler.ControlFlow
 				}
 			}
 
-			// Set immediate dominator back to `null` because a node cannot be the immediate dominator
-			// of itself.
+			// Set immediate dominator back to null because a node cannot be the immediate dominator of itself.
 			immediateDoms[entry] = null;
 		}
 
-		/// <summary>
-		/// "A Simple, Fast Dominance Algorithm" by Keith Cooper, Timothy Harvey, and Ken Kennedy:<br />
-		/// https://www.cs.rice.edu/~keith/EMBED/dom.pdf
-		/// </summary>
-		/// <param name="node1"></param>
-		/// <param name="node2"></param>
-		/// <returns></returns>
 		private N FindCommonDominator (N node1, N node2)
 		{
 			var finger1 = node1;
@@ -150,6 +144,9 @@ namespace DSODecompiler.ControlFlow
 
 			while (finger1 != finger2)
 			{
+				/* Comparisons are inverted from the Cooper paper because we're storing the nodes
+				   in reverse postorder, whereas they store them in postorder. */
+
 				while (reversePostorder[finger1] > reversePostorder[finger2])
 				{
 					finger1 = ImmediateDom(finger1);

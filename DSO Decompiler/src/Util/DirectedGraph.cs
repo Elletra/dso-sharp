@@ -62,7 +62,9 @@ namespace DSODecompiler.Util
 
 		/// <param name="from"></param>
 		/// <param name="to"></param>
-		/// <returns>false if either `from` or `to` nodes do not exist.</returns>
+		/// <returns>
+		/// false if either <paramref name="from"/> or <paramref name="to"/> nodes do not exist.
+		/// </returns>
 		public bool AddEdge (K from, K to)
 		{
 			if (!Has(from) || !Has(to))
@@ -81,7 +83,9 @@ namespace DSODecompiler.Util
 
 		/// <param name="from"></param>
 		/// <param name="to"></param>
-		/// <returns>false if either `from` or `to` nodes do not exist.</returns>
+		/// <returns>
+		/// false if either <paramref name="from"/> or <paramref name="to"/> nodes do not exist.
+		/// </returns>
 		public bool RemoveEdge (K from, K to)
 		{
 			if (!Has(from) || !Has(to))
@@ -137,7 +141,7 @@ namespace DSODecompiler.Util
 		}
 
 		/// <summary>
-		/// Reconnects successors from `nodeFrom` to `nodeTo`.
+		/// Reconnects successors from <paramref name="nodeFrom"/> to <paramref name="nodeTo"/>.
 		/// </summary>
 		/// <param name="nodeFrom"></param>
 		/// <param name="nodeTo"></param>
