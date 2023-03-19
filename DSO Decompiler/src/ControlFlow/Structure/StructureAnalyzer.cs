@@ -57,6 +57,7 @@ namespace DSODecompiler.ControlFlow.Structure
 			return GetVirtualRegion(entryPoint.Addr);
 		}
 
+		/* TODO: Gotos, breaks, tail regions, etc. */
 		protected void ReduceNode (RegionGraphNode node)
 		{
 			var reduced = true;
