@@ -135,29 +135,26 @@ namespace DSODecompiler.ControlFlow.Structure
 						throw new NotImplementedException($"Cyclic region at {node.Addr} does not end with branch instruction.");
 					}
 
-					var addr = node.Addr;
-					var succAddr = successor.Addr;
-
 					var loop = new LoopRegion()
 					{
 						Infinite = successor.Successors.Count == 1 || branch.IsUnconditional
 					};
 
-					if (HasVirtualRegion(addr))
+					if (HasVirtualRegion(node.Addr))
 					{
-						loop.Body.Add(GetVirtualRegion(addr));
+						loop.Body.Add(GetVirtualRegion(node.Addr));
 					}
 					else
 					{
 						loop.CopyInstructions(node.Region);
 					}
 
-					if (HasVirtualRegion(succAddr))
+					if (HasVirtualRegion(successor.Addr))
 					{
-						loop.Body.Add(GetVirtualRegion(succAddr));
+						loop.Body.Add(GetVirtualRegion(successor.Addr));
 					}
 
-					AddVirtualRegion(addr, loop);
+					AddVirtualRegion(node.Addr, loop);
 
 					regionGraph.RemoveEdge(node, successor);
 					regionGraph.RemoveEdge(successor, node);
