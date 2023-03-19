@@ -195,9 +195,9 @@ namespace DSODecompiler.Util
 		}
 
 		/// <summary>
-		/// Iterative postorder traversal on a cyclic graph... Good lord.<br /><br />
+		/// Iterative postorder traversal on a cyclic graph... Good lord.<br/><br/>
 		///
-		/// I did not come up with this algorithm, though I certainly tried.<br /><br />
+		/// I did not come up with this algorithm, though I certainly tried.<br/><br/>
 		///
 		/// Full credit goes to <see href="https://stackoverflow.com/a/50646181">Hans Olsson</see> on Stack Overflow.
 		/// </summary>

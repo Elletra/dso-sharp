@@ -6,15 +6,15 @@ using DSODecompiler.Util;
 namespace DSODecompiler.ControlFlow
 {
 	/// <summary>
-	/// Calculates the immediate dominators of nodes in a control flow graph.<br /><br />
+	/// Calculates the immediate dominators of nodes in a control flow graph.<br/><br/>
 	///
 	/// A node D is said to dominate a node N if all paths from the entry point must go through D
-	/// to get to N.<br /><br />
+	/// to get to N.<br/><br/>
 	///
 	/// Nodes can have multiple dominators, but we only care about the immediate dominator, which
-	/// is the very last dominator before the node itself.<br /><br />
+	/// is the very last dominator before the node itself.<br/><br/>
 	///
-	/// <b>Source:</b><br /><br />
+	/// <b>Source:</b><br/><br/>
 	///
 	/// <see href="https://www.cs.rice.edu/~keith/EMBED/dom.pdf">"A Simple, Fast Dominance Algorithm"</see>
 	/// by Keith Cooper, Timothy Harvey, and Ken Kennedy.

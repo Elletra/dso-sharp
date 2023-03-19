@@ -9,9 +9,9 @@ namespace DSODecompiler.ControlFlow.Structure
 {
 	/// <summary>
 	/// Performs a structural analysis on a control flow graph in order to determine various structures
-	/// in the code, such as loops, if-else statements, etc.<br /><br />
+	/// in the code, such as loops, if-else statements, etc.<br/><br/>
 	///
-	/// <b>Sources:</b><br />
+	/// <b>Sources:</b><br/>
 	/// <list type="number">
 	/// <item>
 	/// <see href="https://www.usenix.org/system/files/conference/usenixsecurity13/sec13-paper_schwartz.pdf">
