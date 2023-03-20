@@ -304,7 +304,14 @@ namespace DSODecompiler.ControlFlow.Structure
 
 			if (!HasVirtualRegion(next.Addr))
 			{
-				AddVirtualRegion(next.Addr, new InstructionRegion(next.Region));
+				if (IsCycleEnd(next))
+				{
+					AddVirtualRegion(next.Addr, new LoopFooterRegion(next.Region));
+				}
+				else
+				{
+					AddVirtualRegion(next.Addr, new InstructionRegion(next.Region));
+				}
 			}
 
 			sequence.Add(GetVirtualRegion(next));

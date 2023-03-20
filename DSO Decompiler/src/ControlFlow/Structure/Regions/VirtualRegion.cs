@@ -45,6 +45,16 @@ namespace DSODecompiler.ControlFlow.Structure.Regions
 	}
 
 	/// <summary>
+	/// A simple virtual region to differentiate the endings of loops.
+	/// </summary>
+	public class LoopFooterRegion : VirtualRegion
+	{
+		public LoopFooterRegion () {}
+		public LoopFooterRegion (Region region) => CopyInstructions(region);
+		public LoopFooterRegion (VirtualRegion vr) => CopyInstructions(vr);
+	}
+
+	/// <summary>
 	/// A virtual region that can contain other virtual regions.
 	/// </summary>
 	public class SequenceRegion : VirtualRegion
