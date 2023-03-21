@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using DSODecompiler.Disassembler;
 using DSODecompiler.Util;

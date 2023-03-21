@@ -291,7 +291,16 @@ namespace DSODecompiler.ControlFlow.Structure
 				return false;
 			}
 
-			var sequence = new SequenceRegion();
+			SequenceRegion sequence;
+
+			if (node.Region.IsFunction)
+			{
+				sequence = new FunctionRegion(node.Region.FunctionHeader);
+			}
+			else
+			{
+				sequence = new SequenceRegion();
+			}
 
 			if (HasVirtualRegion(node.Addr))
 			{

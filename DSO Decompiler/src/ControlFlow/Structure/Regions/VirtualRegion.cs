@@ -8,6 +8,8 @@ namespace DSODecompiler.ControlFlow.Structure.Regions
 	{
 		public List<Instruction> Instructions { get; } = new();
 
+		public Instruction FirstInstruction => Instructions.Count > 0 ? Instructions[0] : null;
+
 		public void CopyInstructions (Region region) => region.Instructions.ForEach(Instructions.Add);
 		public void CopyInstructions (VirtualRegion vr) => vr.Instructions.ForEach(Instructions.Add);
 	}
@@ -86,6 +88,12 @@ namespace DSODecompiler.ControlFlow.Structure.Regions
 		public void Add (VirtualRegion region) => Body.Add(region);
 	}
 
+	public class FunctionRegion : SequenceRegion
+	{
+		public FunctionInstruction Header => FirstInstruction as FunctionInstruction;
+
+		public FunctionRegion (FunctionInstruction function) => Instructions.Add(function);
+	}
 
 	/// <summary>
 	/// A virtual region meant to represent a conditional (if-then or if-then-else).

@@ -31,10 +31,13 @@ namespace DSODecompiler.ControlFlow
 				/* Special handling for empty functions. */
 				if (instruction is FunctionInstruction func && !func.HasBody)
 				{
-					var graph = new ControlFlowGraph(func);
+					var graph = new ControlFlowGraph();
+					var node = new ControlFlowNode(func.Addr);
+
+					node.Instructions.Add(func);
 
 					graphs.Add(graph);
-					graph.Add(func.Addr, new ControlFlowNode(func.Addr));
+					graph.Add(func.Addr, node);
 
 					graph.EntryPoint = graph.Get(func.Addr);
 
@@ -48,26 +51,23 @@ namespace DSODecompiler.ControlFlow
 
 				if (currGraph == null || isFuncStart || IsFunctionEnd(instruction))
 				{
-					currGraph = isFuncStart ? new(instruction as FunctionInstruction) : new();
+					currGraph = new();
 					currNode = null;
 
 					graphs.Add(currGraph);
 				}
 
-				if (!isFuncStart)
+				if (currNode == null || IsBlockStart(instruction) || IsBlockEnd(currNode.LastInstruction))
 				{
-					if (currNode == null || IsBlockStart(instruction) || IsBlockEnd(currNode.LastInstruction))
-					{
-						CreateAndConnect(instruction);
-					}
-
-					if (currGraph.EntryPoint == null)
-					{
-						currGraph.EntryPoint = currNode;
-					}
-
-					currNode.Instructions.Add(instruction);
+					CreateAndConnect(instruction);
 				}
+
+				if (currGraph.EntryPoint == null)
+				{
+					currGraph.EntryPoint = currNode;
+				}
+
+				currNode.Instructions.Add(instruction);
 			}
 		}
 
@@ -85,7 +85,14 @@ namespace DSODecompiler.ControlFlow
 
 		protected bool IsFunctionEnd (Instruction instruction)
 		{
-			return currGraph.IsFunction && instruction.Addr >= currGraph.FunctionHeader.EndAddr;
+			var first = currGraph.EntryPoint.FirstInstruction;
+
+			if (first is FunctionInstruction func)
+			{
+				return instruction.Addr >= func.EndAddr;
+			}
+
+			return false;
 		}
 
 		protected bool IsBlockStart (Instruction instruction)
