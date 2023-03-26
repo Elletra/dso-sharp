@@ -27,6 +27,7 @@ namespace DSODecompiler.ControlFlow.Structure
 		protected RegionGraph regionGraph = null;
 		protected DominatorGraph<uint, RegionGraphNode> domGraph = null;
 		protected Dictionary<uint, VirtualRegion> virtualRegions = null;
+		protected Queue<Loop<RegionGraphNode>> unreducedLoops;
 
 		public VirtualRegion Analyze (ControlFlowGraph cfg, Disassembly disasm)
 		{
@@ -34,6 +35,7 @@ namespace DSODecompiler.ControlFlow.Structure
 			regionGraph = RegionGraph.From(cfg);
 			domGraph = new(regionGraph);
 			virtualRegions = new();
+			unreducedLoops = new();
 
 			var entryPoint = regionGraph.EntryPoint;
 
@@ -48,6 +50,7 @@ namespace DSODecompiler.ControlFlow.Structure
 				foreach (var node in regionGraph.PostorderDFS())
 				{
 					ReduceNode(node);
+					ProcessUnreducedLoops();
 				}
 			}
 			while (regionGraph.Count > 1);
@@ -96,7 +99,9 @@ namespace DSODecompiler.ControlFlow.Structure
 		{
 			foreach (RegionGraphNode successor in node.Successors.ToArray())
 			{
-				if (successor == node)
+				var isSelfLoop = successor == node;
+
+				if (isSelfLoop || (successor.FirstSuccessor == node && successor.Predecessors.Count == 1))
 				{
 					if (successor.Region.LastInstruction is not BranchInstruction branch)
 					{
@@ -112,44 +117,16 @@ namespace DSODecompiler.ControlFlow.Structure
 					{
 						loop.Body.Add(GetVirtualRegion(node.Addr));
 					}
-					else
+					else if (isSelfLoop)
 					{
 						loop.Body.Add(new InstructionRegion(node.Region));
-					}
-
-					AddVirtualRegion(node.Addr, loop);
-
-					regionGraph.RemoveEdge(node, successor);
-					regionGraph.RemoveEdge(successor, node);
-
-					return true;
-				}
-			}
-
-			foreach (RegionGraphNode successor in node.Successors.ToArray())
-			{
-				if (successor.FirstSuccessor == node && successor.Predecessors.Count == 1)
-				{
-					if (successor.Region.LastInstruction is not BranchInstruction branch)
-					{
-						throw new NotImplementedException($"Cyclic region at {node.Addr} does not end with branch instruction.");
-					}
-
-					var loop = new LoopRegion()
-					{
-						Infinite = successor.Successors.Count == 1 || branch.IsUnconditional
-					};
-
-					if (HasVirtualRegion(node.Addr))
-					{
-						loop.Body.Add(GetVirtualRegion(node.Addr));
 					}
 					else
 					{
 						loop.CopyInstructions(node.Region);
 					}
 
-					if (HasVirtualRegion(successor.Addr))
+					if (!isSelfLoop && HasVirtualRegion(successor.Addr))
 					{
 						loop.Body.Add(GetVirtualRegion(successor.Addr));
 					}
@@ -162,6 +139,8 @@ namespace DSODecompiler.ControlFlow.Structure
 					return true;
 				}
 			}
+
+			unreducedLoops.Enqueue(domGraph.FindLoopNodes(node));
 
 			return false;
 		}
@@ -332,6 +311,64 @@ namespace DSODecompiler.ControlFlow.Structure
 			regionGraph.Remove(next);
 
 			return true;
+		}
+
+		protected void ProcessUnreducedLoops ()
+		{
+			while (unreducedLoops.Count > 0)
+			{
+				var loop = unreducedLoops.Dequeue();
+				var head = EnsureSingleEntry(loop);
+			}
+		}
+
+		protected RegionGraphNode EnsureSingleEntry (Loop<RegionGraphNode> loop)
+		{
+			var entry = loop.Head;
+			var maxEdges = CountIncomingEdges(entry, loop);
+
+			foreach (var node in loop.Nodes)
+			{
+				var count = CountIncomingEdges(node, loop);
+
+				if (count > maxEdges)
+				{
+					maxEdges = count;
+					entry = node;
+				}
+			}
+
+			/* Virtualize other incoming edges. */
+
+			foreach (var node in loop.Nodes)
+			{
+				var nodes = FindIncomingNodes(node, loop);
+
+				foreach (var incoming in nodes)
+				{
+					AddVirtualRegion(incoming.Addr, new GotoRegion(incoming.Instructions));
+					regionGraph.RemoveEdge(incoming, node);
+				}
+			}
+
+			return entry;
+		}
+
+		protected int CountIncomingEdges (RegionGraphNode node, Loop<RegionGraphNode> loop) => FindIncomingNodes(node, loop).Count;
+
+		protected HashSet<RegionGraphNode> FindIncomingNodes (RegionGraphNode node, Loop<RegionGraphNode> loop)
+		{
+			var edges = new HashSet<RegionGraphNode>();
+
+			node.Predecessors.ForEach(predecessor =>
+			{
+				if (!loop.Nodes.Contains(predecessor))
+				{
+					edges.Add(predecessor as RegionGraphNode);
+				}
+			});
+
+			return edges;
 		}
 
 		protected VirtualRegion AddVirtualRegion (uint addr, VirtualRegion vr) => virtualRegions[addr] = vr;

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using DSODecompiler.Disassembler;
 
@@ -12,6 +13,7 @@ namespace DSODecompiler.ControlFlow.Structure.Regions
 
 		public void CopyInstructions (Region region) => region.Instructions.ForEach(Instructions.Add);
 		public void CopyInstructions (VirtualRegion vr) => vr.Instructions.ForEach(Instructions.Add);
+		public void CopyInstructions (List<Instruction> instructions) => instructions.ForEach(Instructions.Add);
 	}
 
 	public class RegionContainer : List<VirtualRegion>
@@ -141,7 +143,33 @@ namespace DSODecompiler.ControlFlow.Structure.Regions
 	{
 		public uint TargetAddr { get; }
 
-		public GotoRegion (uint target) => TargetAddr = target;
+		/// <summary>
+		/// There may be some cases where a branch instruction uses the OP_JMPIF(F)/OP_JMPIF(F)NOT
+		/// instructions but does not match any of the schemas (i.e. it is used basically as a goto
+		/// and does not match the loop/if-else schemas).<br/><br/>
+		///
+		/// This is purely hypothetical and I have no idea if this is even possible.
+		/// </summary>
+		public bool IsConditional => Instructions.Count > 0
+			&& Instructions[^1] is BranchInstruction branch
+			&& branch.IsConditional;
+
+		public GotoRegion (List<Instruction> instructions)
+		{
+			if (instructions.Count <= 0)
+			{
+				throw new Exception($"Attempted to create goto region with no instructions");
+			}
+
+			if (instructions[^1] is not BranchInstruction branch)
+			{
+				throw new Exception("$Attempted to create goto region with non-branch as last instruction");
+			}
+
+			TargetAddr = branch.Addr;
+
+			CopyInstructions(instructions);
+		}
 	}
 
 	public class BreakRegion : VirtualRegion {}
