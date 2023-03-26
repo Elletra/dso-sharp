@@ -5,6 +5,14 @@ using DSODecompiler.Util;
 
 namespace DSODecompiler.ControlFlow
 {
+	public class Loop<N>
+	{
+		public N Head { get; }
+		public HashSet<N> Nodes { get; } = new();
+
+		public Loop (N head) => Head = head;
+	}
+
 	/// <summary>
 	/// Calculates the immediate dominators of nodes in a control flow graph.<br/><br/>
 	///
@@ -70,6 +78,37 @@ namespace DSODecompiler.ControlFlow
 			}
 
 			return dom == node1;
+		}
+
+		public Loop<N> FindLoopNodes (N loopHead)
+		{
+			var loop = new Loop<N>(loopHead);
+			var queue = new Queue<N>();
+
+			queue.Enqueue(loopHead);
+
+			while (queue.Count > 0)
+			{
+				var node = queue.Dequeue();
+
+				foreach (N predecessor in node.Predecessors)
+				{
+					if (Dominates(loopHead, predecessor, strictly: true))
+					{
+						if (!loop.Nodes.Contains(predecessor))
+						{
+							loop.Nodes.Add(predecessor);
+							queue.Enqueue(predecessor);
+						}
+					}
+					else if (node == loopHead && predecessor == node)
+					{
+						loop.Nodes.Add(predecessor);
+					}
+				}
+			}
+
+			return loop;
 		}
 
 		/// <summary>
