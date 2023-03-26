@@ -7,21 +7,25 @@ namespace DSODecompiler.Loader
 		public class StringTable
 		{
 			protected Dictionary<uint, string> table;
-			protected string rawString;
+
+			public string RawString { get; protected set; }
+
+			public int Size => RawString.Length;
+			public string this[uint index] => Get(index);
 
 			public StringTable (string rawStr)
 			{
-				table = new Dictionary<uint, string> ();
-				rawString = rawStr;
+				table = new Dictionary<uint, string>();
+				RawString = rawStr;
 
 				uint index = 0;
 				string str = "";
 
-				var length = rawString.Length;
+				var length = RawString.Length;
 
 				for (int i = 0; i < length; i++)
 				{
-					var ch = rawString[i];
+					var ch = RawString[i];
 
 					if (ch == '\0')
 					{
@@ -37,12 +41,8 @@ namespace DSODecompiler.Loader
 				}
 			}
 
-			public int Size => rawString.Length;
-			public string RawString => rawString;
-			public string this[uint index] => table[index];
-
-			public string At (uint index) => table[index];
-			public bool Has (uint index) => table.ContainsKey (index);
+			public string Get(uint index) => table[index];
+			public bool Has(uint index) => table.ContainsKey(index);
 		}
 
 		protected uint version;
@@ -50,44 +50,57 @@ namespace DSODecompiler.Loader
 		protected uint[] code;
 
 		protected StringTable globalStrings;
-		protected StringTable funcStrings;
+		protected StringTable functionStrings;
 
 		protected double[] globalFloats;
-		protected double[] funcFloats;
+		protected double[] functionFloats;
 
-		protected Dictionary<uint, uint> identTable = new Dictionary<uint, uint> ();
+		protected Dictionary<uint, uint> identifierTable = new();
 
-		protected List<uint> lineBreakPairs = new List<uint> ();
+		protected List<uint> lineBreakPairs = new();
 
 		public uint Version => version;
+
+		public int GlobalStringTableSize => globalStrings.Size;
+		public int GlobalFloatTableSize => globalFloats.Length;
+		public int FunctionStringTableSize => functionStrings.Size;
+		public int FunctionFloatTableSize => functionFloats.Length;
+		public int IdentTableSize => identifierTable.Count;
+		public int CodeSize => code.Length;
 
 		public FileData (uint version)
 		{
 			this.version = version;
 		}
 
-		/**
-		 * Methods for getting various values
-		 */
+		public void InitCode (uint size) => code = new uint[size];
+		public void ClearLineBreaks () => lineBreakPairs.Clear();
+		public void ClearIdentifierTable () => identifierTable.Clear();
 
-		public string StringTableValue (uint index, bool global) => (global ? globalStrings : funcStrings)[index];
-		public double FloatTableValue (uint index, bool global) => (global ? globalFloats : funcFloats)[index];
-		public string Identifer (uint addr, uint index) => HasIdentifierAt (addr) ? StringTableValue (index, true) : null;
-		public uint Op (uint index) => code[index];
+		public bool HasString (uint index, bool global) => (global ? globalStrings : functionStrings).Has(index);
+		public bool HasFloat (uint index, bool global) => index < (global ? globalFloats : functionFloats).Length;
+		public bool HasIdentifierAt (uint addr) => identifierTable.ContainsKey(addr);
 
-		/**
-		 * Methods for setting/initializing/clearing various sections
-		 */
+		public string GetStringTableValue (uint index, bool global) => (global ? globalStrings : functionStrings)[index];
+		public double GetFloatTableValue (uint index, bool global) => (global ? globalFloats : functionFloats)[index];
+		public string GetIdentifer (uint addr, uint index) => HasIdentifierAt(addr) ? GetStringTableValue(index, true) : null;
+		public uint GetOp (uint index) => code[index];
+
+		public void SetFloat (uint index, double value, bool global) => (global ? globalFloats : functionFloats)[index] = value;
+		public void SetIdentifier (uint addr, uint index) => identifierTable[addr] = index;
+		public void SetOp (uint index, uint op) => code[index] = op;
+
+		public void AddLineBreakPair (uint value) => lineBreakPairs.Add(value);
 
 		public void SetStringTable (string table, bool global)
 		{
 			if (global)
 			{
-				globalStrings = new StringTable (table);
+				globalStrings = new StringTable(table);
 			}
 			else
 			{
-				funcStrings = new StringTable (table);
+				functionStrings = new StringTable(table);
 			}
 		}
 
@@ -99,38 +112,8 @@ namespace DSODecompiler.Loader
 			}
 			else
 			{
-				funcFloats = new double[size];
+				functionFloats = new double[size];
 			}
 		}
-
-		public void InitCode (uint size) => code = new uint[size];
-		public void ClearLineBreaks () => lineBreakPairs.Clear ();
-		public void ClearIdentTable () => identTable.Clear ();
-
-		/**
-		 * Methods for setting/adding values
-		 */
-
-		public void SetFloat (uint index, double value, bool global) => (global ? globalFloats : funcFloats)[index] = value;
-		public void SetIdentifier (uint addr, uint index) => identTable[addr] = index;
-		public void SetOp (uint index, uint op) => code[index] = op;
-		public void AddLineBreakPair (uint value) => lineBreakPairs.Add (value);
-
-		/**
-		 * Methods for validating values
-		 */
-
-		public bool HasString (uint index, bool global) => (global ? globalStrings : funcStrings).Has (index);
-		public bool HasFloat (uint index, bool global) => index < (global ? globalFloats : funcFloats).Length;
-		public bool HasIdentifierAt (uint addr) => identTable.ContainsKey (addr);
-
-		/**
-		 * Methods for getting the size of various sections
-		 */
-
-		public int StringTableSize (bool global) => (global ? globalStrings : funcStrings).Size;
-		public int FloatTableSize (bool global) => (global ? globalFloats : funcFloats).Length;
-		public int IdentTableSize => identTable.Count;
-		public int CodeSize => code.Length;
 	}
 }

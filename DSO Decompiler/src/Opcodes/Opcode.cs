@@ -1,11 +1,27 @@
 ﻿using System;
-using DSODecompiler.Disassembler;
 
-namespace DSODecompiler
+namespace DSODecompiler.Opcodes
 {
-	public static class Opcodes
+	// Whether an instruction modifies the return value of a function or file.
+	public enum ReturnValue : sbyte
 	{
-		public enum Ops
+		NoChange = -1,
+		ToFalse,
+		ToTrue,
+	}
+
+	public enum TypeReq : sbyte
+	{
+		Invalid = -1,
+		None,
+		UInt,
+		Float,
+		String,
+	}
+
+	public class Opcode
+	{
+		public enum Value : uint
 		{
 			OP_UINT_TO_FLT,             /* 0x00 */
 			OP_ADVANCE_STR_NUL,         /* 0x01 */
@@ -17,7 +33,7 @@ namespace DSODecompiler
 			OP_CALLFUNC_RESOLVE,        /* 0x07 */
 			OP_FLT_TO_UINT,             /* 0x08 */
 			OP_FLT_TO_STR,              /* 0x09 */
-			OP_STR_TO_NONE_2,           /* 0x0A */
+			UNUSED3,                    /* 0x0A */
 			OP_LOADVAR_UINT,            /* 0x0B */
 			OP_SAVEVAR_STR,             /* 0x0C */
 			OP_JMPIFNOT,                /* 0x0D */
@@ -93,63 +109,121 @@ namespace DSODecompiler
 			OP_FUNC_DECL,               /* 0x53 */
 		};
 
-		public static readonly uint MaxValue;
-		public static readonly uint MinValue;
+		public static bool IsValid (uint op) => Enum.IsDefined(typeof(Value), op);
 
-		static Opcodes ()
-		{
-			var values = Enum.GetValues (typeof (Ops));
-			var min = uint.MaxValue;
-			var max = uint.MinValue;
-
-			foreach (var op in values)
-			{
-				var value = Convert.ToUInt32 (op);
-
-				if (value < min)
-				{
-					min = value;
-				}
-
-				if (value > max)
-				{
-					max = value;
-				}
-			}
-
-			MinValue = min;
-			MaxValue = max;
-		}
-
-		public static bool IsJump (uint op) => IsJump ((Ops) op);
-
-		public static bool IsJump (Ops op)
+		protected static ReturnValue GetReturnValue (Value op)
 		{
 			switch (op)
 			{
-				case Ops.OP_JMP:
-				case Ops.OP_JMPIF:
-				case Ops.OP_JMPIFF:
-				case Ops.OP_JMPIFNOT:
-				case Ops.OP_JMPIFFNOT:
-				case Ops.OP_JMPIF_NP:
-				case Ops.OP_JMPIFNOT_NP:
-					return true;
+				case Value.OP_RETURN:
+				case Value.OP_JMP:
+				case Value.OP_JMPIF:
+				case Value.OP_JMPIFF:
+				case Value.OP_JMPIFNOT:
+				case Value.OP_JMPIFFNOT:
+				case Value.OP_JMPIF_NP:
+				case Value.OP_JMPIFNOT_NP:
+				case Value.OP_STR_TO_NONE:
+				case Value.OP_FLT_TO_NONE:
+				case Value.OP_UINT_TO_NONE:
+				{
+					return ReturnValue.ToFalse;
+				}
+
+				case Value.OP_LOADVAR_STR:
+				case Value.OP_SAVEVAR_UINT:
+				case Value.OP_SAVEVAR_FLT:
+				case Value.OP_SAVEVAR_STR:
+				case Value.OP_LOADFIELD_STR:
+				case Value.OP_SAVEFIELD_UINT:
+				case Value.OP_SAVEFIELD_FLT:
+				case Value.OP_SAVEFIELD_STR:
+				case Value.OP_FLT_TO_STR:
+				case Value.OP_UINT_TO_STR:
+				case Value.OP_LOADIMMED_UINT:
+				case Value.OP_LOADIMMED_FLT:
+				case Value.OP_TAG_TO_STR:
+				case Value.OP_LOADIMMED_STR:
+				case Value.OP_LOADIMMED_IDENT:
+				case Value.OP_CALLFUNC:
+				case Value.OP_CALLFUNC_RESOLVE:
+				case Value.OP_REWIND_STR:
+				{
+					return ReturnValue.ToTrue;
+				}
 
 				default:
-					return false;
+				{
+					return ReturnValue.NoChange;
+				}
 			}
 		}
 
-		public static bool IsFuncDecl (uint op) => IsFuncDecl ((Ops) op);
-		public static bool IsFuncDecl (Ops op) => op == Ops.OP_FUNC_DECL;
+		/// <summary>
+		/// There are TypeReq for opcodes other than type conversions, but that isn't necessary for
+		/// for our purposes.<br/><br/>
+		///
+		/// TODO: If the need arises.
+		/// </summary>
+		/// <param name="op"></param>
+		/// <returns></returns>
+		protected static TypeReq GetTypeReq (Value op)
+		{
+			switch (op)
+			{
+				case Value.OP_STR_TO_UINT:
+				case Value.OP_FLT_TO_UINT:
+				{
+					return TypeReq.UInt;
+				}
 
-		public static bool IsReturn (uint op) => IsReturn ((Ops) op);
-		public static bool IsReturn (Ops op) => op == Ops.OP_RETURN;
+				case Value.OP_STR_TO_FLT:
+				case Value.OP_UINT_TO_FLT:
+				{
+					return TypeReq.Float;
+				}
 
-		public static string OpcodeToString (Ops op) => IsValidOpcode ((uint) op) ? op.ToString () : "<UNKNOWN>";
-		public static string OpcodeToString (uint op) => OpcodeToString ((Ops) op);
+				case Value.OP_FLT_TO_STR:
+				case Value.OP_UINT_TO_STR:
+				{
+					return TypeReq.String;
+				}
 
-		public static bool IsValidOpcode (uint op) => op >= MinValue && op <= MaxValue;
+				case Value.OP_STR_TO_NONE:
+				case Value.OP_FLT_TO_NONE:
+				case Value.OP_UINT_TO_NONE:
+				{
+					return TypeReq.None;
+				}
+
+				default:
+				{
+					return TypeReq.Invalid;
+				}
+			}
+		}
+
+		public static explicit operator Opcode (uint op)
+		{
+			if (!IsValid(op))
+			{
+				throw new InvalidCastException($"Cannot convert uint to Opcode: {op} is not a valid value");
+			}
+
+			return new Opcode((Value) op);
+		}
+
+		public Value Op { get; }
+		public ReturnValue ReturnValue { get; }
+		public TypeReq TypeReq { get; }
+
+		public Opcode (Value op)
+		{
+			Op = op;
+			ReturnValue = GetReturnValue(op);
+			TypeReq = GetTypeReq(op);
+		}
+
+		public override string ToString () => IsValid((uint) Op) ? Op.ToString() : "<UNKNOWN>";
 	}
 }

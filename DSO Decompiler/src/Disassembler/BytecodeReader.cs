@@ -1,132 +1,43 @@
-﻿using System.Collections.Generic;
-
-using DSODecompiler;
-using DSODecompiler.Loader;
+﻿using DSODecompiler.Loader;
 
 namespace DSODecompiler.Disassembler
 {
-	public abstract class BytecodeReader
+	public class BytecodeReader
 	{
-		protected FileData data = null;
+		protected FileData fileData = null;
 
-		protected HashSet<uint> visited = new HashSet<uint> ();
-		protected Queue<uint> queue = new Queue<uint> ();
+		public uint Index { get; protected set; } = 0;
+		public FunctionInstruction Function { get; set; } = null;
 
-		protected uint Pos { get; set; } = 0;
+		/// <summary>
+		/// There's probably a stupid way to nest function declarations inside each other, but that
+		/// would require having something more complicated. We're keeping it simple for now, so
+		/// let's just do it this way.<br/><br/>
+		///
+		/// TODO: Maybe someday.
+		/// </summary>
+		public bool InFunction => Function != null;
 
-		public BytecodeReader (FileData fileData)
+		public int Size => fileData.CodeSize;
+		public bool IsAtEnd => Index >= fileData.CodeSize;
+
+		public BytecodeReader(FileData data)
 		{
-			data = fileData;
+			fileData = data;
+			Index = 0;
 		}
 
-		protected virtual void ReadCode ()
-		{
-			// Enqueue entry point
-			AddToQueue (0);
+		public uint Read () => fileData.GetOp(Index++);
+		public bool ReadBool () => Read() != 0;
+		public char ReadChar () => (char) Read();
+		public string ReadIdent () => fileData.GetIdentifer(Index, Read());
+		public string ReadString () => fileData.GetStringTableValue(Read(), global: !InFunction);
+		public double ReadDouble () => fileData.GetFloatTableValue(Read(), global: !InFunction);
 
-			/* The queue should typically only have 1 item in it. The reason we use a queue at all
-			   is to disassemble jumps that jump in the middle of an instruction to try to avoid
-			   disassembly.
+		public uint Peek () => fileData.GetOp(Index);
+		public bool PeekBool () => Peek() != 0;
+		public char PeekChar () => (char) Peek();
 
-			   I don't think there are any DSO files that actually do that, but it doesn't hurt to
-			   be thorough... */
-			while (queue.Count > 0)
-			{
-				ReadFrom (queue.Dequeue ());
-			}
-		}
-
-		protected virtual void ReadFrom (uint startAddr)
-		{
-			Pos = startAddr;
-
-			while (!IsAtEnd () && !visited.Contains (Pos))
-			{
-				ReadOp (Peek ());
-			}
-		}
-
-		protected virtual void ReadOp (uint op)
-		{
-			visited.Add (Pos);
-
-			if (Opcodes.IsJump (op))
-			{
-				ReadJump (op);
-			}
-			else if (Opcodes.IsFuncDecl (op))
-			{
-				ReadFuncDecl (op);
-			}
-			else if (Opcodes.IsReturn (op))
-			{
-				ReadReturn (op);
-			}
-		}
-
-		protected virtual void ReadJump (uint op) => AddToQueue (Peek (Pos + 1));
-		protected virtual void ReadFuncDecl (uint op) => AddToQueue (Peek (Pos + 5));
-		protected virtual void ReadReturn (uint op) {}
-
-		protected virtual void Reset ()
-		{
-			Pos = 0;
-			queue.Clear ();
-			visited.Clear ();
-		}
-
-		protected uint GetOpcodeSize (uint op, uint addr)
-		{
-			switch ((Opcodes.Ops) op)
-			{
-				case Opcodes.Ops.OP_FUNC_DECL:
-					return 7 + Peek (addr + 6);
-
-				case Opcodes.Ops.OP_CALLFUNC:
-				case Opcodes.Ops.OP_CALLFUNC_RESOLVE:
-				case Opcodes.Ops.OP_CREATE_OBJECT:
-					return 4;
-
-				case Opcodes.Ops.OP_LOADIMMED_UINT:
-				case Opcodes.Ops.OP_LOADIMMED_FLT:
-				case Opcodes.Ops.OP_LOADIMMED_STR:
-				case Opcodes.Ops.OP_LOADIMMED_IDENT:
-				case Opcodes.Ops.OP_TAG_TO_STR:
-				case Opcodes.Ops.OP_ADVANCE_STR_APPENDCHAR:
-				case Opcodes.Ops.OP_JMP:
-				case Opcodes.Ops.OP_JMPIF:
-				case Opcodes.Ops.OP_JMPIFF:
-				case Opcodes.Ops.OP_JMPIFNOT:
-				case Opcodes.Ops.OP_JMPIFFNOT:
-				case Opcodes.Ops.OP_JMPIF_NP:
-				case Opcodes.Ops.OP_JMPIFNOT_NP:
-				case Opcodes.Ops.OP_SETCURVAR:
-				case Opcodes.Ops.OP_SETCURVAR_CREATE:
-				case Opcodes.Ops.OP_SETCURFIELD:
-				case Opcodes.Ops.OP_ADD_OBJECT:
-				case Opcodes.Ops.OP_END_OBJECT:
-					return 2;
-
-				default:
-					return 1;
-			}
-		}
-
-		protected void AddToQueue (uint addr)
-		{
-			if (!visited.Contains (addr))
-			{
-				queue.Enqueue (addr);
-			}
-		}
-
-		protected bool IsValidAddr (uint addr) => addr < data.CodeSize;
-
-		protected uint Read () => data.Op (Pos++);
-		protected uint Peek () => Peek (Pos);
-		protected uint Peek (uint addr) => data.Op (addr);
-		protected void Skip (uint amount = 1) => Pos += amount;
-
-		protected bool IsAtEnd () => Pos >= data.CodeSize;
+		public void Skip (uint amount = 1) => Index += amount;
 	}
 }

@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 
-using DSODecompiler.Loader;
-using DSODecompiler.Disassembler;
 using DSODecompiler.ControlFlow;
+using DSODecompiler.ControlFlow.Structure;
+using DSODecompiler.ControlFlow.Structure.Regions;
+using DSODecompiler.Disassembler;
+using DSODecompiler.Loader;
 
 namespace DSODecompiler
 {
@@ -10,89 +13,139 @@ namespace DSODecompiler
 	{
 		static void Main (string[] args)
 		{
-			var loader = new FileLoader ();
-			var data = loader.LoadFile ("test.cs.dso", 210);
-			var size = data.StringTableSize (true);
+			var loader = new FileLoader();
+			var fileData = loader.LoadFile("test.cs.dso", 210);
+			var disassembler = new Disassembler.Disassembler();
+			var disassembly = disassembler.Disassemble(fileData);
 
-			Console.WriteLine ("\n### Global String Table:");
-
-			for (uint i = 0; i < size; i++)
+			/*foreach (var instruction in disassembly)
 			{
-				if (data.HasString (i, true))
+				Console.WriteLine("{0,8}    {1}", instruction.Addr, instruction);
+			}*/
+
+			/*Console.WriteLine($"\n==== Branches: {disassembly.NumBranches} ====\n");
+
+			foreach (var branch in disassembly.GetBranches())
+			{
+				Console.Write(branch);
+
+				if (disassembly.HasInstruction(branch.Source))
 				{
-					Console.WriteLine (data.StringTableValue (i, true));
+					var insn = disassembly.GetInstruction(branch.Source) as BranchInstruction;
+
+					Console.WriteLine($" {insn.IsUnconditional}");
 				}
-			}
+			}*/
 
-			size = data.StringTableSize (false);
+			var cfgs = new ControlFlowGraphBuilder().Build(disassembly);
 
-			Console.WriteLine ("\n### Function String Table:");
-
-			for (uint i = 0; i < size; i++)
+			foreach (var cfg in cfgs)
 			{
-				if (data.HasString (i, false))
+				if (cfg.IsFunction)
 				{
-					Console.WriteLine (data.StringTableValue (i, false));
+					Console.WriteLine(cfg.FunctionHeader);
 				}
-			}
-
-			size = data.FloatTableSize (true);
-
-			Console.WriteLine ("\n### Global Float Table:");
-
-			for (uint i = 0; i < size; i++)
-			{
-				Console.WriteLine (data.FloatTableValue (i, true));
-			}
-
-			size = data.FloatTableSize (false);
-
-			Console.WriteLine ("\n### Function Float Table:");
-
-			for (uint i = 0; i < size; i++)
-			{
-				Console.WriteLine (data.FloatTableValue (i, false));
-			}
-
-			Console.WriteLine ($"\nCode size: {data.CodeSize}");
-
-			var analyzer = new BytecodeAnalyzer (data);
-			var cfgAddrs = analyzer.Analyze ();
-
-			var disassembler = new BytecodeDisassembler (data);
-			var graph = disassembler.Disassemble (cfgAddrs);
-
-			DominanceCalculator.CalculateDominators (graph);
-
-			System.Console.WriteLine ("\n======== NODES ========");
-
-			graph.PreorderDFS ((ControlFlowGraph.Node node) =>
-			{
-				System.Console.WriteLine ($"* Node {node.Addr} (IDom: {(node.ImmediateDom == null ? "none" : node.ImmediateDom.Addr.ToString ())}):");
-
-				foreach (var insn in node.Instructions)
+				else
 				{
-					System.Console.Write ($"    {Opcodes.OpcodeToString (insn.Op)} (");
+					Console.WriteLine($"\nBLOCK at {cfg.EntryPoint.Addr}:");
 
-					var count = insn.Operands.Count;
-
-					for (var i = 0; i < count; i++)
+					/*foreach (var node in cfg.PreorderDFS())
 					{
-						System.Console.Write ($"{insn.Operands[i]}");
-
-						if (i < count - 1)
+						foreach (var instruction in node.Instructions)
 						{
-							System.Console.Write (", ");
+							Console.WriteLine($"    {instruction}");
+							break;
 						}
-					}
 
-					System.Console.Write (")\n");
+						break;
+					}*/
+
+					Console.Write("\n");
 				}
 
-				System.Console.Write ("\n");
+				var domGraph = new DominatorGraph<uint, ControlFlowNode>(cfg);
+
+				foreach (var node in cfg)
+				{
+					var idom = domGraph.ImmediateDom(node);
+
+					if (idom != null)
+					{
+						Console.WriteLine($"{domGraph.ImmediateDom(node).Addr} Dom {node.Addr}");
+					}
+				}
+			}
+
+			Console.WriteLine("\n==== Structure Analysis ====\n");
+
+			foreach (var cfg in cfgs)
+			{
+				var analyzer = new StructureAnalyzer();
+				var virtualRegion = analyzer.Analyze(cfg, disassembly);
+
+				PrintVRegion(virtualRegion, 0);
+			}
+		}
+
+		private static void PrintVRegion (List<VirtualRegion> list, int indent)
+		{
+			foreach (var vr in list)
+			{
+				PrintVRegion(vr, indent);
+			}
+		}
+
+		private static void PrintVRegion (VirtualRegion vr, int indent = 0)
+		{
+			if (vr == null)
+			{
+				return;
+			}
+
+			vr.Instructions.ForEach(instruction =>
+			{
+				for (var i = 0; i < indent; i++)
+				{
+					Console.Write("\t");
+				}
+
+				Console.WriteLine(instruction);
 			});
 
-			System.Console.WriteLine ($"Num loops: {DominanceCalculator.FindLoops (graph)}");
+			PrintIndent(indent);
+			Console.WriteLine(vr);
+
+			switch (vr)
+			{
+				case ConditionalRegion cond:
+				{
+					PrintVRegion(cond.Then, indent + 1);
+					PrintVRegion(cond.Else, indent + 1);
+					break;
+				}
+
+				case SequenceRegion seq:
+				{
+					seq.Body.ForEach(child => PrintVRegion(child, indent + 1));
+					break;
+				}
+
+				case LoopRegion loop:
+				{
+					PrintVRegion(loop.Body, indent + 1);
+					break;
+				}
+			}
+
+			Console.WriteLine("");
+		}
+
+		private static void PrintIndent (int indent)
+		{
+			for (var i = 0; i < indent; i++)
+			{
+				Console.Write("\t");
+			}
 		}
 	}
 }

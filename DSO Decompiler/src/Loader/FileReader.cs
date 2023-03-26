@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Text;
 
 namespace DSODecompiler.Loader
 {
@@ -10,23 +9,22 @@ namespace DSODecompiler.Loader
 	{
 		protected BinaryReader reader = null;
 
+		public bool IsEOF => reader.BaseStream.Position >= reader.BaseStream.Length;
+
 		public FileReader (string filePath)
 		{
-			reader = new BinaryReader (new FileStream (filePath, FileMode.Open));
+			reader = new BinaryReader(new FileStream(filePath, FileMode.Open));
 		}
 
-		public bool IsEOF () => reader.BaseStream.Position >= reader.BaseStream.Length;
-
-		public byte ReadByte () => reader.ReadByte ();
-		public uint ReadUInt () => reader.ReadUInt32 ();
-		public ulong ReadULong () => reader.ReadUInt64 ();
-		public double ReadDouble () => reader.ReadDouble ();
+		public byte ReadByte () => reader.ReadByte();
+		public uint ReadUInt () => reader.ReadUInt32();
+		public double ReadDouble () => reader.ReadDouble();
 
 		public uint ReadOp ()
 		{
-			var op = ReadByte ();
+			var op = ReadByte();
 
-			return op == 0xFF ? ReadUInt () : op;
+			return op == 0xFF ? ReadUInt() : op;
 		}
 
 		public string ReadString (uint numChars)
@@ -35,7 +33,7 @@ namespace DSODecompiler.Loader
 
 			for (uint i = 0; i < numChars; i++)
 			{
-				str += (char) ReadByte ();
+				str += (char) ReadByte();
 			}
 
 			return str;
