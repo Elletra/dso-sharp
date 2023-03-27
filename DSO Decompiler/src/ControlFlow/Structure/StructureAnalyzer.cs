@@ -333,43 +333,6 @@ namespace DSODecompiler.ControlFlow.Structure
 			return true;
 		}
 
-		protected void ReduceTailSuccessors (RegionGraphNode node)
-		{
-			return;
-			if (node.Successors.Count != 2)
-			{
-				return;
-			}
-
-			var successors = regionGraph.GetSuccessors(node);
-			var then = successors[0];
-			var @else = successors[1];
-
-			// Next node is either not a tail or is a branch target.
-			if (then.Successors.Count > 0 || then.Predecessors.Count > 1)
-			{
-				return;
-			}
-
-			if (!HasVirtualRegion(then.Addr))
-			{
-				AddVirtualRegion(then.Addr, new InstructionRegion(then.Region));
-			}
-
-			// TODO: Conditional inversion based on instruction.
-			AddVirtualRegion(
-				node.Addr,
-				new ConditionalRegion(
-					node.Region,
-					GetVirtualRegion(then.Addr),
-					new GotoRegion(@else.Addr)
-				)
-			);
-
-			regionGraph.RemoveEdge(node, then);
-			regionGraph.Remove(then);
-		}
-
 		protected bool HasOtherPredecessors (RegionGraphNode node, RegionGraphNode compare)
 		{
 			return node.Predecessors.Any(predecessor => predecessor != compare);
@@ -380,11 +343,6 @@ namespace DSODecompiler.ControlFlow.Structure
 			var oldCount = regionGraph.Count;
 
 			RefineUnreducedLoops();
-
-			foreach (RegionGraphNode node in regionGraph.PostorderDFS())
-			{
-				ReduceTailSuccessors(node);
-			}
 
 			// If we still weren't able to reduce some regions, it's time for our last resort...
 			if (regionGraph.Count == oldCount && regionGraph.Count > 1)
