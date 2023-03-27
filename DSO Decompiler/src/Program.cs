@@ -43,7 +43,7 @@ namespace DSODecompiler
 			{
 				if (cfg.IsFunction)
 				{
-					Console.WriteLine(cfg.FunctionHeader);
+					Console.WriteLine(cfg.EntryPoint.FirstInstruction);
 				}
 				else
 				{
@@ -76,14 +76,14 @@ namespace DSODecompiler
 				}
 			}
 
-			Console.WriteLine("\n==== Structure Analysis ====\n");
+			Console.WriteLine("\n==== Structural Analysis ====\n");
 
 			foreach (var cfg in cfgs)
 			{
 				var analyzer = new StructureAnalyzer();
-				var virtualRegion = analyzer.Analyze(cfg, disassembly);
+				var root = analyzer.Analyze(cfg, disassembly);
 
-				PrintVRegion(virtualRegion, 0);
+				PrintVRegion(root, 0);
 			}
 		}
 
@@ -113,26 +113,51 @@ namespace DSODecompiler
 			});
 
 			PrintIndent(indent);
-			Console.WriteLine(vr);
+			Console.Write(vr);
 
 			switch (vr)
 			{
 				case ConditionalRegion cond:
 				{
+					Console.WriteLine("");
+
+					PrintIndent(indent + 1);
+					Console.WriteLine("THEN: ");
 					PrintVRegion(cond.Then, indent + 1);
-					PrintVRegion(cond.Else, indent + 1);
+
+					if (cond.Else.Count > 0)
+					{
+						PrintIndent(indent + 1);
+						Console.WriteLine("ELSE: ");
+						PrintVRegion(cond.Else, indent + 1);
+					}
+
 					break;
 				}
 
 				case SequenceRegion seq:
 				{
+					Console.WriteLine("");
 					seq.Body.ForEach(child => PrintVRegion(child, indent + 1));
 					break;
 				}
 
 				case LoopRegion loop:
 				{
+					Console.WriteLine("");
 					PrintVRegion(loop.Body, indent + 1);
+					break;
+				}
+
+				case GotoRegion @goto:
+				{
+					Console.Write($" [TargetAddr={@goto.TargetAddr}]");
+					break;
+				}
+
+				case ConditionalGotoRegion @goto:
+				{
+					Console.Write($" [TargetAddr={@goto.TargetAddr}]");
 					break;
 				}
 			}

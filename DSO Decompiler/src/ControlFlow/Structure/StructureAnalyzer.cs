@@ -23,6 +23,13 @@ namespace DSODecompiler.ControlFlow.Structure
 	/// </summary>
 	public class StructureAnalyzer
 	{
+		public class StructuralAnalysisException : Exception
+		{
+			public StructuralAnalysisException () {}
+			public StructuralAnalysisException (string message) : base(message) {}
+			public StructuralAnalysisException (string message, Exception inner) : base(message, inner) {}
+		}
+
 		protected Disassembly disassembly = null;
 		protected RegionGraph regionGraph = null;
 		protected DominatorGraph<uint, RegionGraphNode> domGraph = null;
@@ -47,10 +54,17 @@ namespace DSODecompiler.ControlFlow.Structure
 
 			do
 			{
+				var oldCount = regionGraph.Count;
+
 				foreach (var node in regionGraph.PostorderDFS())
 				{
 					ReduceNode(node);
-					ProcessUnreducedLoops();
+				}
+
+				// If we couldn't reduce anything, let's try some refinement.
+				if (regionGraph.Count == oldCount && regionGraph.Count > 1)
+				{
+					RefineUnreducedRegions();
 				}
 			}
 			while (regionGraph.Count > 1);
@@ -81,17 +95,12 @@ namespace DSODecompiler.ControlFlow.Structure
 
 		protected bool IsCycleStart (RegionGraphNode node)
 		{
-			return node.Predecessors.Any(predecessor => IsBackEdge(predecessor as RegionGraphNode, node));
+			return node.Predecessors.Any(predecessor => domGraph.Dominates(node, predecessor as RegionGraphNode, strictly: false));
 		}
 
 		protected bool IsCycleEnd (RegionGraphNode node)
 		{
-			return node.Successors.Any(successor => IsBackEdge(node, successor as RegionGraphNode));
-		}
-
-		protected bool IsBackEdge (RegionGraphNode node1, RegionGraphNode node2)
-		{
-			return domGraph.Dominates(node2, node1, strictly: false);
+			return node.Successors.Any(successor => domGraph.Dominates(successor as RegionGraphNode, node, strictly: false));
 		}
 
 		// TODO: Test expression inversion and comparison.
@@ -177,7 +186,6 @@ namespace DSODecompiler.ControlFlow.Structure
 			return reduced;
 		}
 
-		// TODO: Test expression inversion and comparison.
 		protected bool ReduceConditional (RegionGraphNode node)
 		{
 			var region = node.Region;
@@ -197,6 +205,11 @@ namespace DSODecompiler.ControlFlow.Structure
 
 			if (thenSucc == @else)
 			{
+				if (HasOtherPredecessors(then, node))
+				{
+					return false;
+				}
+
 				reduced = true;
 
 				Console.WriteLine($"{node.Addr} :: if-then");
@@ -206,6 +219,7 @@ namespace DSODecompiler.ControlFlow.Structure
 					AddVirtualRegion(then.Addr, new InstructionRegion(then.Region));
 				}
 
+				// TODO: Conditional inversion based on instruction.
 				AddVirtualRegion(node.Addr, new ConditionalRegion(node.Region, GetVirtualRegion(then)));
 
 				regionGraph.RemoveEdge(node, then);
@@ -214,6 +228,11 @@ namespace DSODecompiler.ControlFlow.Structure
 			}
 			else if (elseSucc != null && thenSucc == elseSucc)
 			{
+				if (HasOtherPredecessors(then, node) || HasOtherPredecessors(@else, node))
+				{
+					return false;
+				}
+
 				reduced = true;
 
 				Console.WriteLine($"{node.Addr} :: if-then-else");
@@ -228,6 +247,7 @@ namespace DSODecompiler.ControlFlow.Structure
 					AddVirtualRegion(@else.Addr, new InstructionRegion(@else.Region));
 				}
 
+				// TODO: Conditional inversion based on instruction.
 				AddVirtualRegion(
 					node.Addr,
 					new ConditionalRegion(
@@ -313,13 +333,132 @@ namespace DSODecompiler.ControlFlow.Structure
 			return true;
 		}
 
-		protected void ProcessUnreducedLoops ()
+		protected void ReduceTailSuccessors (RegionGraphNode node)
+		{
+			return;
+			if (node.Successors.Count != 2)
+			{
+				return;
+			}
+
+			var successors = regionGraph.GetSuccessors(node);
+			var then = successors[0];
+			var @else = successors[1];
+
+			// Next node is either not a tail or is a branch target.
+			if (then.Successors.Count > 0 || then.Predecessors.Count > 1)
+			{
+				return;
+			}
+
+			if (!HasVirtualRegion(then.Addr))
+			{
+				AddVirtualRegion(then.Addr, new InstructionRegion(then.Region));
+			}
+
+			// TODO: Conditional inversion based on instruction.
+			AddVirtualRegion(
+				node.Addr,
+				new ConditionalRegion(
+					node.Region,
+					GetVirtualRegion(then.Addr),
+					new GotoRegion(@else.Addr)
+				)
+			);
+
+			regionGraph.RemoveEdge(node, then);
+			regionGraph.Remove(then);
+		}
+
+		protected bool HasOtherPredecessors (RegionGraphNode node, RegionGraphNode compare)
+		{
+			return node.Predecessors.Any(predecessor => predecessor != compare);
+		}
+
+		protected void RefineUnreducedRegions ()
+		{
+			var oldCount = regionGraph.Count;
+
+			RefineUnreducedLoops();
+
+			foreach (RegionGraphNode node in regionGraph.PostorderDFS())
+			{
+				ReduceTailSuccessors(node);
+			}
+
+			// If we still weren't able to reduce some regions, it's time for our last resort...
+			if (regionGraph.Count == oldCount && regionGraph.Count > 1)
+			{
+				var reduced = false;
+
+				foreach (RegionGraphNode node in regionGraph.PostorderDFS())
+				{
+					reduced = LastResort(node);
+
+					if (reduced)
+					{
+						break;
+					}
+				}
+			}
+		}
+
+		protected bool LastResort (RegionGraphNode node)
+		{
+			if (node.Successors.Count == 1)
+			{
+				var successor = regionGraph.FirstSuccessor(node);
+
+				if (domGraph.Dominates(node, successor, strictly: true) || domGraph.Dominates(successor, node, strictly: true))
+				{
+					return false;
+				}
+
+				SequenceRegion sequence = new();
+
+				if (HasVirtualRegion(node.Addr))
+				{
+					sequence.Add(GetVirtualRegion(node.Addr));
+				}
+
+				sequence.Add(new GotoRegion(successor.Addr));
+
+				AddVirtualRegion(node.Addr, sequence);
+				regionGraph.RemoveEdge(node, successor);
+
+				return true;
+			}
+			else if (node.Successors.Count == 2)
+			{
+				var successors = regionGraph.GetSuccessors(node);
+				var @else = successors[1];
+
+				if (domGraph.Dominates(@else, node, strictly: true) || domGraph.Dominates(node, @else, strictly: true))
+				{
+					return false;
+				}
+
+				// TODO: Conditional inversion based on instruction.
+				AddVirtualRegion(node.Addr, new ConditionalGotoRegion(node.Region, @else.Addr));
+				regionGraph.RemoveEdge(node, @else);
+
+				return true;
+			}
+
+			return false;
+		}
+
+		protected void RefineUnreducedLoops ()
 		{
 			while (unreducedLoops.Count > 0)
 			{
-				var loop = unreducedLoops.Dequeue();
-				var head = EnsureSingleEntry(loop);
+				RefineLoop(unreducedLoops.Dequeue());
 			}
+		}
+
+		protected void RefineLoop (Loop<RegionGraphNode> loop)
+		{
+			var head = EnsureSingleEntry(loop);
 		}
 
 		protected RegionGraphNode EnsureSingleEntry (Loop<RegionGraphNode> loop)
@@ -346,7 +485,7 @@ namespace DSODecompiler.ControlFlow.Structure
 
 				foreach (var incoming in nodes)
 				{
-					AddVirtualRegion(incoming.Addr, new GotoRegion(incoming.Instructions));
+					AddVirtualRegion(incoming.Addr, new GotoRegion(incoming.Addr));
 					regionGraph.RemoveEdge(incoming, node);
 				}
 			}

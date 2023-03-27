@@ -143,32 +143,18 @@ namespace DSODecompiler.ControlFlow.Structure.Regions
 	{
 		public uint TargetAddr { get; }
 
-		/// <summary>
-		/// There may be some cases where a branch instruction uses the OP_JMPIF(F)/OP_JMPIF(F)NOT
-		/// instructions but does not match any of the schemas (i.e. it is used basically as a goto
-		/// and does not match the loop/if-else schemas).<br/><br/>
-		///
-		/// This is purely hypothetical and I have no idea if this is even possible.
-		/// </summary>
-		public bool IsConditional => Instructions.Count > 0
-			&& Instructions[^1] is BranchInstruction branch
-			&& branch.IsConditional;
+		public GotoRegion (uint targetAddr) => TargetAddr = targetAddr;
+	}
 
-		public GotoRegion (List<Instruction> instructions)
+	public class ConditionalGotoRegion : VirtualRegion
+	{
+		public uint TargetAddr { get; }
+
+		public ConditionalGotoRegion (Region region, uint targetAddr)
 		{
-			if (instructions.Count <= 0)
-			{
-				throw new Exception($"Attempted to create goto region with no instructions");
-			}
+			CopyInstructions(region);
 
-			if (instructions[^1] is not BranchInstruction branch)
-			{
-				throw new Exception("$Attempted to create goto region with non-branch as last instruction");
-			}
-
-			TargetAddr = branch.Addr;
-
-			CopyInstructions(instructions);
+			TargetAddr = targetAddr;
 		}
 	}
 
