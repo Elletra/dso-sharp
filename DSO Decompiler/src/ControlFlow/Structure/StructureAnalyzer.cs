@@ -30,10 +30,10 @@ namespace DSODecompiler.ControlFlow.Structure
 			public StructuralAnalysisException (string message, Exception inner) : base(message, inner) {}
 		}
 
-		protected Disassembly disassembly = null;
-		protected RegionGraph regionGraph = null;
-		protected DominatorGraph<uint, RegionGraphNode> domGraph = null;
-		protected Dictionary<uint, VirtualRegion> virtualRegions = null;
+		protected Disassembly disassembly;
+		protected RegionGraph regionGraph;
+		protected DominatorGraph<uint, RegionGraphNode> domGraph;
+		protected Dictionary<uint, VirtualRegion> virtualRegions;
 		protected Queue<Loop<RegionGraphNode>> unreducedLoops;
 
 		public VirtualRegion Analyze (ControlFlowGraph cfg, Disassembly disasm)
@@ -173,7 +173,15 @@ namespace DSODecompiler.ControlFlow.Structure
 
 				case 2:
 				{
-					reduced = ReduceConditional(node);
+					if (IsUnconditional(node))
+					{
+						reduced = ReduceUnconditional(node);
+					}
+					else
+					{
+						reduced = ReduceConditional(node);
+					}
+
 					break;
 				}
 
@@ -186,9 +194,54 @@ namespace DSODecompiler.ControlFlow.Structure
 			return reduced;
 		}
 
+		protected bool IsUnconditional (RegionGraphNode node)
+		{
+			return node.Instructions.Count > 0 && node.Instructions[^1] is BranchInstruction branch && branch.IsUnconditional;
+		}
+
+		protected bool ReduceUnconditional (RegionGraphNode node)
+		{
+			if (!IsUnconditional(node))
+			{
+				return false;
+			}
+
+			var targetAddr = (node.Instructions[^1] as BranchInstruction).TargetAddr;
+
+			if (!regionGraph.Has(targetAddr))
+			{
+				return false;
+			}
+
+			var targetNode = regionGraph.Get(targetAddr);
+
+			VirtualRegion region;
+
+			if (targetNode.Predecessors.Any(predecessor => IsCycleEnd(predecessor as RegionGraphNode)))
+			{
+				region = new BreakRegion();
+			}
+			else
+			{
+				region = new GotoRegion(targetAddr);
+			}
+
+			if (HasVirtualRegion(node.Addr))
+			{
+				region.CopyInstructions(GetVirtualRegion(node));
+			}
+			else
+			{
+				AddVirtualRegion(node.Addr, region).CopyInstructions(node.Region);
+			}
+
+			regionGraph.RemoveEdge(node.Addr, (node.Instructions[^1] as BranchInstruction).TargetAddr);
+
+			return true;
+		}
+
 		protected bool ReduceConditional (RegionGraphNode node)
 		{
-			var region = node.Region;
 			var successors = regionGraph.GetSuccessors(node);
 
 			if (successors.Count != 2)
@@ -197,13 +250,12 @@ namespace DSODecompiler.ControlFlow.Structure
 			}
 
 			var then = successors[0];
-			var @else = successors[1];
-			var thenSucc = regionGraph.FirstSuccessor(then);
-			var elseSucc = regionGraph.FirstSuccessor(@else);
+			var target = successors[1];
+			var thenSuccessor = regionGraph.FirstSuccessor(then);
 
 			var reduced = false;
 
-			if (thenSucc == @else)
+			if (thenSuccessor == target)
 			{
 				if (HasOtherPredecessors(then, node))
 				{
@@ -223,53 +275,8 @@ namespace DSODecompiler.ControlFlow.Structure
 				AddVirtualRegion(node.Addr, new ConditionalRegion(node.Region, GetVirtualRegion(then)));
 
 				regionGraph.RemoveEdge(node, then);
-				regionGraph.RemoveEdge(then, thenSucc);
+				regionGraph.RemoveEdge(then, thenSuccessor);
 				regionGraph.Remove(then);
-			}
-			else if (elseSucc != null && thenSucc == elseSucc)
-			{
-				if (HasOtherPredecessors(then, node) || HasOtherPredecessors(@else, node))
-				{
-					return false;
-				}
-
-				reduced = true;
-
-				Console.WriteLine($"{node.Addr} :: if-then-else");
-
-				if (!HasVirtualRegion(then.Addr))
-				{
-					AddVirtualRegion(then.Addr, new InstructionRegion(then.Region));
-				}
-
-				if (!HasVirtualRegion(@else.Addr))
-				{
-					AddVirtualRegion(@else.Addr, new InstructionRegion(@else.Region));
-				}
-
-				// TODO: Conditional inversion based on instruction.
-				AddVirtualRegion(
-					node.Addr,
-					new ConditionalRegion(
-						node.Region,
-						GetVirtualRegion(then),
-						GetVirtualRegion(@else)
-					)
-				);
-
-				regionGraph.RemoveEdge(then, thenSucc);
-				regionGraph.RemoveEdge(@else, elseSucc);
-				regionGraph.RemoveEdge(node, then);
-				regionGraph.RemoveEdge(node, @else);
-
-				regionGraph.AddEdge(node, elseSucc);
-
-				regionGraph.Remove(then);
-				regionGraph.Remove(@else);
-			}
-			else
-			{
-				Console.WriteLine($"{node.Addr} :: <failed>    {node.Instructions[^1]}");
 			}
 
 			return reduced;
@@ -284,8 +291,8 @@ namespace DSODecompiler.ControlFlow.Structure
 
 			var next = regionGraph.FirstSuccessor(node);
 
-			// Don't want to accidentally delete a jump target.
-			if (next.Predecessors.Count > 1)
+			// Don't want to accidentally delete a jump target or an unconditional branch.
+			if (next.Predecessors.Count > 1 || IsUnconditional(next))
 			{
 				return false;
 			}
@@ -363,47 +370,7 @@ namespace DSODecompiler.ControlFlow.Structure
 
 		protected bool LastResort (RegionGraphNode node)
 		{
-			if (node.Successors.Count == 1)
-			{
-				var successor = regionGraph.FirstSuccessor(node);
-
-				if (domGraph.Dominates(node, successor, strictly: true) || domGraph.Dominates(successor, node, strictly: true))
-				{
-					return false;
-				}
-
-				SequenceRegion sequence = new();
-
-				if (HasVirtualRegion(node.Addr))
-				{
-					sequence.Add(GetVirtualRegion(node.Addr));
-				}
-
-				sequence.Add(new GotoRegion(successor.Addr));
-
-				AddVirtualRegion(node.Addr, sequence);
-				regionGraph.RemoveEdge(node, successor);
-
-				return true;
-			}
-			else if (node.Successors.Count == 2)
-			{
-				var successors = regionGraph.GetSuccessors(node);
-				var @else = successors[1];
-
-				if (domGraph.Dominates(@else, node, strictly: true) || domGraph.Dominates(node, @else, strictly: true))
-				{
-					return false;
-				}
-
-				// TODO: Conditional inversion based on instruction.
-				AddVirtualRegion(node.Addr, new ConditionalGotoRegion(node.Region, @else.Addr));
-				regionGraph.RemoveEdge(node, @else);
-
-				return true;
-			}
-
-			return false;
+			throw new NotImplementedException("LastResort() not implemented");
 		}
 
 		protected void RefineUnreducedLoops ()
@@ -414,9 +381,19 @@ namespace DSODecompiler.ControlFlow.Structure
 			}
 		}
 
+		protected void ReduceJump (RegionGraphNode node)
+		{
+			ReduceUnconditional(node);
+		}
+
+		/// <summary>
+		/// TODO: Implement
+		/// </summary>
+		/// <param name="loop"></param>
 		protected void RefineLoop (Loop<RegionGraphNode> loop)
 		{
 			var head = EnsureSingleEntry(loop);
+
 		}
 
 		protected RegionGraphNode EnsureSingleEntry (Loop<RegionGraphNode> loop)

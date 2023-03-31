@@ -75,7 +75,7 @@ namespace DSODecompiler.ControlFlow
 		{
 			var node = currGraph.AddOrGet(instruction.Addr);
 
-			if (currNode != null && ShouldConnectToNext(currNode.LastInstruction))
+			if (currNode != null)
 			{
 				currGraph.AddEdge(currNode, node);
 			}
@@ -104,11 +104,6 @@ namespace DSODecompiler.ControlFlow
 		{
 			/* For most CFG implementations, return statements also end blocks, but for our purposes they don't... */
 			return instruction is BranchInstruction;
-		}
-
-		protected bool ShouldConnectToNext (Instruction instruction)
-		{
-			return instruction is not BranchInstruction branch || branch.IsConditional;
 		}
 
 		/**

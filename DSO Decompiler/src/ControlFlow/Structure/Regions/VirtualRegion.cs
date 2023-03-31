@@ -103,19 +103,13 @@ namespace DSODecompiler.ControlFlow.Structure.Regions
 	public class ConditionalRegion : VirtualRegion
 	{
 		public RegionContainer Then { get; } = new();
-		public RegionContainer Else { get; } = new();
 
-		public ConditionalRegion (VirtualRegion then, VirtualRegion @else = null)
+		public ConditionalRegion (VirtualRegion then)
 		{
 			Then.Add(then);
-
-			if (@else != null)
-			{
-				Else.Add(@else);
-			}
 		}
 
-		public ConditionalRegion (Region region, VirtualRegion then, VirtualRegion @else = null) : this(then, @else)
+		public ConditionalRegion (Region region, VirtualRegion then) : this(then)
 		{
 			CopyInstructions(region);
 		}
@@ -146,18 +140,5 @@ namespace DSODecompiler.ControlFlow.Structure.Regions
 		public GotoRegion (uint targetAddr) => TargetAddr = targetAddr;
 	}
 
-	public class ConditionalGotoRegion : VirtualRegion
-	{
-		public uint TargetAddr { get; }
-
-		public ConditionalGotoRegion (Region region, uint targetAddr)
-		{
-			CopyInstructions(region);
-
-			TargetAddr = targetAddr;
-		}
-	}
-
 	public class BreakRegion : VirtualRegion {}
-	public class ContinueRegion : VirtualRegion {}
 }
