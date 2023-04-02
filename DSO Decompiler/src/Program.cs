@@ -125,13 +125,6 @@ namespace DSODecompiler
 					Console.WriteLine("THEN: ");
 					PrintVRegion(cond.Then, indent + 1);
 
-					if (cond.Else.Count > 0)
-					{
-						PrintIndent(indent + 1);
-						Console.WriteLine("ELSE: ");
-						PrintVRegion(cond.Else, indent + 1);
-					}
-
 					break;
 				}
 
@@ -155,9 +148,10 @@ namespace DSODecompiler
 					break;
 				}
 
-				case ConditionalGotoRegion @goto:
+				case LabelRegion label:
 				{
-					Console.Write($" [TargetAddr={@goto.TargetAddr}]");
+					Console.Write($" [Addr: {label.Addr}]\n");
+					PrintVRegion(label.Region, indent + 1);
 					break;
 				}
 			}

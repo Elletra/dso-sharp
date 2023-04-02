@@ -140,5 +140,17 @@ namespace DSODecompiler.ControlFlow.Structure.Regions
 		public GotoRegion (uint targetAddr) => TargetAddr = targetAddr;
 	}
 
+	public class LabelRegion : VirtualRegion
+	{
+		public uint Addr { get; }
+		public VirtualRegion Region { get; set; }
+
+		public LabelRegion (uint addr, VirtualRegion region = null)
+		{
+			Addr = addr;
+			Region = region;
+		}
+	}
+
 	public class BreakRegion : VirtualRegion {}
 }

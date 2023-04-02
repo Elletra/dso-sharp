@@ -11,6 +11,11 @@ namespace DSODecompiler.ControlFlow.Structure
 	/// Performs a structural analysis on a control flow graph in order to determine various structures
 	/// in the code, such as loops, if-else statements, etc.<br/><br/>
 	///
+	/// <b>NOTE:</b> This is an extremely dumbed-down WIP version of the algorithm linked. I just want
+	/// to have a working decompiler at this point and I'm burning out on this project, so I'm not
+	/// going to account for any edge cases that aren't already produced by the default TorqueScript
+	/// compiler. You will notice that the code is horrible. This is also a result of burnout.<br/><br/>
+	///
 	/// <b>Sources:</b><br/>
 	/// <list type="number">
 	/// <item>
@@ -34,7 +39,6 @@ namespace DSODecompiler.ControlFlow.Structure
 		protected RegionGraph regionGraph;
 		protected DominatorGraph<uint, RegionGraphNode> domGraph;
 		protected Dictionary<uint, VirtualRegion> virtualRegions;
-		protected Queue<Loop<RegionGraphNode>> unreducedLoops;
 
 		public VirtualRegion Analyze (ControlFlowGraph cfg, Disassembly disasm)
 		{
@@ -42,7 +46,6 @@ namespace DSODecompiler.ControlFlow.Structure
 			regionGraph = RegionGraph.From(cfg);
 			domGraph = new(regionGraph);
 			virtualRegions = new();
-			unreducedLoops = new();
 
 			var entryPoint = regionGraph.EntryPoint;
 
@@ -64,6 +67,7 @@ namespace DSODecompiler.ControlFlow.Structure
 				// If we couldn't reduce anything, let's try some refinement.
 				if (regionGraph.Count == oldCount && regionGraph.Count > 1)
 				{
+					// TODO: Implement
 					RefineUnreducedRegions();
 				}
 			}
@@ -72,7 +76,6 @@ namespace DSODecompiler.ControlFlow.Structure
 			return GetVirtualRegion(entryPoint.Addr);
 		}
 
-		/* TODO: Gotos, breaks, tail regions, etc. */
 		protected void ReduceNode (RegionGraphNode node)
 		{
 			var reduced = true;
@@ -149,7 +152,8 @@ namespace DSODecompiler.ControlFlow.Structure
 				}
 			}
 
-			unreducedLoops.Enqueue(domGraph.FindLoopNodes(node));
+			// TODO: Unreduced loops.
+			// unreducedLoops.Enqueue(domGraph.FindLoopNodes(node));
 
 			return false;
 		}
@@ -201,12 +205,14 @@ namespace DSODecompiler.ControlFlow.Structure
 
 		protected bool ReduceUnconditional (RegionGraphNode node)
 		{
-			if (!IsUnconditional(node))
+			var successors = regionGraph.GetSuccessors(node);
+
+			if (!IsUnconditional(node) || successors.Count != 2)
 			{
 				return false;
 			}
 
-			var targetAddr = (node.Instructions[^1] as BranchInstruction).TargetAddr;
+			var targetAddr = successors[1].Addr;
 
 			if (!regionGraph.Has(targetAddr))
 			{
@@ -224,18 +230,12 @@ namespace DSODecompiler.ControlFlow.Structure
 			else
 			{
 				region = new GotoRegion(targetAddr);
+
+				AddVirtualRegion(targetAddr, new LabelRegion(targetAddr));
 			}
 
-			if (HasVirtualRegion(node.Addr))
-			{
-				region.CopyInstructions(GetVirtualRegion(node));
-			}
-			else
-			{
-				AddVirtualRegion(node.Addr, region).CopyInstructions(node.Region);
-			}
-
-			regionGraph.RemoveEdge(node.Addr, (node.Instructions[^1] as BranchInstruction).TargetAddr);
+			AddVirtualRegion(node, region);
+			regionGraph.RemoveEdge(node.Addr, targetAddr);
 
 			return true;
 		}
@@ -264,8 +264,6 @@ namespace DSODecompiler.ControlFlow.Structure
 
 				reduced = true;
 
-				Console.WriteLine($"{node.Addr} :: if-then");
-
 				if (!HasVirtualRegion(then.Addr))
 				{
 					AddVirtualRegion(then.Addr, new InstructionRegion(then.Region));
@@ -291,8 +289,8 @@ namespace DSODecompiler.ControlFlow.Structure
 
 			var next = regionGraph.FirstSuccessor(node);
 
-			// Don't want to accidentally delete a jump target or an unconditional branch.
-			if (next.Predecessors.Count > 1 || IsUnconditional(next))
+			// Don't want to accidentally delete a jump target.
+			if (next.Predecessors.Count > 1)
 			{
 				return false;
 			}
@@ -317,7 +315,7 @@ namespace DSODecompiler.ControlFlow.Structure
 				sequence.CopyInstructions(node.Region);
 			}
 
-			if (!HasVirtualRegion(next.Addr))
+			if (!HasVirtualRegion(next.Addr) || GetVirtualRegion(next) is LabelRegion)
 			{
 				if (IsCycleEnd(next))
 				{
@@ -347,43 +345,7 @@ namespace DSODecompiler.ControlFlow.Structure
 
 		protected void RefineUnreducedRegions ()
 		{
-			var oldCount = regionGraph.Count;
-
-			RefineUnreducedLoops();
-
-			// If we still weren't able to reduce some regions, it's time for our last resort...
-			if (regionGraph.Count == oldCount && regionGraph.Count > 1)
-			{
-				var reduced = false;
-
-				foreach (RegionGraphNode node in regionGraph.PostorderDFS())
-				{
-					reduced = LastResort(node);
-
-					if (reduced)
-					{
-						break;
-					}
-				}
-			}
-		}
-
-		protected bool LastResort (RegionGraphNode node)
-		{
-			throw new NotImplementedException("LastResort() not implemented");
-		}
-
-		protected void RefineUnreducedLoops ()
-		{
-			while (unreducedLoops.Count > 0)
-			{
-				RefineLoop(unreducedLoops.Dequeue());
-			}
-		}
-
-		protected void ReduceJump (RegionGraphNode node)
-		{
-			ReduceUnconditional(node);
+			throw new NotImplementedException("RefineUnreducedRegions() not implemented");
 		}
 
 		/// <summary>
@@ -445,7 +407,46 @@ namespace DSODecompiler.ControlFlow.Structure
 			return edges;
 		}
 
-		protected VirtualRegion AddVirtualRegion (uint addr, VirtualRegion vr) => virtualRegions[addr] = vr;
+		protected void AddVirtualRegion (uint addr, VirtualRegion vr)
+		{
+			var existing = GetVirtualRegion(addr);
+
+			if (existing is LabelRegion label)
+			{
+				if (vr is LabelRegion vrLabel)
+				{
+					label.Region = vrLabel.Region;
+				}
+				else
+				{
+					label.Region = vr;
+				}
+			}
+			else
+			{
+				if (vr is LabelRegion vrLabel)
+				{
+					if (existing == null)
+					{
+						vrLabel.Region = new InstructionRegion(regionGraph.Get(addr).Region);
+					}
+					else
+					{
+						vrLabel.Region = existing;
+					}
+				}
+
+				virtualRegions[addr] = vr;
+			}
+		}
+
+		protected void AddVirtualRegion (RegionGraphNode node, VirtualRegion vr)
+		{
+			vr.CopyInstructions(node.Region);
+
+			AddVirtualRegion(node.Addr, vr);
+		}
+
 		protected bool HasVirtualRegion (uint addr) => virtualRegions.ContainsKey(addr);
 		protected VirtualRegion GetVirtualRegion (uint addr) => HasVirtualRegion(addr) ? virtualRegions[addr] : null;
 		protected VirtualRegion GetVirtualRegion (RegionGraphNode node) => GetVirtualRegion(node.Addr);
