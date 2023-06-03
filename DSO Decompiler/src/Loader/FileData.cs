@@ -61,21 +61,12 @@ namespace DSODecompiler.Loader
 
 		public uint Version => version;
 
-		public int GlobalStringTableSize => globalStrings.Size;
-		public int GlobalFloatTableSize => globalFloats.Length;
-		public int FunctionStringTableSize => functionStrings.Size;
-		public int FunctionFloatTableSize => functionFloats.Length;
-		public int IdentTableSize => identifierTable.Count;
-		public int CodeSize => code.Length;
-
 		public FileData (uint version)
 		{
 			this.version = version;
 		}
 
 		public void InitCode (uint size) => code = new uint[size];
-		public void ClearLineBreaks () => lineBreakPairs.Clear();
-		public void ClearIdentifierTable () => identifierTable.Clear();
 
 		public bool HasString (uint index, bool global) => (global ? globalStrings : functionStrings).Has(index);
 		public bool HasFloat (uint index, bool global) => index < (global ? globalFloats : functionFloats).Length;
@@ -92,7 +83,7 @@ namespace DSODecompiler.Loader
 
 		public void AddLineBreakPair (uint value) => lineBreakPairs.Add(value);
 
-		public void SetStringTable (string table, bool global)
+		public void CreateStringTable (string table, bool global)
 		{
 			if (global)
 			{
@@ -104,7 +95,7 @@ namespace DSODecompiler.Loader
 			}
 		}
 
-		public void InitFloatTable (uint size, bool global)
+		public void CreateFloatTable (uint size, bool global)
 		{
 			if (global)
 			{

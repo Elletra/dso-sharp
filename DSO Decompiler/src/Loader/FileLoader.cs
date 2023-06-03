@@ -3,7 +3,7 @@
 	/// <summary>
 	/// Loads DSO files, parses them, and returns the parsed data.<br/>
 	/// <br/>
-	/// NOTE: Does not parse bytecode! It simply breaks up DSO files into their different sections.
+	/// NOTE: Does not parse bytecode! It simply breaks up DSO files into different sections.
 	/// </summary>
 	public class FileLoader
 	{
@@ -62,14 +62,14 @@
 		{
 			var table = reader.ReadString(reader.ReadUInt());
 
-			data.SetStringTable(UnencryptString(table), global);
+			data.CreateStringTable(UnencryptString(table), global);
 		}
 
 		protected void ParseFloatTable (FileData data, bool global)
 		{
 			var size = reader.ReadUInt();
 
-			data.InitFloatTable(size, global);
+			data.CreateFloatTable(size, global);
 
 			for (uint i = 0; i < size; i++)
 			{
