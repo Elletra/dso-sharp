@@ -60,6 +60,7 @@ namespace DSODecompiler.Loader
 		protected List<uint> lineBreakPairs = new();
 
 		public uint Version => version;
+		public int CodeSize => code.Length;
 
 		public FileData (uint version)
 		{
