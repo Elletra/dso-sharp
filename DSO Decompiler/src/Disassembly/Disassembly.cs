@@ -18,7 +18,12 @@ namespace DSODecompiler.Disassembly
 
 		public IEnumerable<Instruction> GetInstructions ()
 		{
-			foreach (var (_, instruction) in instructions)
+			// Enumerating over dictionaries isn't reliable, so we want to make sure we're iterating
+			// in the proper order.
+			var values = new List<Instruction>(instructions.Values);
+			values.Sort((insn1, insn2) => insn1.Addr.CompareTo(insn2.Addr));
+
+			foreach (var instruction in values)
 			{
 				yield return instruction;
 			}

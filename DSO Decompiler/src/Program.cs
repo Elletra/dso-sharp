@@ -1,4 +1,6 @@
-﻿using DSODecompiler.Loader;
+﻿using System;
+
+using DSODecompiler.Loader;
 using DSODecompiler.Opcodes;
 using DSODecompiler.Disassembly;
 
@@ -15,7 +17,7 @@ namespace DSODecompiler
 
 			foreach (var instruction in disassembly.GetInstructions())
 			{
-				System.Console.WriteLine($"{{0, -8}} {instruction}", instruction.Addr);
+				Console.WriteLine(instruction);
 			}
 		}
 	}
