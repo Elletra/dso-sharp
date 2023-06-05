@@ -2,7 +2,7 @@
   "profiles": {
     "DSO Decompiler": {
       "commandName": "Project",
-      "workingDirectory": "$(SolutionDir)\\DSO Decompiler\\bin"
+      "workingDirectory": "$(SolutionDir)\\DSODecompiler\\bin"
     }
   }
 }
