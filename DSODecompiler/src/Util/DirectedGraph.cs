@@ -103,22 +103,18 @@ namespace DSODecompiler.Util
 
 			while (stack.Count > 0)
 			{
-				node = stack.Pop();
+				yield return node = stack.Pop();
 
-				if (HasNode(node))
+				visited.Add(node);
+
+				// Iterate in reverse order since we're using a stack.
+				for (var i = node.Successors.Count - 1; i >= 0; i--)
 				{
-					yield return node;
+					var successor = node.Successors[i];
 
-					visited.Add(node);
-
-					for (var i = node.Successors.Count - 1; i >= 0; i--)
+					if (!visited.Contains(successor))
 					{
-						var successor = node.Successors[i];
-
-						if (!visited.Contains(successor))
-						{
-							stack.Push(successor);
-						}
+						stack.Push(successor);
 					}
 				}
 			}
