@@ -59,6 +59,25 @@ namespace DSODecompiler.Util
 
 		public Node GetNode (K key) => HasNode(key) ? nodes[key] : null;
 
+		/// <summary>
+		/// Gets a list of nodes of the type specified.<br/><br/>
+		///
+		/// Intended for subclasses to use it to implement their own public `GetNodes()` method.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <returns></returns>
+		protected List<T> GetNodes<T> () where T : Node
+		{
+			var list = new List<T>();
+
+			foreach (T value in nodes.Values)
+			{
+				list.Add(value);
+			}
+
+			return list;
+		}
+
 		/**
 		 * Edge-related methods
 		 */

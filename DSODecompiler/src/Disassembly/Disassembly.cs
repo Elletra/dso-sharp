@@ -31,6 +31,12 @@ namespace DSODecompiler.Disassembly
 			return values;
 		}
 
+		/// <summary>
+		/// Returns the instructions split up by function/block.
+		/// </summary>
+		/// <returns></returns>
+		public List<InstructionBlock> GetSplitInstructions () => new DisassemblySplitter().Split(this);
+
 		/**
 		 * Branch target methods
 		 */
