@@ -2,7 +2,7 @@
 
 namespace DSODecompiler.Util
 {
-	public class DirectedGraph<K, V>
+	public class DirectedGraph<K>
 	{
 		public class Node
 		{
@@ -10,12 +10,10 @@ namespace DSODecompiler.Util
 			public readonly List<Node> Successors = new();
 
 			public K Key { get; set; }
-			public V Value { get; set; }
 
-			public Node (K key, V value)
+			public Node (K key)
 			{
 				Key = key;
-				Value = value;
 			}
 
 			public void AddEdgeTo (Node node)

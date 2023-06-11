@@ -4,8 +4,8 @@ using DSODecompiler.Util;
 
 namespace DSODecompilerTests
 {
-	using TestGraph = DirectedGraph<uint, string>;
-	using TestNode = DirectedGraph<uint, string>.Node;
+	using TestGraph = DirectedGraph<uint>;
+	using TestNode = DirectedGraph<uint>.Node;
 
 	[TestClass]
 	public class DirectedGraphTests
@@ -17,8 +17,8 @@ namespace DSODecompilerTests
 		[TestMethod]
 		public void Node_AddEdgeTo_AddsEdgeProperly ()
 		{
-			var node1 = CreateNode(6, "node1");
-			var node2 = CreateNode(10, "node2");
+			var node1 = CreateNode(6);
+			var node2 = CreateNode(10);
 
 			node1.AddEdgeTo(node2);
 			Node_AssertEdge(node1, node2, "node1", "node2");
@@ -30,8 +30,8 @@ namespace DSODecompilerTests
 		[TestMethod]
 		public void Node_AddEdgeTo_AddsEdgeWithNoDuplicates ()
 		{
-			var node1 = CreateNode(6, "node1");
-			var node2 = CreateNode(10, "node2");
+			var node1 = CreateNode(6);
+			var node2 = CreateNode(10);
 
 			node1.AddEdgeTo(node2);
 			node1.AddEdgeTo(node2);
@@ -55,8 +55,8 @@ namespace DSODecompilerTests
 		[TestMethod]
 		public void Node_RemoveEdgeTo_RemovesEdgeProperly ()
 		{
-			var node1 = CreateNode(6, "node1");
-			var node2 = CreateNode(10, "node2");
+			var node1 = CreateNode(6);
+			var node2 = CreateNode(10);
 
 			node1.AddEdgeTo(node2);
 			Node_AssertEdge(node1, node2, "node1", "node2");
@@ -73,8 +73,8 @@ namespace DSODecompilerTests
 		public void DirectedGraph_AddEdge_AddsEdgeProperly ()
 		{
 			var graph = CreateGraph();
-			var node1 = graph.AddNode(CreateNode(5, "node1"));
-			var node2 = graph.AddNode(CreateNode(0, "node2"));
+			var node1 = graph.AddNode(CreateNode(5));
+			var node2 = graph.AddNode(CreateNode(0));
 
 			Assert.IsTrue(graph.AddEdge(node1.Key, node2.Key));
 
@@ -88,10 +88,10 @@ namespace DSODecompilerTests
 
 			Assert.IsFalse(graph.AddEdge(1, 2), "Edge from non-existent nodes (1=>2)");
 
-			graph.AddNode(CreateNode(1, "node1"));
+			graph.AddNode(CreateNode(1));
 			Assert.IsFalse(graph.AddEdge(1, 2), "Edge to non-existent node with key 2");
 
-			graph.AddNode(CreateNode(5, "node5"));
+			graph.AddNode(CreateNode(5));
 			Assert.IsFalse(graph.AddEdge(8, 5), "Edge from non-existent node with key 8");
 		}
 
@@ -99,8 +99,8 @@ namespace DSODecompilerTests
 		public void DirectedGraph_RemoveEdge_RemovesEdgeProperly ()
 		{
 			var graph = CreateGraph();
-			var node1 = graph.AddNode(CreateNode(5, "node1"));
-			var node2 = graph.AddNode(CreateNode(0, "node2"));
+			var node1 = graph.AddNode(CreateNode(5));
+			var node2 = graph.AddNode(CreateNode(0));
 
 			Assert.IsTrue(graph.AddEdge(node1.Key, node2.Key));
 			Node_AssertSingleEdge(node1, node2, "node1", "node2");
@@ -116,7 +116,7 @@ namespace DSODecompilerTests
 
 			for (uint i = 1; i <= 6; i++)
 			{
-				graph.AddNode(CreateNode(i, $"node{i}"));
+				graph.AddNode(CreateNode(i));
 			}
 
 			graph.AddEdge(1, 2);
@@ -175,7 +175,7 @@ namespace DSODecompilerTests
 			Node_AssertNoEdge(to, from, toName, fromName);
 		}
 
-		private TestNode CreateNode (uint key, string value) => new(key, value);
+		private TestNode CreateNode (uint key) => new(key);
 
 		/**
 		 * DirectedGraph utility methods
