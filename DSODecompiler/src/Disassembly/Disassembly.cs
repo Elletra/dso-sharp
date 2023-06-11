@@ -16,17 +16,14 @@ namespace DSODecompiler.Disassembly
 		public Instruction GetInstruction (uint addr) => HasInstruction(addr) ? instructions[addr] : null;
 		public bool HasInstruction (uint addr) => instructions.ContainsKey(addr);
 
-		public IEnumerable<Instruction> GetInstructions ()
+		public List<Instruction> GetInstructions ()
 		{
-			// Enumerating over dictionaries isn't reliable, so we want to make sure we're iterating
-			// in the proper order.
 			var values = new List<Instruction>(instructions.Values);
+
+			// TODO: If I ever implement recursive descent disassembly, this will not work.
 			values.Sort((insn1, insn2) => insn1.Addr.CompareTo(insn2.Addr));
 
-			foreach (var instruction in values)
-			{
-				yield return instruction;
-			}
+			return values;
 		}
 	}
 }
