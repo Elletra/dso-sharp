@@ -35,6 +35,7 @@ namespace DSODecompiler.Disassembly
 			disassembly = new();
 
 			Disassemble();
+			MarkBranchTargets();
 
 			return disassembly;
 		}
@@ -270,6 +271,17 @@ namespace DSODecompiler.Disassembly
 		protected void AddInstruction (Instruction instruction)
 		{
 			disassembly.AddInstruction(instruction);
+		}
+
+		protected void MarkBranchTargets ()
+		{
+			foreach (var instruction in disassembly.GetInstructions())
+			{
+				if (instruction is BranchInstruction branch)
+				{
+					disassembly.AddBranchTarget(branch.TargetAddr);
+				}
+			}
 		}
 	}
 }

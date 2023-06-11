@@ -5,6 +5,11 @@ namespace DSODecompiler.Disassembly
 	public class Disassembly
 	{
 		protected Dictionary<uint, Instruction> instructions = new();
+		protected HashSet<uint> branchTargets = new();
+
+		/**
+		 * Instruction methods
+		 */
 
 		public Instruction AddInstruction (Instruction instruction)
 		{
@@ -25,5 +30,12 @@ namespace DSODecompiler.Disassembly
 
 			return values;
 		}
+
+		/**
+		 * Branch target methods
+		 */
+
+		public void AddBranchTarget (uint addr) => branchTargets.Add(addr);
+		public bool HasBranchTarget (uint addr) => branchTargets.Contains(addr);
 	}
 }
