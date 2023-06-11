@@ -1,9 +1,7 @@
 ﻿namespace DSODecompiler.Loader
 {
 	/// <summary>
-	/// Loads DSO files, parses them, and returns the parsed data.<br/>
-	/// <br/>
-	/// NOTE: Does not parse bytecode! It simply breaks up DSO files into different sections.
+	/// Loads a DSO file and splits it up into different sections.
 	/// </summary>
 	public class FileLoader
 	{
@@ -20,35 +18,35 @@
 		/// Loads a DSO file, parses it, and returns the parsed data.
 		/// </summary>
 		/// <exception cref="Exception">
-		/// <see cref="ParseHeader"/> throws if the DSO file has the wrong version.
+		/// <see cref="ReadHeader"/> throws if the DSO file has the wrong version.
 		/// </exception>
 		/// <param name="filePath"></param>
 		/// <param name="version"></param>
-		/// <returns>The parsed data.</returns>
+		/// <returns><see cref="FileData"/> instance containing the parsed data.</returns>
 		public FileData LoadFile (string filePath, uint version)
 		{
 			reader = new FileReader(filePath);
 
 			var data = new FileData(version);
 
-			ParseHeader(data);
-			ParseStringTable(data, global: true);
-			ParseFloatTable(data, global: true);
-			ParseStringTable(data, global: false);
-			ParseFloatTable(data, global: false);
-			ParseCode(data);
-			ParseIdentifierTable(data);
+			ReadHeader(data);
+			ReadStringTable(data, global: true);
+			ReadFloatTable(data, global: true);
+			ReadStringTable(data, global: false);
+			ReadFloatTable(data, global: false);
+			ReadCode(data);
+			ReadIdentifierTable(data);
 
 			return data;
 		}
 
 		/// <summary>
-		/// Parses the DSO file header to make sure it has the right version, throwing an exception
+		/// Reads the DSO file header to make sure it has the right version, and throws an exception
 		/// if it does not.
 		/// </summary>
 		/// <exception cref="Exception">If file has the wrong version.</exception>
 		/// <param name="data"></param>
-		protected void ParseHeader (FileData data)
+		protected void ReadHeader (FileData data)
 		{
 			var fileVersion = reader.ReadUInt();
 
@@ -58,14 +56,14 @@
 			}
 		}
 
-		protected void ParseStringTable (FileData data, bool global)
+		protected void ReadStringTable (FileData data, bool global)
 		{
 			var table = reader.ReadString(reader.ReadUInt());
 
 			data.CreateStringTable(UnencryptString(table), global);
 		}
 
-		protected void ParseFloatTable (FileData data, bool global)
+		protected void ReadFloatTable (FileData data, bool global)
 		{
 			var size = reader.ReadUInt();
 
@@ -77,7 +75,7 @@
 			}
 		}
 
-		protected void ParseCode (FileData data)
+		protected void ReadCode (FileData data)
 		{
 			var size = reader.ReadUInt();
 			var lineBreaks = reader.ReadUInt();
@@ -89,7 +87,7 @@
 				data.SetOp(i, reader.ReadOp());
 			}
 
-			ParseLineBreaks(data, size, lineBreaks);
+			ReadLineBreaks(data, size, lineBreaks);
 		}
 
 		/// <summary>
@@ -99,7 +97,7 @@
 		/// <param name="data"></param>
 		/// <param name="codeSize"></param>
 		/// <param name="numPairs"></param>
-		protected void ParseLineBreaks (FileData data, uint codeSize, uint numPairs)
+		protected void ReadLineBreaks (FileData data, uint codeSize, uint numPairs)
 		{
 			var totalSize = codeSize + numPairs * 2;
 
@@ -110,10 +108,10 @@
 		}
 
 		/// <summary>
-		/// Parses identifier table, replacing bits of the code with proper string table indices.
+		/// Reads identifier table to insert proper string table indices into parts of the code.
 		/// </summary>
 		/// <param name="data"></param>
-		protected void ParseIdentifierTable (FileData data)
+		protected void ReadIdentifierTable (FileData data)
 		{
 			var identifiers = reader.ReadUInt();
 
