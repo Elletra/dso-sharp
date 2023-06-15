@@ -138,5 +138,45 @@ namespace DSODecompiler.Util
 		}
 
 		public IEnumerable<Node> PreorderDFS (K entryKey) => PreorderDFS(GetNode(entryKey));
+
+		/// <summary>
+		/// Iterative postorder traversal on a cyclic graph... Good lord.<br/><br/>
+		///
+		/// I did not come up with this algorithm, though I certainly tried.<br/><br/>
+		///
+		/// Full credit goes to <see href="https://stackoverflow.com/a/50646181">Hans Olsson</see> on Stack Overflow.
+		/// </summary>
+		/// <returns></returns>
+		public IEnumerable<Node> PostorderDFS (Node entry)
+		{
+			var visited = new HashSet<Node>();
+			var stack = new Stack<(Node, bool)>();
+
+			stack.Push((entry, false));
+
+			while (stack.Count > 0)
+			{
+				var (node, visitNode) = stack.Pop();
+
+				if (visitNode)
+				{
+					yield return node;
+				}
+				else if (!visited.Contains(node))
+				{
+					visited.Add(node);
+					stack.Push((node, true));
+
+					var count = node.Successors.Count;
+
+					for (var i = count - 1; i >= 0; i--)
+					{
+						stack.Push((node.Successors[i], false));
+					}
+				}
+			}
+		}
+
+		public IEnumerable<Node> PostorderDFS (K entryKey) => PostorderDFS(GetNode(entryKey));
 	}
 }

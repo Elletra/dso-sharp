@@ -133,6 +133,29 @@ namespace DSODecompilerTests
 			}
 		}
 
+		[TestMethod]
+		public void DirectedGraph_PostorderDFS_VisitsInRightOrder ()
+		{
+			var graph = CreateGraph();
+
+			for (uint i = 1; i <= 6; i++)
+			{
+				graph.AddNode(CreateNode(i));
+			}
+
+			graph.AddEdge(3, 1);
+			graph.AddEdge(3, 2);
+			graph.AddEdge(5, 3);
+			graph.AddEdge(5, 4);
+
+			uint index = 1;
+
+			foreach (var node in graph.PostorderDFS(5))
+			{
+				Assert.AreEqual(index++, node.Key);
+			}
+		}
+
 		/**
 		 * Node utility methods
 		 */
