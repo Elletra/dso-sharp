@@ -108,10 +108,13 @@ namespace DSODecompiler.Util
 
 		/**
 		 * Traversal methods
+		 *
+		 * These all return `List`s instead of `IEnumerable`s so the graph can be modified during traversal.
 		 */
 
-		public IEnumerable<Node> PreorderDFS (Node entry)
+		public List<Node> PreorderDFS (Node entry)
 		{
+			var nodes = new List<Node>();
 			var node = entry;
 			var visited = new HashSet<Node>();
 			var stack = new Stack<Node>();
@@ -120,8 +123,7 @@ namespace DSODecompiler.Util
 
 			while (stack.Count > 0)
 			{
-				yield return node = stack.Pop();
-
+				nodes.Add(node = stack.Pop());
 				visited.Add(node);
 
 				// Iterate in reverse order since we're using a stack.
@@ -135,9 +137,11 @@ namespace DSODecompiler.Util
 					}
 				}
 			}
+
+			return nodes;
 		}
 
-		public IEnumerable<Node> PreorderDFS (K entryKey) => PreorderDFS(GetNode(entryKey));
+		public List<Node> PreorderDFS (K entryKey) => PreorderDFS(GetNode(entryKey));
 
 		/// <summary>
 		/// Iterative postorder traversal on a cyclic graph... Good lord.<br/><br/>
@@ -147,8 +151,9 @@ namespace DSODecompiler.Util
 		/// Full credit goes to <see href="https://stackoverflow.com/a/50646181">Hans Olsson</see> on Stack Overflow.
 		/// </summary>
 		/// <returns></returns>
-		public IEnumerable<Node> PostorderDFS (Node entry)
+		public List<Node> PostorderDFS (Node entry)
 		{
+			var nodes = new List<Node>();
 			var visited = new HashSet<Node>();
 			var stack = new Stack<(Node, bool)>();
 
@@ -160,7 +165,7 @@ namespace DSODecompiler.Util
 
 				if (visitNode)
 				{
-					yield return node;
+					nodes.Add(node);
 				}
 				else if (!visited.Contains(node))
 				{
@@ -175,8 +180,10 @@ namespace DSODecompiler.Util
 					}
 				}
 			}
+
+			return nodes;
 		}
 
-		public IEnumerable<Node> PostorderDFS (K entryKey) => PostorderDFS(GetNode(entryKey));
+		public List<Node> PostorderDFS (K entryKey) => PostorderDFS(GetNode(entryKey));
 	}
 }
