@@ -59,7 +59,11 @@ namespace DSODecompiler.ControlFlow
 
 					var newNode = graph.AddNode(instruction.Addr);
 
-					currNode.AddEdgeTo(newNode);
+					if (currNode.LastInstruction is not BranchInstruction branch || branch.IsConditional)
+					{
+						currNode.AddEdgeTo(newNode);
+					}
+
 					currNode = newNode;
 				}
 				else if (currNode.LastInstruction is BranchInstruction branch)
