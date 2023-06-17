@@ -7,7 +7,7 @@ namespace DSODecompiler.ControlFlow
 {
 	public class ControlFlowNode : DirectedGraph<uint>.Node
 	{
-		public CollapsedNode CollapsedNode = null;
+		public CollapsedNode CollapsedNode { get; set; }  = null;
 
 		public uint Addr => Key;
 

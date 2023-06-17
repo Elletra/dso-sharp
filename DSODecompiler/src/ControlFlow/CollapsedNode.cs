@@ -22,6 +22,8 @@ namespace DSODecompiler.ControlFlow
 		public Instruction LastInstruction => Instructions.Count > 0 ? Instructions[^1] : null;
 
 		public InstructionNode (uint key) : base(key) {}
+
+		public void CopyInstructions (InstructionNode node) => node.Instructions.ForEach(Instructions.Add);
 	}
 
 	public class ConditionalNode : InstructionNode

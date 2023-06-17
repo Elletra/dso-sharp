@@ -2,11 +2,31 @@
 
 namespace DSODecompiler.ControlFlow
 {
+	/// <summary>
+	/// Performs structural analysis on a control flow graph to recover control flow structures (e.g.
+	/// if statements, loops, etc.) from it.<br/><br/>
+	///
+	/// This doesn't implement everything described in the Schwartz paper, but it works for our current
+	/// target, which is normal DSO files produced by the Torque Game Engine.<br/><br/>
+	///
+	/// <strong>Source:</strong><br/><br/>
+	///
+	/// <see href="https://www.usenix.org/system/files/conference/usenixsecurity13/sec13-paper_schwartz.pdf">
+	/// "Native x86 Decompilation Using Semantics-Preserving Structural Analysis and Iterative
+	/// Control-Flow Structuring"</see> by Edward J. Schwartz, JongHyup Lee, Maverick Woo, and David Brumley.
+	/// </summary>
 	public class StructureAnalyzer
 	{
+		public class Exception : System.Exception
+		{
+			public Exception () {}
+			public Exception (string message) : base(message) {}
+			public Exception (string message, Exception inner) : base(message, inner) {}
+		}
+
 		protected ControlFlowGraph graph = null;
 
-		public void Analyze (ControlFlowGraph cfg)
+		public CollapsedNode Analyze (ControlFlowGraph cfg)
 		{
 			graph = cfg;
 
@@ -23,12 +43,15 @@ namespace DSODecompiler.ControlFlow
 				}
 			}
 
-			// A hacky way to set the entry point to the remaining node.
+			// !!! FIXME: This is a hacky way to set the entry point to the remaining node !!!
 			foreach (ControlFlowNode node in cfg.GetNodes())
 			{
 				cfg.EntryPoint = node.Addr;
 				break;
 			}
+
+			// !!! FIXME: Also very hacky !!!
+			return (cfg.GetNode(cfg.EntryPoint) as ControlFlowNode).CollapsedNode;
 		}
 
 		protected bool ReduceNode (ControlFlowNode node)
@@ -41,7 +64,6 @@ namespace DSODecompiler.ControlFlow
 			switch (node.Successors.Count)
 			{
 				case 0:
-					Console.WriteLine($"NO successors {node.Addr}");
 					return false;
 
 				case 1:
@@ -59,21 +81,12 @@ namespace DSODecompiler.ControlFlow
 		{
 			var next = node.GetSuccessor(0);
 
-			Console.WriteLine($"ReduceSequence({node.Addr}) next: {next.Addr}");
-
 			if (next.Predecessors.Count > 1 || next.Successors.Count > 1)
 			{
-				Console.WriteLine("Pred or Succ Count > 1");
 				return false;
 			}
 
-			Console.WriteLine("!!! Pred or Succ Count <= 1");
-
-			var sequence = new SequenceNode(node.Addr);
-
-			sequence.AddNodes(node.CollapsedNode, next.CollapsedNode);
-
-			node.CollapsedNode = sequence;
+			AddSequenceNode(node, next);
 
 			if (next.Successors.Count > 0)
 			{
@@ -81,8 +94,6 @@ namespace DSODecompiler.ControlFlow
 			}
 
 			graph.RemoveNode(next);
-
-			//PrintNode(sequence, 0);
 
 			return true;
 		}
@@ -98,30 +109,11 @@ namespace DSODecompiler.ControlFlow
 
 			if (thenSuccessor == @else)
 			{
-				if (then.Predecessors.Count > 1)
+				/* if-then structure */
+
+				if (then.Predecessors.Count <= 1)
 				{
-					Console.WriteLine($"thenSucc other preds {node.Addr}");
-				}
-				else
-				{
-					Console.WriteLine($"{node.Addr} :: If-then");
-
-					var conditional = new ConditionalNode(node.Addr)
-					{
-						Then = then.CollapsedNode,
-						Else = null,
-					};
-
-					if (node.CollapsedNode is InstructionNode instructionNode)
-					{
-						instructionNode.Instructions.ForEach(conditional.Instructions.Add);
-					}
-					else
-					{
-						throw new Exception($">>>>1 {node.CollapsedNode}");
-					}
-
-					node.CollapsedNode = conditional;
+					AddConditionalNode(node, then, null);
 
 					graph.RemoveNode(then);
 
@@ -130,30 +122,11 @@ namespace DSODecompiler.ControlFlow
 			}
 			else if (elseSuccessor != null && thenSuccessor == elseSuccessor)
 			{
-				if (then.Predecessors.Count > 1 || @else.Predecessors.Count > 1)
+				/* if-then-else structure */
+
+				if (then.Predecessors.Count <= 1 && @else.Predecessors.Count <= 1)
 				{
-					Console.WriteLine($"elseSucc other preds {node.Addr}");
-				}
-				else
-				{
-					Console.WriteLine($"{node.Addr} :: If-then-else");
-
-					var conditional = new ConditionalNode(node.Addr)
-					{
-						Then = then.CollapsedNode,
-						Else = @else.CollapsedNode,
-					};
-
-					if (node.CollapsedNode is InstructionNode instructionNode)
-					{
-						instructionNode.Instructions.ForEach(conditional.Instructions.Add);
-					}
-					else
-					{
-						throw new Exception($">>>>2 {node.CollapsedNode}");
-					}
-
-					node.CollapsedNode = conditional;
+					AddConditionalNode(node, then, @else);
 
 					graph.RemoveNode(then);
 					graph.RemoveNode(@else);
@@ -168,6 +141,33 @@ namespace DSODecompiler.ControlFlow
 			}
 
 			return reduced;
+		}
+
+		protected SequenceNode AddSequenceNode (ControlFlowNode node, ControlFlowNode next)
+		{
+			var collapsed = new SequenceNode(node.Addr);
+
+			collapsed.AddNodes(node.CollapsedNode, next.CollapsedNode);
+
+			return (node.CollapsedNode = collapsed) as SequenceNode;
+		}
+
+		protected ConditionalNode AddConditionalNode (ControlFlowNode node, ControlFlowNode then, ControlFlowNode @else)
+		{
+			var collapsed = new ConditionalNode(node.Addr)
+			{
+				Then = then?.CollapsedNode,
+				Else = @else?.CollapsedNode,
+			};
+
+			if (node.CollapsedNode is not InstructionNode instructions)
+			{
+				throw new Exception($"Expected {node.Addr}.CollapsedNode to be `InstructionNode`");
+			}
+
+			collapsed.CopyInstructions(instructions);
+
+			return (node.CollapsedNode = collapsed) as ConditionalNode;
 		}
 
 		public static void PrintIndent (int indent)
