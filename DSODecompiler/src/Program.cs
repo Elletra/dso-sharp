@@ -12,14 +12,15 @@ namespace DSODecompiler
 		static void Main (string[] args)
 		{
 			var loader = new FileLoader();
-			var fileData = loader.LoadFile("init.cs.dso", 210);
+			var fileData = loader.LoadFile("test.cs.dso", 210);
 			var disassembler = new Disassembler(new OpFactory());
 			var disassembly = disassembler.Disassemble(fileData);
 			var graphs = new ControlFlowGraphBuilder().Build(disassembly);
+			var analyzer = new StructureAnalyzer();
 
 			foreach (var (_, graph) in graphs)
 			{
-				foreach (var node in graph.GetNodes())
+				/*foreach (InstructionNode node in graph.GetNodes())
 				{
 					Console.Write(node.Addr);
 
@@ -40,7 +41,21 @@ namespace DSODecompiler
 					Console.Write("\n");
 				}
 
-				Console.WriteLine("========\n");
+				Console.WriteLine("========\n");*/
+
+				analyzer.Analyze(graph);
+
+
+				if (graph.IsFunction)
+				{
+					Console.WriteLine($"\n======== Function: {graph.FunctionInstruction} ========\n");
+				}
+				else
+				{
+					Console.WriteLine("\n================\n");
+				}
+
+				StructureAnalyzer.PrintNode((graph.GetNode(graph.EntryPoint) as ControlFlowNode).CollapsedNode, 0);
 			}
 		}
 	}

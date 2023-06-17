@@ -52,6 +52,7 @@ namespace DSODecompiler.ControlFlow
 					/* Start of the code block. */
 
 					currNode = graph.AddNode(instruction.Addr);
+					graph.EntryPoint = currNode.Addr;
 				}
 				else if (disassembly.HasBranchTarget(instruction.Addr))
 				{
@@ -82,7 +83,20 @@ namespace DSODecompiler.ControlFlow
 					currNode = newNode;
 				}
 
-				currNode.Instructions.Add(instruction);
+				if (instruction is FunctionInstruction function)
+				{
+					if (graph.FunctionInstruction != null)
+					{
+						// TODO: Maybe support nested functions someday??
+						throw new Exception($"Nested function detected at {function.Addr}");
+					}
+
+					graph.FunctionInstruction = function;
+				}
+				else
+				{
+					currNode.AddInstruction(instruction);
+				}
 			}
 		}
 
@@ -104,7 +118,7 @@ namespace DSODecompiler.ControlFlow
 		{
 			foreach (var (_, graph) in graphs)
 			{
-				foreach (var node in graph.GetNodes())
+				foreach (ControlFlowNode node in graph.GetNodes())
 				{
 					if (node.LastInstruction is BranchInstruction branch && !graph.AddEdge(node.Addr, branch.TargetAddr))
 					{

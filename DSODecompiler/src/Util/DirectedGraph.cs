@@ -34,6 +34,8 @@ namespace DSODecompiler.Util
 
 		protected Dictionary<K, Node> nodes = new();
 
+		public int Count => nodes.Count;
+
 		/**
 		 * Node-related methods
 		 */
@@ -47,11 +49,17 @@ namespace DSODecompiler.Util
 
 		public void RemoveNode (Node node)
 		{
-			foreach (var successor in node.Successors)
+			foreach (var successor in node.Successors.ToArray())
 			{
-				RemoveEdge(node.Key, successor.Key);
-				RemoveEdge(successor.Key, node.Key);
+				RemoveEdge(node, successor);
 			}
+
+			foreach (var predecessor in node.Predecessors.ToArray())
+			{
+				RemoveEdge(predecessor, node);
+			}
+
+			nodes.Remove(node.Key);
 		}
 
 		public bool HasNode (K key) => nodes.ContainsKey(key);
@@ -82,29 +90,33 @@ namespace DSODecompiler.Util
 		 * Edge-related methods
 		 */
 
-		public bool AddEdge (K from, K to)
+		public bool AddEdge (Node from, Node to)
 		{
 			if (!HasNode(from) || !HasNode(to))
 			{
 				return false;
 			}
 
-			GetNode(from).AddEdgeTo(GetNode(to));
+			from.AddEdgeTo(to);
 
 			return true;
 		}
 
-		public bool RemoveEdge (K from, K to)
+		public bool AddEdge (K from, K to) => AddEdge(GetNode(from), GetNode(to));
+
+		public bool RemoveEdge (Node from, Node to)
 		{
 			if (!HasNode(from) || !HasNode(to))
 			{
 				return false;
 			}
 
-			GetNode(from).RemoveEdgeTo(GetNode(to));
+			from.RemoveEdgeTo(to);
 
 			return true;
 		}
+
+		public bool RemoveEdge (K from, K to) => RemoveEdge(GetNode(from), GetNode(to));
 
 		/**
 		 * Traversal methods
@@ -115,9 +127,9 @@ namespace DSODecompiler.Util
 		public List<Node> PreorderDFS (Node entry)
 		{
 			var nodes = new List<Node>();
-			var node = entry;
 			var visited = new HashSet<Node>();
 			var stack = new Stack<Node>();
+			var node = entry;
 
 			stack.Push(node);
 

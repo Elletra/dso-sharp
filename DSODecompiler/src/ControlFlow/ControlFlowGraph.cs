@@ -7,23 +7,62 @@ namespace DSODecompiler.ControlFlow
 {
 	public class ControlFlowNode : DirectedGraph<uint>.Node
 	{
-		public readonly List<Instruction> Instructions = new();
+		public CollapsedNode CollapsedNode = null;
 
 		public uint Addr => Key;
 
-		public Instruction FirstInstruction => Instructions.Count > 0 ? Instructions[0] : null;
-		public Instruction LastInstruction => Instructions.Count > 0 ? Instructions[^1] : null;
+		public Instruction FirstInstruction => CollapsedNode is InstructionNode
+			? (CollapsedNode as InstructionNode).FirstInstruction
+			: null;
 
-		public ControlFlowNode (uint key) : base(key) { }
-		public ControlFlowNode (Instruction instruction) : base(instruction.Addr) { }
+		public Instruction LastInstruction => CollapsedNode is InstructionNode
+			? (CollapsedNode as InstructionNode).LastInstruction
+			: null;
+
+		public ControlFlowNode (uint key) : base(key) {}
+
+		public ControlFlowNode GetSuccessor (int index) => Successors.Count > 0
+			? Successors[index] as ControlFlowNode
+			: null;
+
+		public ControlFlowNode GetPredecessor (int index) => Predecessors.Count > 0
+			? Predecessors[index] as ControlFlowNode
+			: null;
+
+		public Instruction AddInstruction (Instruction instruction)
+		{
+			if (CollapsedNode is InstructionNode node)
+			{
+				node.Instructions.Add(instruction);
+
+				return instruction;
+			}
+
+			return null;
+		}
 	}
 
 	public class ControlFlowGraph : DirectedGraph<uint>
 	{
-		public FunctionInstruction FunctionInstruction => (nodes?[0] as ControlFlowNode)?.FirstInstruction as FunctionInstruction;
+		/// <summary>
+		/// There must be a better way than to make this a public, settable value...<br/><br/>
+		///
+		/// TODO: Maybe fix someday?
+		/// </summary>
+		public uint EntryPoint { get; set; }
+
+		public FunctionInstruction FunctionInstruction { get; set; } = null;
 		public bool IsFunction => FunctionInstruction != null;
 
-		public ControlFlowNode AddNode (uint addr) => AddNode(new ControlFlowNode(addr)) as ControlFlowNode;
+		public ControlFlowNode AddNode (uint addr)
+		{
+			var node = new ControlFlowNode(addr)
+			{
+				CollapsedNode = new InstructionNode(addr),
+			};
+
+			return AddNode(node) as ControlFlowNode;
+		}
 
 		public List<ControlFlowNode> GetNodes ()
 		{
