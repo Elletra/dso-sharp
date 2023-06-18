@@ -7,6 +7,20 @@ namespace DSODecompiler.ControlFlow
 {
 	public class ControlFlowNode : DirectedGraph<uint>.Node
 	{
+		/// <summary>
+		/// Immediate <see cref="DominanceCalculator">dominator</see> of this node.
+		/// </summary>
+		public ControlFlowNode ImmediateDom { get; set; } = null;
+
+		/// <summary>
+		/// Used by <see cref="DominanceCalculator"/> to calculate dominators.
+		/// </summary>
+		public int ReversePostorder { get; set; }
+
+		/// <summary>
+		/// During <see cref="StructureAnalyzer">structural analysis</see>, we need to "collapse"
+		/// or "reduce" nodes into representations of higher-level structures.
+		/// </summary>
 		public CollapsedNode CollapsedNode { get; set; }  = null;
 
 		public uint Addr => Key;
@@ -39,6 +53,30 @@ namespace DSODecompiler.ControlFlow
 			}
 
 			return null;
+		}
+
+		/// <summary>
+		/// Calculates whether this node dominates <paramref name="target"/>, strictly or not strictly.
+		/// </summary>
+		/// <param name="target"></param>
+		/// <param name="strictly"></param>
+		/// <returns></returns>
+		public bool Dominates (ControlFlowNode target, bool strictly = false)
+		{
+			// All nodes dominate themselves, but not strictly.
+			if (this == target)
+			{
+				return !strictly;
+			}
+
+			var dom = target.ImmediateDom;
+
+			while (dom != this && dom != null && dom != dom.ImmediateDom)
+			{
+				dom = dom.ImmediateDom;
+			}
+
+			return dom == this;
 		}
 	}
 
