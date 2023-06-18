@@ -4,8 +4,8 @@ namespace DSODecompiler.Disassembly
 {
 	public class InstructionBlock : List<Instruction>
 	{
-		public Instruction First => this?[0];
-		public Instruction Last => this?[^1];
+		public Instruction First => this[0];
+		public Instruction Last => this[^1];
 
 		public bool IsFunction => First is FunctionInstruction;
 	}

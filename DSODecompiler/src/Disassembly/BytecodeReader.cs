@@ -8,11 +8,12 @@ namespace DSODecompiler.Disassembly
 
 		public uint Index { get; protected set; } = 0;
 
-		/// There's probably some stupid way to nest function declarations inside each other, but that
-		/// would be much more complicated, so let's just keep it simple for now.
-		///
-		/// TODO: Maybe someday.
-
+		/**
+		 * There's probably some stupid way to nest function declarations inside each other, but that
+		 * would be much more complicated, so let's just keep it simple for now.
+		 *
+		 * TODO: Maybe someday.
+		 */
 		public FunctionInstruction Function { get; set; } = null;
 		public bool InFunction => Function != null;
 

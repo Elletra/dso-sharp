@@ -32,7 +32,7 @@ namespace DSODecompiler.ControlFlow
 		}
 
 		/// <summary>
-		/// Builds the initial <see cref="ControlFlowGraph"/> (CFG) from the disassembly.<br/><br/>
+		/// Builds the initial <see cref="ControlFlowGraph"/> (CFG) from disassembly.<br/><br/>
 		///
 		/// CFG nodes start at branch targets and end at branch instructions. Usually, returns also
 		/// end CFG nodes, but for our purposes, they don't. We want that juicy unreachable code!!
@@ -75,6 +75,9 @@ namespace DSODecompiler.ControlFlow
 
 					// If the branch is unconditional, then there's no way to get to the next
 					// sequential instruction from it.
+					//
+					// TODO: It would be nice to be able to decompile this type of unreachable code
+					//       someday though...
 					if (branch.IsConditional)
 					{
 						currNode.AddEdgeTo(newNode);

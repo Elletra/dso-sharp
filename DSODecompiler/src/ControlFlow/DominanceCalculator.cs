@@ -74,8 +74,6 @@ namespace DSODecompiler.ControlFlow
 					}
 				}
 			}
-
-			entry.ImmediateDom = null;
 		}
 
 		protected ControlFlowNode FindCommonDominator (ControlFlowNode node1, ControlFlowNode node2)
@@ -85,7 +83,7 @@ namespace DSODecompiler.ControlFlow
 
 			while (finger1 != finger2)
 			{
-				/* Comparison operators are flipped since we're using their reverse postorder values. */
+				/* Comparison operators are flipped since we're using reverse postorder values. */
 
 				while (finger1.ReversePostorder > finger2.ReversePostorder)
 				{
