@@ -51,7 +51,7 @@ namespace DSODecompiler.ControlFlow
 			}
 
 			// !!! FIXME: Also very hacky !!!
-			return (cfg.GetNode(cfg.EntryPoint) as ControlFlowNode).CollapsedNode;
+			return cfg.GetNode(cfg.EntryPoint).CollapsedNode;
 		}
 
 		protected bool ReduceNode (ControlFlowNode node)
@@ -109,7 +109,7 @@ namespace DSODecompiler.ControlFlow
 
 			if (thenSuccessor == @else)
 			{
-				/* if-then structure */
+				/* if-then */
 
 				if (then.Predecessors.Count <= 1)
 				{
@@ -122,7 +122,7 @@ namespace DSODecompiler.ControlFlow
 			}
 			else if (elseSuccessor != null && thenSuccessor == elseSuccessor)
 			{
-				/* if-then-else structure */
+				/* if-then-else */
 
 				if (then.Predecessors.Count <= 1 && @else.Predecessors.Count <= 1)
 				{
