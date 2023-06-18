@@ -105,16 +105,15 @@ namespace DSODecompiler.ControlFlow
 		{
 			reversePostorder = new();
 
-			var index = graph.Count - 1;
-
 			foreach (ControlFlowNode node in graph.PostorderDFS())
 			{
-				node.ReversePostorder = index--;
-
 				reversePostorder.Add(node);
 			}
 
+			var index = 0;
+
 			reversePostorder.Reverse();
+			reversePostorder.ForEach((ControlFlowNode node) => node.ReversePostorder = index++);
 		}
 	}
 }
