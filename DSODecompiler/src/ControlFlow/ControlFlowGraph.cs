@@ -102,6 +102,8 @@ namespace DSODecompiler.ControlFlow
 			return AddNode(node) as ControlFlowNode;
 		}
 
+		public ControlFlowNode GetNode (uint key) => GetNode<ControlFlowNode>(key);
+
 		public List<ControlFlowNode> GetNodes ()
 		{
 			var list = GetNodes<ControlFlowNode>();
@@ -111,5 +113,10 @@ namespace DSODecompiler.ControlFlow
 
 			return list;
 		}
+
+		public ControlFlowNode GetEntryPoint () => GetNode(EntryPoint);
+
+		public List<Node> PreorderDFS () => PreorderDFS(EntryPoint);
+		public List<Node> PostorderDFS () => PostorderDFS(EntryPoint);
 	}
 }
