@@ -63,9 +63,9 @@ namespace DSODecompiler.Util
 		}
 
 		public bool HasNode (K key) => nodes.ContainsKey(key);
-		public bool HasNode (Node node) => nodes.ContainsKey(node.Key);
+		public bool HasNode (Node node) => node != null && nodes.ContainsKey(node.Key);
 
-		public Node GetNode (K key) => HasNode(key) ? nodes[key] : null;
+		public T GetNode<T> (K key) where T : Node => HasNode(key) ? nodes[key] as T : null;
 
 		/// <summary>
 		/// Gets a list of nodes of the type specified.<br/><br/>
@@ -102,7 +102,7 @@ namespace DSODecompiler.Util
 			return true;
 		}
 
-		public bool AddEdge (K from, K to) => AddEdge(GetNode(from), GetNode(to));
+		public bool AddEdge (K from, K to) => AddEdge(GetNode<Node>(from), GetNode<Node>(to));
 
 		public bool RemoveEdge (Node from, Node to)
 		{
@@ -116,7 +116,7 @@ namespace DSODecompiler.Util
 			return true;
 		}
 
-		public bool RemoveEdge (K from, K to) => RemoveEdge(GetNode(from), GetNode(to));
+		public bool RemoveEdge (K from, K to) => RemoveEdge(GetNode<Node>(from), GetNode<Node>(to));
 
 		/**
 		 * Traversal methods
@@ -135,17 +135,22 @@ namespace DSODecompiler.Util
 
 			while (stack.Count > 0)
 			{
-				nodes.Add(node = stack.Pop());
-				visited.Add(node);
+				node = stack.Pop();
 
-				// Iterate in reverse order since we're using a stack.
-				for (var i = node.Successors.Count - 1; i >= 0; i--)
+				if (!visited.Contains(node))
 				{
-					var successor = node.Successors[i];
+					nodes.Add(node);
+					visited.Add(node);
 
-					if (!visited.Contains(successor))
+					// Iterate in reverse order since we're using a stack.
+					for (var i = node.Successors.Count - 1; i >= 0; i--)
 					{
-						stack.Push(successor);
+						var successor = node.Successors[i];
+
+						if (!visited.Contains(successor))
+						{
+							stack.Push(successor);
+						}
 					}
 				}
 			}
@@ -153,7 +158,7 @@ namespace DSODecompiler.Util
 			return nodes;
 		}
 
-		public List<Node> PreorderDFS (K entryKey) => PreorderDFS(GetNode(entryKey));
+		public List<Node> PreorderDFS (K entryKey) => PreorderDFS(GetNode<Node>(entryKey));
 
 		/// <summary>
 		/// Iterative postorder traversal on a cyclic graph... Good lord.<br/><br/>
@@ -196,6 +201,6 @@ namespace DSODecompiler.Util
 			return nodes;
 		}
 
-		public List<Node> PostorderDFS (K entryKey) => PostorderDFS(GetNode(entryKey));
+		public List<Node> PostorderDFS (K entryKey) => PostorderDFS(GetNode<Node>(entryKey));
 	}
 }
