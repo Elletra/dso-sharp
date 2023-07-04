@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace DSODecompiler.ControlFlow
 {
@@ -35,11 +36,13 @@ namespace DSODecompiler.ControlFlow
 			public Exception (string message, Exception inner) : base(message, inner) {}
 		}
 
-		protected ControlFlowGraph graph = null;
+		protected ControlFlowGraph graph;
+		protected Dictionary<uint, CollapsedNode> collapsedNodes;
 
 		public CollapsedNode Analyze (ControlFlowGraph cfg)
 		{
 			graph = cfg;
+			collapsedNodes = new();
 
 			while (cfg.Count > 1)
 			{
@@ -61,8 +64,7 @@ namespace DSODecompiler.ControlFlow
 				break;
 			}
 
-			// !!! FIXME: Also very hacky !!!
-			return null;//cfg.GetNode(cfg.EntryPoint).CollapsedNode;
+			return collapsedNodes[cfg.EntryPoint];
 		}
 
 		protected bool ReduceNode (ControlFlowNode node)
@@ -83,14 +85,72 @@ namespace DSODecompiler.ControlFlow
 			}
 		}
 
-		protected bool ReduceSequence(ControlFlowNode node)
+		protected bool ReduceSequence (ControlFlowNode node)
 		{
-			return false;
+			var next = node.GetSuccessor(0);
+
+			if (!next.IsSequential)
+			{
+				return false;
+			}
+
+			node.AddEdgeTo(next.GetSuccessor(0));
+
+			var sequence = new SequenceNode(node.Addr);
+
+			if (collapsedNodes.ContainsKey(node.Addr))
+			{
+				sequence.AddNode(collapsedNodes[node.Addr]);
+			}
+
+			sequence.AddNode(ExtractCollapsed(next) ?? new InstructionNode(next));
+
+			collapsedNodes[node.Addr] = sequence;
+
+			return true;
 		}
 
 		protected bool ReduceConditional (ControlFlowNode node)
 		{
-			return false;
+			var reduced = false;
+			var then = node.GetSuccessor(0);
+			var @else = node.GetSuccessor(1);
+			var thenSuccessor = then.GetSuccessor(0);
+
+			if (thenSuccessor == @else)
+			{
+				if (then.IsSequential)
+				{
+					collapsedNodes[node.Addr] = new ConditionalNode(node)
+					{
+						Then = ExtractCollapsed(then) ?? new InstructionNode(then),
+					};
+
+					reduced = true;
+				}
+			}
+
+			return reduced;
+		}
+
+		protected CollapsedNode ExtractCollapsed (uint key)
+		{
+			CollapsedNode node = null;
+
+			if (collapsedNodes.ContainsKey(key))
+			{
+				node = collapsedNodes[key];
+				collapsedNodes.Remove(key);
+			}
+
+			return node;
+		}
+
+		protected CollapsedNode ExtractCollapsed (ControlFlowNode node)
+		{
+			graph.RemoveNode(node);
+
+			return ExtractCollapsed(node.Addr);
 		}
 	}
 }

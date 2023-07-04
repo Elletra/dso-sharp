@@ -11,6 +11,8 @@ namespace DSODecompiler.Util
 
 			public K Key { get; set; }
 
+			public bool IsSequential => Predecessors.Count <= 1 && Successors.Count <= 1;
+
 			public Node (K key)
 			{
 				Key = key;
@@ -18,7 +20,7 @@ namespace DSODecompiler.Util
 
 			public void AddEdgeTo (Node node)
 			{
-				if (!Successors.Contains(node))
+				if (!Successors.Contains(node) && node != null)
 				{
 					Successors.Add(node);
 					node.Predecessors.Add(this);

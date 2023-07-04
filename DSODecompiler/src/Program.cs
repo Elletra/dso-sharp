@@ -94,16 +94,9 @@ namespace DSODecompiler
 
 				Console.WriteLine("========\n");
 
-				//analyzer.Analyze(graph);
+				var collapsed = analyzer.Analyze(graph);
 
-				if (graph.IsFunction)
-				{
-					Console.WriteLine($"\n======== Function: {graph.FunctionInstruction} ========\n");
-				}
-				else
-				{
-					Console.WriteLine("\n================\n");
-				}
+				{ } // Only for debug breakpoint
 			}
 
 			if (writeGraph)

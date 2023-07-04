@@ -23,7 +23,13 @@ namespace DSODecompiler.ControlFlow
 
 		public InstructionNode (uint key) : base(key) {}
 
+		public InstructionNode (ControlFlowNode node) : base(node.Addr)
+		{
+			CopyInstructions(node);
+		}
+
 		public void CopyInstructions (InstructionNode node) => node.Instructions.ForEach(Instructions.Add);
+		public void CopyInstructions (ControlFlowNode node) => node.Instructions.ForEach(Instructions.Add);
 	}
 
 	public class ConditionalNode : InstructionNode
@@ -32,6 +38,7 @@ namespace DSODecompiler.ControlFlow
 		public CollapsedNode Else = null;
 
 		public ConditionalNode (uint key) : base(key) {}
+		public ConditionalNode (ControlFlowNode node) : base(node) {}
 	}
 
 	public class LoopNode : InstructionNode
@@ -39,6 +46,7 @@ namespace DSODecompiler.ControlFlow
 		public readonly List<CollapsedNode> Body = new();
 
 		public LoopNode (uint key) : base(key) {}
+		public LoopNode (ControlFlowNode node) : base(node) { }
 
 		public T AddNode<T> (T node) where T : CollapsedNode
 		{
