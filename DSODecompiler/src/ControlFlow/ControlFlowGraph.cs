@@ -8,6 +8,11 @@ namespace DSODecompiler.ControlFlow
 	public class ControlFlowNode : DirectedGraph<uint>.Node
 	{
 		/// <summary>
+		/// The instructions that make up this node.
+		/// </summary>
+		public readonly List<Instruction> Instructions = new();
+
+		/// <summary>
 		/// Immediate <see cref="DominanceCalculator">dominator</see> of this node.
 		/// </summary>
 		public ControlFlowNode ImmediateDom { get; set; } = null;
@@ -17,21 +22,11 @@ namespace DSODecompiler.ControlFlow
 		/// </summary>
 		public int ReversePostorder { get; set; }
 
-		/// <summary>
-		/// During <see cref="StructureAnalyzer">structural analysis</see>, we need to "collapse"
-		/// or "reduce" nodes into representations of higher-level structures.
-		/// </summary>
-		public CollapsedNode CollapsedNode { get; set; }  = null;
-
 		public uint Addr => Key;
 
-		public Instruction FirstInstruction => CollapsedNode is InstructionNode
-			? (CollapsedNode as InstructionNode).FirstInstruction
-			: null;
+		public Instruction FirstInstruction => Instructions.Count > 0 ? Instructions[0] : null;
 
-		public Instruction LastInstruction => CollapsedNode is InstructionNode
-			? (CollapsedNode as InstructionNode).LastInstruction
-			: null;
+		public Instruction LastInstruction => Instructions.Count > 0 ? Instructions[^1] : null;
 
 		public ControlFlowNode (uint key) : base(key) {}
 
@@ -45,14 +40,9 @@ namespace DSODecompiler.ControlFlow
 
 		public Instruction AddInstruction (Instruction instruction)
 		{
-			if (CollapsedNode is InstructionNode node)
-			{
-				node.Instructions.Add(instruction);
+			Instructions.Add(instruction);
 
-				return instruction;
-			}
-
-			return null;
+			return instruction;
 		}
 
 		/// <summary>
@@ -92,16 +82,7 @@ namespace DSODecompiler.ControlFlow
 		public FunctionInstruction FunctionInstruction { get; set; } = null;
 		public bool IsFunction => FunctionInstruction != null;
 
-		public ControlFlowNode AddNode (uint addr)
-		{
-			var node = new ControlFlowNode(addr)
-			{
-				CollapsedNode = new InstructionNode(addr),
-			};
-
-			return AddNode(node) as ControlFlowNode;
-		}
-
+		public ControlFlowNode AddNode (uint addr) => AddNode(new ControlFlowNode(addr)) as ControlFlowNode;
 		public ControlFlowNode GetNode (uint key) => GetNode<ControlFlowNode>(key);
 
 		public List<ControlFlowNode> GetNodes ()
