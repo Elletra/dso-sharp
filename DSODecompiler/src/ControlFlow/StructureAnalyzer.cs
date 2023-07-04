@@ -19,7 +19,7 @@ namespace DSODecompiler.ControlFlow
 	/// </item>
 	///
 	/// <item>
-	/// <see href="https://www.usenix.org/system/files/conference/usenixsecurity13/sec13-paper_schwartz.pdf">
+	/// <see href="https://www.ndss-symposium.org/wp-content/uploads/2017/09/11_4_2.pdf">
 	/// "No More Gotos: Decompilation Using Pattern-Independent Control-Flow Structuring and
 	/// Semantics-Preserving Transformations"</see> by Khaled Yakdan, Sebastian Eschweiler,
 	/// Elmar Gerhards-Padilla, Matthew Smith.
