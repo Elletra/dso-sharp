@@ -67,6 +67,8 @@ namespace DSODecompiler
 							label += $"\n{node.LastInstruction}";
 						}
 
+						label = label.Replace("\"", "\\\"");
+
 						writer.WriteLine($"\t\tnode_{node.Addr} [label=\"{label}\"];\n");
 					}
 				}
@@ -109,6 +111,12 @@ namespace DSODecompiler
 				writer.WriteLine("}");
 				writer.Flush();
 				writer.Close();
+
+				System.Diagnostics.Process process = new();
+
+				process.StartInfo.FileName = "createGraph.bat";
+				process.StartInfo.Arguments = $"{fileName}.dot";
+				process.Start();
 			}
 		}
 	}
