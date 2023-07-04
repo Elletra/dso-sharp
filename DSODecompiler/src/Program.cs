@@ -96,7 +96,7 @@ namespace DSODecompiler
 
 				var collapsed = analyzer.Analyze(graph);
 
-				{ } // Only for debug breakpoint
+				{ } // Just for debug breakpoint
 			}
 
 			if (writeGraph)
@@ -110,6 +110,7 @@ namespace DSODecompiler
 				process.StartInfo.FileName = "createGraph.bat";
 				process.StartInfo.Arguments = $"{fileName}.dot";
 				process.Start();
+				process.WaitForExit();
 			}
 		}
 	}

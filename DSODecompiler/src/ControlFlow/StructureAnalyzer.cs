@@ -116,9 +116,12 @@ namespace DSODecompiler.ControlFlow
 			var then = node.GetSuccessor(0);
 			var @else = node.GetSuccessor(1);
 			var thenSuccessor = then.GetSuccessor(0);
+			var elseSuccessor = @else.GetSuccessor(0);
 
 			if (thenSuccessor == @else)
 			{
+				/* if-then */
+
 				if (then.IsSequential)
 				{
 					collapsedNodes[node.Addr] = new ConditionalNode(node)
@@ -129,8 +132,32 @@ namespace DSODecompiler.ControlFlow
 					reduced = true;
 				}
 			}
+			else if (thenSuccessor == elseSuccessor)
+			{
+				/* if-then-else */
+
+				if (then.IsSequential && @else.IsSequential)
+				{
+					collapsedNodes[node.Addr] = new ConditionalNode(node)
+					{
+						Then = ExtractCollapsed(then) ?? new InstructionNode(then),
+						Else = ExtractCollapsed(@else) ?? new InstructionNode(@else),
+					};
+
+					node.AddEdgeTo(thenSuccessor);
+
+					reduced = true;
+				}
+			}
 
 			return reduced;
+		}
+
+		protected CollapsedNode ExtractCollapsed (ControlFlowNode node)
+		{
+			graph.RemoveNode(node);
+
+			return ExtractCollapsed(node.Addr);
 		}
 
 		protected CollapsedNode ExtractCollapsed (uint key)
@@ -144,13 +171,6 @@ namespace DSODecompiler.ControlFlow
 			}
 
 			return node;
-		}
-
-		protected CollapsedNode ExtractCollapsed (ControlFlowNode node)
-		{
-			graph.RemoveNode(node);
-
-			return ExtractCollapsed(node.Addr);
 		}
 	}
 }
