@@ -94,8 +94,6 @@ namespace DSODecompiler.ControlFlow
 				return false;
 			}
 
-			node.AddEdgeTo(next.GetSuccessor(0));
-
 			var sequence = new SequenceNode(node.Addr);
 
 			if (collapsedNodes.ContainsKey(node.Addr))
@@ -103,6 +101,7 @@ namespace DSODecompiler.ControlFlow
 				sequence.AddNode(collapsedNodes[node.Addr]);
 			}
 
+			node.AddEdgeTo(next.GetSuccessor(0));
 			sequence.AddNode(ExtractCollapsed(next) ?? new InstructionNode(next));
 
 			collapsedNodes[node.Addr] = sequence;
