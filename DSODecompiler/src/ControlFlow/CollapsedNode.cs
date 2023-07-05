@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+
 using DSODecompiler.Disassembly;
 
 namespace DSODecompiler.ControlFlow
@@ -64,21 +66,31 @@ namespace DSODecompiler.ControlFlow
 
 		public SequenceNode (uint key) : base(key) {}
 
+		/// <summary>
+		/// Adds <paramref name="node"/>, if it's not null, to the list of nodes.<br/><br/>
+		///
+		/// If <paramref name="node"/> is a <see cref="SequenceNode"/>, we add the nodes from its
+		/// list instead.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="node"></param>
+		/// <returns></returns>
 		public T AddNode<T> (T node) where T : CollapsedNode
 		{
-			if (node is SequenceNode sequence)
+			if (node != null)
 			{
-				// Extract nodes from existing sequence node.
-				sequence.Nodes.ForEach(Nodes.Add);
-			}
-			else
-			{
-				Nodes.Add(node);
+				if (node is SequenceNode sequence)
+				{
+					// Extract nodes from existing sequence node.
+					sequence.Nodes.ForEach(Nodes.Add);
+				}
+				else
+				{
+					Nodes.Add(node);
+				}
 			}
 
 			return node;
 		}
-
-		public void AddNodes<T> (params T[] nodes) where T : CollapsedNode => Nodes.AddRange(nodes);
 	}
 }

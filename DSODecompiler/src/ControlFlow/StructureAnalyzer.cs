@@ -94,14 +94,11 @@ namespace DSODecompiler.ControlFlow
 				return false;
 			}
 
+			node.AddEdgeTo(next.GetSuccessor(0));
+
 			var sequence = new SequenceNode(node.Addr);
 
-			if (collapsedNodes.ContainsKey(node.Addr))
-			{
-				sequence.AddNode(collapsedNodes[node.Addr]);
-			}
-
-			node.AddEdgeTo(next.GetSuccessor(0));
+			sequence.AddNode(GetCollapsed(node.Addr));
 			sequence.AddNode(ExtractCollapsed(next) ?? new InstructionNode(next));
 
 			collapsedNodes[node.Addr] = sequence;
@@ -171,5 +168,9 @@ namespace DSODecompiler.ControlFlow
 
 			return node;
 		}
+
+		protected CollapsedNode GetCollapsed (uint key) => collapsedNodes.ContainsKey(key)
+			? collapsedNodes[key]
+			: null;
 	}
 }
