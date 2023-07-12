@@ -38,13 +38,15 @@ namespace DSODecompiler.ControlFlow
 
 		protected ControlFlowGraph graph;
 		protected Dictionary<uint, CollapsedNode> collapsedNodes;
+		protected LoopFinder loopFinder;
 
 		public CollapsedNode Analyze (ControlFlowGraph cfg)
 		{
 			graph = cfg;
 			collapsedNodes = new();
+			loopFinder = new();
 
-			while (cfg.Count > 1)
+			while (graph.Count > 1)
 			{
 				foreach (ControlFlowNode node in graph.PostorderDFS(graph.EntryPoint))
 				{
@@ -58,16 +60,28 @@ namespace DSODecompiler.ControlFlow
 			}
 
 			// !!! FIXME: This is a hacky way to set the entry point to the remaining node !!!
-			foreach (ControlFlowNode node in cfg.GetNodes())
+			foreach (ControlFlowNode node in graph.GetNodes())
 			{
-				cfg.EntryPoint = node.Addr;
+				graph.EntryPoint = node.Addr;
 				break;
 			}
 
-			return collapsedNodes[cfg.EntryPoint];
+			return collapsedNodes[graph.EntryPoint];
 		}
 
 		protected bool ReduceNode (ControlFlowNode node)
+		{
+			var reduced = ReduceAcyclic(node);
+
+			if (!reduced && loopFinder.IsLoopStart(node))
+			{
+				reduced = ReduceCyclic(node);
+			}
+
+			return reduced;
+		}
+
+		protected bool ReduceAcyclic (ControlFlowNode node)
 		{
 			switch (node.Successors.Count)
 			{
@@ -94,12 +108,10 @@ namespace DSODecompiler.ControlFlow
 				return false;
 			}
 
+			var sequence = ExtractSequence(node);
+
 			node.AddEdgeTo(next.GetSuccessor(0));
-
-			var sequence = new SequenceNode(node.Addr);
-
-			sequence.AddNode(GetCollapsed(node.Addr));
-			sequence.AddNode(ExtractCollapsed(next) ?? new InstructionNode(next));
+			sequence.AddNode(ExtractCollapsed(next));
 
 			collapsedNodes[node.Addr] = sequence;
 
@@ -118,11 +130,11 @@ namespace DSODecompiler.ControlFlow
 			{
 				/* if-then */
 
-				if (then.IsSequential)
+				if (then.IsSequential && !loopFinder.IsLoopEnd(then))
 				{
 					collapsedNodes[node.Addr] = new ConditionalNode(node)
 					{
-						Then = ExtractCollapsed(then) ?? new InstructionNode(then),
+						Then = ExtractCollapsed(then),
 					};
 
 					reduced = true;
@@ -132,12 +144,12 @@ namespace DSODecompiler.ControlFlow
 			{
 				/* if-then-else */
 
-				if (then.IsSequential && @else.IsSequential)
+				if (then.IsSequential && @else.IsSequential && !loopFinder.IsLoopEnd(then) && !loopFinder.IsLoopEnd(@else))
 				{
 					collapsedNodes[node.Addr] = new ConditionalNode(node)
 					{
-						Then = ExtractCollapsed(then) ?? new InstructionNode(then),
-						Else = ExtractCollapsed(@else) ?? new InstructionNode(@else),
+						Then = ExtractCollapsed(then),
+						Else = ExtractCollapsed(@else),
 					};
 
 					node.AddEdgeTo(thenSuccessor);
@@ -149,11 +161,36 @@ namespace DSODecompiler.ControlFlow
 			return reduced;
 		}
 
+		protected bool ReduceCyclic (ControlFlowNode node)
+		{
+			if (node.Successors.Count != 1)
+			{
+				return false;
+			}
+
+			var next = node.GetSuccessor(0);
+
+			if (!loopFinder.IsLoop(node, next))
+			{
+				return false;
+			}
+
+			var loop = new LoopNode(node);
+
+			node.AddEdgeTo(next.GetSuccessor(0));
+			loop.AddNode(collapsedNodes.GetValueOrDefault(node.Addr));
+			loop.AddNode(ExtractCollapsed(next));
+
+			collapsedNodes[node.Addr] = loop;
+
+			return false;
+		}
+
 		protected CollapsedNode ExtractCollapsed (ControlFlowNode node)
 		{
 			graph.RemoveNode(node);
 
-			return ExtractCollapsed(node.Addr);
+			return ExtractCollapsed(node.Addr) ?? new InstructionNode(node);
 		}
 
 		protected CollapsedNode ExtractCollapsed (uint key)
@@ -167,6 +204,15 @@ namespace DSODecompiler.ControlFlow
 			}
 
 			return node;
+		}
+
+		protected SequenceNode ExtractSequence (ControlFlowNode node)
+		{
+			var sequence = new SequenceNode(node.Addr);
+
+			sequence.AddNode(GetCollapsed(node.Addr) ?? new InstructionNode(node));
+
+			return sequence;
 		}
 
 		protected CollapsedNode GetCollapsed (uint key) => collapsedNodes.ContainsKey(key)
