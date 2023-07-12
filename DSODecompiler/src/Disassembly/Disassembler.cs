@@ -20,7 +20,7 @@ namespace DSODecompiler.Disassembly
 		protected Disassembly disassembly;
 
 		/// <summary>
-		/// For emulating the STR object used in Torque to return values from files/functions.
+		/// For emulating the STR object used in Torque to return values from functions.
 		/// </summary>
 		protected bool returnableValue = false;
 
