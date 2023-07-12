@@ -45,8 +45,8 @@ namespace DSODecompiler.ControlFlow
 				}
 			}
 
-			// Sort by body size so that nested loops are ordered from innermost to outermost.
-			list.Sort((loop1, loop2) => loop1.Count.CompareTo(loop2.Count));
+			// Sort by address so nested loops are ordered from innermost to outermost.
+			list.Sort((loop1, loop2) => loop1.Header.Addr.CompareTo(loop2.Header.Addr));
 
 			return list;
 		}
@@ -86,7 +86,7 @@ namespace DSODecompiler.ControlFlow
 
 		public bool IsLoopStart (ControlFlowNode node)
 		{
-			return node.Predecessors.Any(pred =>
+			return node != null && node.Predecessors.Any(pred =>
 			{
 				ControlFlowNode predecessor = pred as ControlFlowNode;
 
@@ -96,7 +96,7 @@ namespace DSODecompiler.ControlFlow
 
 		public bool IsLoopEnd (ControlFlowNode node)
 		{
-			return node.Successors.Any(succ =>
+			return node != null && node.Successors.Any(succ =>
 			{
 				ControlFlowNode successor = succ as ControlFlowNode;
 
@@ -105,5 +105,9 @@ namespace DSODecompiler.ControlFlow
 		}
 
 		public bool IsLoopNode (ControlFlowNode node) => IsLoopStart(node) || IsLoopEnd(node);
+
+		public bool IsLoop (ControlFlowNode start, ControlFlowNode end) => IsLoopStart(start) && IsLoopEnd(end)
+			&& start.Predecessors.Any(pred => pred == end)
+			&& start.Dominates(end, strictly: false);
 	}
 }
