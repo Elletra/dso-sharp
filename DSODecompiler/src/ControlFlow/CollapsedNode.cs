@@ -23,15 +23,18 @@ namespace DSODecompiler.ControlFlow
 		public Instruction FirstInstruction => Instructions.Count > 0 ? Instructions[0] : null;
 		public Instruction LastInstruction => Instructions.Count > 0 ? Instructions[^1] : null;
 
-		public InstructionNode (uint key) : base(key) {}
+		public InstructionNode (uint key) : base(key) { }
 
 		public InstructionNode (ControlFlowNode node) : base(node.Addr)
 		{
-			CopyInstructions(node);
+			ExtractInstructions(node);
 		}
 
-		public void CopyInstructions (InstructionNode node) => node.Instructions.ForEach(Instructions.Add);
-		public void CopyInstructions (ControlFlowNode node) => node.Instructions.ForEach(Instructions.Add);
+		public void ExtractInstructions (ControlFlowNode node)
+		{
+			node.Instructions.ForEach(Instructions.Add);
+			node.Instructions.Clear();
+		}
 	}
 
 	public class ConditionalNode : InstructionNode
@@ -39,20 +42,23 @@ namespace DSODecompiler.ControlFlow
 		public CollapsedNode Then = null;
 		public CollapsedNode Else = null;
 
-		public ConditionalNode (uint key) : base(key) {}
-		public ConditionalNode (ControlFlowNode node) : base(node) {}
+		public ConditionalNode (uint key) : base(key) { }
+		public ConditionalNode (ControlFlowNode node) : base(node) { }
 	}
 
 	public class LoopNode : InstructionNode
 	{
 		public readonly List<CollapsedNode> Body = new();
 
-		public LoopNode (uint key) : base(key) {}
+		public LoopNode (uint key) : base(key) { }
 		public LoopNode (ControlFlowNode node) : base(node) { }
 
 		public T AddNode<T> (T node) where T : CollapsedNode
 		{
-			Body.Add(node);
+			if (node != null)
+			{
+				Body.Add(node);
+			}
 
 			return node;
 		}
@@ -64,7 +70,7 @@ namespace DSODecompiler.ControlFlow
 	{
 		public readonly List<CollapsedNode> Nodes = new();
 
-		public SequenceNode (uint key) : base(key) {}
+		public SequenceNode (uint key) : base(key) { }
 
 		/// <summary>
 		/// Adds <paramref name="node"/>, if it's not null, to the list of nodes.<br/><br/>
