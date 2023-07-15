@@ -5,7 +5,7 @@ namespace DSODecompiler.ControlFlow
 {
 	public class Loop
 	{
-		public ControlFlowNode Header { get; set; } = null;
+		public ControlFlowNode Header => Body.Count > 0 ? Body[0] : null;
 		public ControlFlowNode End => Body.Count > 0 ? Body[^1] : Header;
 
 		public int Count => Body.Count;
@@ -57,8 +57,7 @@ namespace DSODecompiler.ControlFlow
 			var visited = new HashSet<ControlFlowNode>();
 			var queue = new Queue<ControlFlowNode>();
 
-			loop.Header = header;
-
+			loop.AddNode(header);
 			queue.Enqueue(end);
 
 			while (queue.Count > 0)
