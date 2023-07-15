@@ -1,4 +1,4 @@
-﻿using System;
+﻿using DSODecompiler.Disassembly;
 using System.Collections.Generic;
 
 namespace DSODecompiler.ControlFlow
@@ -83,6 +83,11 @@ namespace DSODecompiler.ControlFlow
 
 		protected bool ReduceAcyclic (ControlFlowNode node)
 		{
+			if (node.LastInstruction is BranchInstruction branch && branch.IsUnconditional)
+			{
+				return ReduceUnconditional(node);
+			}
+
 			switch (node.Successors.Count)
 			{
 				case 0:
@@ -120,6 +125,12 @@ namespace DSODecompiler.ControlFlow
 
 		protected bool ReduceConditional (ControlFlowNode node)
 		{
+			// We don't accidentally want to mistake the ends of loops as if statements.
+			if (loopFinder.IsLoopEnd(node))
+			{
+				return false;
+			}
+
 			var reduced = false;
 			var then = node.GetSuccessor(0);
 			var @else = node.GetSuccessor(1);
@@ -161,21 +172,95 @@ namespace DSODecompiler.ControlFlow
 			return reduced;
 		}
 
-		protected bool ReduceCyclic (ControlFlowNode node)
+		protected bool ReduceUnconditional (ControlFlowNode node)
 		{
-			if (node.Successors.Count != 1)
+			if (!IsUnconditional(node) || loopFinder.IsLoopEnd(node) || collapsedNodes.ContainsKey(node.Addr))
 			{
 				return false;
+			}
+
+			var successor = node.GetSuccessor(0);
+			var target = node.GetBranchTarget();
+			var targetPred = target?.GetPredecessor(0);
+
+			if (target == null)
+			{
+				return false;
+			}
+
+			// Reduce breaks
+			if (loopFinder.IsLoopEnd(targetPred))
+			{
+				var loopStart = targetPred.GetBranchTarget();
+				var loops = loopFinder.Find(loopStart);
+
+				// Make sure that we're actually in the loop we're jumping to the end of.
+				foreach (var loop in loops)
+				{
+					if (loop.HasNode(node))
+					{
+						collapsedNodes[node.Addr] = new BreakNode(node);
+
+						node.RemoveEdgeTo(target);
+
+						return true;
+					}
+				}
+			}
+			else if (successor != null && successor.GetSuccessor(0) == target && successor.Predecessors.Count < 3)
+			{
+				collapsedNodes[node.Addr] = new ElseNode(node);
+
+				node.RemoveEdgeTo(successor);
+
+				return true;
+			}
+			else
+			{
+				collapsedNodes[node.Addr] = new GotoNode(node, target.Addr);
+
+				if (target != successor)
+				{
+					node.RemoveEdgeTo(target);
+				}
+
+				return true;
+			}
+
+			return false;
+		}
+
+		protected bool ReduceCyclic (ControlFlowNode node)
+		{
+			var isSelfLoop = node.GetBranchTarget() == node;
+
+			if (node.Successors.Count != 1 && !isSelfLoop)
+			{
+				return false;
+			}
+
+			LoopNode loop;
+
+			if (isSelfLoop)
+			{
+				loop = new LoopNode(node);
+
+				node.RemoveEdgeTo(node);
+				loop.AddNode(collapsedNodes.GetValueOrDefault(node.Addr));
+
+				collapsedNodes[node.Addr] = loop;
+
+				return true;
 			}
 
 			var next = node.GetSuccessor(0);
 
-			if (!loopFinder.IsLoop(node, next))
+			if (!loopFinder.IsLoop(node, next) || next.Predecessors.Count > 1)
 			{
 				return false;
 			}
 
-			var loop = new LoopNode(node);
+			loop = new LoopNode(node);
 
 			node.AddEdgeTo(next.GetSuccessor(0));
 			loop.AddNode(collapsedNodes.GetValueOrDefault(node.Addr));
@@ -183,7 +268,7 @@ namespace DSODecompiler.ControlFlow
 
 			collapsedNodes[node.Addr] = loop;
 
-			return false;
+			return true;
 		}
 
 		protected CollapsedNode ExtractCollapsed (ControlFlowNode node)
@@ -218,5 +303,8 @@ namespace DSODecompiler.ControlFlow
 		protected CollapsedNode GetCollapsed (uint key) => collapsedNodes.ContainsKey(key)
 			? collapsedNodes[key]
 			: null;
+
+		protected bool IsUnconditional (ControlFlowNode node) => node?.LastInstruction is BranchInstruction branch
+			&& branch.IsUnconditional;
 	}
 }

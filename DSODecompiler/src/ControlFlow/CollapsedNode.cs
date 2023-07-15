@@ -66,6 +66,26 @@ namespace DSODecompiler.ControlFlow
 		public void AddNodes<T> (params T[] nodes) where T : CollapsedNode => Body.AddRange(nodes);
 	}
 
+	public class ElseNode : InstructionNode
+	{
+		public ElseNode (uint key) : base(key) { }
+		public ElseNode (ControlFlowNode node) : base(node) { }
+	}
+
+	public class BreakNode : InstructionNode
+	{
+		public BreakNode (uint key) : base(key) { }
+		public BreakNode (ControlFlowNode node) : base(node) { }
+	}
+
+	public class GotoNode : InstructionNode
+	{
+		public uint Target { get; }
+
+		public GotoNode (uint key, uint target) : base(key) => Target = target;
+		public GotoNode (ControlFlowNode node, uint target) : base(node) => Target = target;
+	}
+
 	public class SequenceNode : CollapsedNode
 	{
 		public readonly List<CollapsedNode> Nodes = new();
