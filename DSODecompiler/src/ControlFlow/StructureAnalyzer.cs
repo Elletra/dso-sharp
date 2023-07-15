@@ -46,6 +46,12 @@ namespace DSODecompiler.ControlFlow
 			collapsedNodes = new();
 			loopFinder = new();
 
+			// Edge case where there's only one node, but it still needs to be reduced!
+			if (graph.Count == 1)
+			{
+				collapsedNodes[graph.EntryPoint] = new InstructionNode(graph.GetEntryPoint());
+			}
+
 			while (graph.Count > 1)
 			{
 				foreach (ControlFlowNode node in graph.PostorderDFS(graph.EntryPoint))
