@@ -1,4 +1,5 @@
 ﻿using DSODecompiler.Disassembly;
+
 using System.Collections.Generic;
 
 namespace DSODecompiler.ControlFlow
@@ -65,12 +66,7 @@ namespace DSODecompiler.ControlFlow
 				}
 			}
 
-			// !!! FIXME: This is a hacky way to set the entry point to the remaining node !!!
-			foreach (ControlFlowNode node in graph.GetNodes())
-			{
-				graph.EntryPoint = node.Addr;
-				break;
-			}
+			graph.EntryPoint = graph.GetNodes()[0].Addr;
 
 			return collapsedNodes[graph.EntryPoint];
 		}
@@ -223,7 +219,42 @@ namespace DSODecompiler.ControlFlow
 			}
 			else
 			{
-				collapsedNodes[node.Addr] = new GotoNode(node, target.Addr);
+				// TODO: This is bad. As far as I know, there aren't any TorqueScript compilers that
+				//       produce gotos, but it is entirely possible to write one that does. It is bad
+				//       to assume that anything that's not an else or a break is a continue, but for
+				//       the first version of this decompiler, it'll do.
+				//
+				//       I just really hope it doesn't accidentally mark the wrong thing as a continue...
+				//       Please let me know if it does, but only if it's not FUNCTIONALLY EQUIVALENT.
+				//
+				//       What I mean by that is this:
+				//
+				//       while (true)
+				//       {
+				//           if ( ... )
+				//           {
+				//               echo("if statement is true");
+				//               continue;
+				//           }
+				//           echo("if statement is false");
+				//       }
+				//
+				//      ...is FUNCTIONALLY EQUIVALENT to this:
+				//
+				//       while (true)
+				//       {
+				//           if ( ... )
+				//               echo("if statement is true");
+				//           else
+				//               echo("if statement is false");
+				//       }
+				//
+				//       and will look IDENTICAL in the TorqueScript bytecode.
+				//
+				//       So if it's something like that, please don't contact me about it. But if you DO
+				//       find something that is marked incorrectly as a continue and is NOT functionally
+				//       equivalent to something else, please let me know.
+				collapsedNodes[node.Addr] = new ContinueNode(node);
 
 				if (target != successor)
 				{

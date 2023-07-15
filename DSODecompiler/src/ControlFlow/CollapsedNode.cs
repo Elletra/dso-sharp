@@ -78,12 +78,10 @@ namespace DSODecompiler.ControlFlow
 		public BreakNode (ControlFlowNode node) : base(node) { }
 	}
 
-	public class GotoNode : InstructionNode
+	public class ContinueNode : InstructionNode
 	{
-		public uint Target { get; }
-
-		public GotoNode (uint key, uint target) : base(key) => Target = target;
-		public GotoNode (ControlFlowNode node, uint target) : base(node) => Target = target;
+		public ContinueNode (uint key) : base(key) { }
+		public ContinueNode (ControlFlowNode node) : base(node) { }
 	}
 
 	public class SequenceNode : CollapsedNode
