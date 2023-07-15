@@ -30,13 +30,15 @@ namespace DSODecompiler.ControlFlow
 
 		public ControlFlowNode (uint key) : base(key) {}
 
-		public ControlFlowNode GetSuccessor (int index) => Successors.Count > 0
+		public ControlFlowNode GetSuccessor (int index) => Successors.Count > index
 			? Successors[index] as ControlFlowNode
 			: null;
 
-		public ControlFlowNode GetPredecessor (int index) => Predecessors.Count > 0
+		public ControlFlowNode GetPredecessor (int index) => Predecessors.Count > index
 			? Predecessors[index] as ControlFlowNode
 			: null;
+
+		public ControlFlowNode GetBranchTarget () => Successors.Count < 2 ? GetSuccessor(0) : GetSuccessor(1);
 
 		public Instruction AddInstruction (Instruction instruction)
 		{

@@ -60,10 +60,7 @@ namespace DSODecompiler.ControlFlow
 
 					var newNode = graph.AddNode(instruction.Addr);
 
-					if (currNode.LastInstruction is not BranchInstruction branch || branch.IsConditional)
-					{
-						currNode.AddEdgeTo(newNode);
-					}
+					currNode.AddEdgeTo(newNode);
 
 					currNode = newNode;
 				}
@@ -73,15 +70,7 @@ namespace DSODecompiler.ControlFlow
 
 					var newNode = graph.AddNode(instruction.Addr);
 
-					// If the branch is unconditional, then there's no way to get to the next
-					// sequential instruction from it.
-					//
-					// TODO: It would be nice to be able to decompile this type of unreachable code
-					//       someday though...
-					if (branch.IsConditional)
-					{
-						currNode.AddEdgeTo(newNode);
-					}
+					currNode.AddEdgeTo(newNode);
 
 					currNode = newNode;
 				}
