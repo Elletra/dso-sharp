@@ -21,7 +21,7 @@ namespace DSODecompiler
 			var analyzer = new StructureAnalyzer();
 
 			StreamWriter writer = null;
-			var writeGraph = true;
+			var writeGraph = false;
 			var loopFinder = new LoopFinder();
 
 			if (writeGraph)
@@ -77,7 +77,7 @@ namespace DSODecompiler
 				{
 					writer.Flush();
 
-					foreach (ControlFlowNode node in graph.GetNodes())
+					foreach (ControlFlowNode node in graph.PreorderDFS())
 					{
 						foreach (ControlFlowNode successor in node.Successors)
 						{
@@ -94,9 +94,11 @@ namespace DSODecompiler
 
 				Console.WriteLine("========\n");
 
-				var collapsed = analyzer.Analyze(graph);
-
-				{ } // Just for debug breakpoint
+				if (!writeGraph)
+				{
+					var collapsed = analyzer.Analyze(graph);
+					{ } // Just for debug breakpoint
+				}
 			}
 
 			if (writeGraph)
