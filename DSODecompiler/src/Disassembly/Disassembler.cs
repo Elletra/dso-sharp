@@ -15,7 +15,7 @@ namespace DSODecompiler.Disassembly
 			public Exception (string message, Exception inner) : base(message, inner) {}
 		}
 
-		protected OpFactory factory;
+		protected OpcodeFactory factory;
 		protected BytecodeReader reader;
 		protected Disassembly disassembly;
 
@@ -24,9 +24,9 @@ namespace DSODecompiler.Disassembly
 		/// </summary>
 		protected bool returnableValue = false;
 
-		public Disassembler (OpFactory opFactory)
+		public Disassembler (OpcodeFactory opcodeFactory)
 		{
-			factory = opFactory;
+			factory = opcodeFactory;
 		}
 
 		public Disassembly Disassemble (FileData fileData)
@@ -55,18 +55,18 @@ namespace DSODecompiler.Disassembly
 			ProcessAddress(addr);
 
 			var value = reader.Read();
-			var op = factory.CreateOp(value);
+			var opcode = factory.CreateOpcode(value);
 
-			if (!op.IsValid)
+			if (!opcode.IsValid)
 			{
 				throw new Exception($"Invalid opcode {value} at {addr}");
 			}
 
-			var instruction = DisassembleOp(op, addr);
+			var instruction = DisassembleOpcode(opcode, addr);
 
 			if (instruction == null)
 			{
-				throw new Exception($"Failed to disassemble opcode {op.Opcode} at {addr}");
+				throw new Exception($"Failed to disassemble opcode {opcode.Value} at {addr}");
 			}
 
 			ProcessInstruction(instruction);
@@ -95,14 +95,14 @@ namespace DSODecompiler.Disassembly
 		/// <param name="op"></param>
 		/// <param name="addr"></param>
 		/// <returns></returns>
-		protected Instruction DisassembleOp (Op op, uint addr)
+		protected Instruction DisassembleOpcode (Opcode opcode, uint addr)
 		{
-			switch (op.Opcode)
+			switch (opcode.StringValue)
 			{
-				case Opcode.OP_FUNC_DECL:
+				case "OP_FUNC_DECL":
 				{
 					var instruction = new FunctionInstruction(
-						op,
+						opcode,
 						addr,
 						name: reader.ReadIdent(),
 						ns: reader.ReadIdent(),
@@ -121,10 +121,10 @@ namespace DSODecompiler.Disassembly
 					return instruction;
 				}
 
-				case Opcode.OP_CREATE_OBJECT:
+				case "OP_CREATE_OBJECT":
 				{
 					return new CreateObjectInstruction(
-						op,
+						opcode,
 						addr,
 						parent: reader.ReadIdent(),
 						isDataBlock: reader.ReadBool(),
@@ -132,49 +132,49 @@ namespace DSODecompiler.Disassembly
 					);
 				}
 
-				case Opcode.OP_ADD_OBJECT:
-					return new AddObjectInstruction(op, addr, placeAtRoot: reader.ReadBool());
+				case "OP_ADD_OBJECT":
+					return new AddObjectInstruction(opcode, addr, placeAtRoot: reader.ReadBool());
 
-				case Opcode.OP_END_OBJECT:
-					return new EndObjectInstruction(op, addr, value: reader.ReadBool());
+				case "OP_END_OBJECT":
+					return new EndObjectInstruction(opcode, addr, value: reader.ReadBool());
 
-				case Opcode.OP_JMP:
-				case Opcode.OP_JMPIF:
-				case Opcode.OP_JMPIFF:
-				case Opcode.OP_JMPIFNOT:
-				case Opcode.OP_JMPIFFNOT:
-				case Opcode.OP_JMPIF_NP:
-				case Opcode.OP_JMPIFNOT_NP:
-					return new BranchInstruction(op, addr, targetAddr: reader.Read());
+				case "OP_JMP":
+				case "OP_JMPIF":
+				case "OP_JMPIFF":
+				case "OP_JMPIFNOT":
+				case "OP_JMPIFFNOT":
+				case "OP_JMPIF_NP":
+				case "OP_JMPIFNOT_NP":
+					return new BranchInstruction(opcode, addr, targetAddr: reader.Read());
 
-				case Opcode.OP_RETURN:
-					return new ReturnInstruction(op, addr, returnableValue);
+				case "OP_RETURN":
+					return new ReturnInstruction(opcode, addr, returnableValue);
 
-				case Opcode.OP_SETCURVAR:
-				case Opcode.OP_SETCURVAR_CREATE:
-					return new VariableInstruction(op, addr, name: reader.ReadIdent());
+				case "OP_SETCURVAR":
+				case "OP_SETCURVAR_CREATE":
+					return new VariableInstruction(opcode, addr, name: reader.ReadIdent());
 
-				case Opcode.OP_SETCURFIELD:
-					return new FieldInstruction(op, addr, name: reader.ReadIdent());
+				case "OP_SETCURFIELD":
+					return new FieldInstruction(opcode, addr, name: reader.ReadIdent());
 
-				case Opcode.OP_LOADIMMED_UINT:
-					return new ImmediateInstruction<uint>(op, addr, value: reader.Read());
+				case "OP_LOADIMMED_UINT":
+					return new ImmediateInstruction<uint>(opcode, addr, value: reader.Read());
 
-				case Opcode.OP_LOADIMMED_FLT:
-					return new ImmediateInstruction<double>(op, addr, value: reader.ReadDouble());
+				case "OP_LOADIMMED_FLT":
+					return new ImmediateInstruction<double>(opcode, addr, value: reader.ReadDouble());
 
-				case Opcode.OP_TAG_TO_STR:
-				case Opcode.OP_LOADIMMED_STR:
-					return new ImmediateInstruction<string>(op, addr, value: reader.ReadString());
+				case "OP_TAG_TO_STR":
+				case "OP_LOADIMMED_STR":
+					return new ImmediateInstruction<string>(opcode, addr, value: reader.ReadString());
 
-				case Opcode.OP_LOADIMMED_IDENT:
-					return new ImmediateInstruction<string>(op, addr, value: reader.ReadIdent());
+				case "OP_LOADIMMED_IDENT":
+					return new ImmediateInstruction<string>(opcode, addr, value: reader.ReadIdent());
 
-				case Opcode.OP_CALLFUNC:
-				case Opcode.OP_CALLFUNC_RESOLVE:
+				case "OP_CALLFUNC":
+				case "OP_CALLFUNC_RESOLVE":
 				{
 					return new CallInstruction(
-						op,
+						opcode,
 						addr,
 						name: reader.ReadIdent(),
 						ns: reader.ReadIdent(),
@@ -182,14 +182,14 @@ namespace DSODecompiler.Disassembly
 					);
 				}
 
-				case Opcode.OP_ADVANCE_STR_APPENDCHAR:
-					return new AppendStringInstruction(op, addr, reader.ReadChar());
+				case "OP_ADVANCE_STR_APPENDCHAR":
+					return new AppendStringInstruction(opcode, addr, reader.ReadChar());
 
-				case Opcode.OP_INVALID:
+				case "OP_INVALID":
 					return null;
 
 				default:
-					return new Instruction(op, addr);
+					return new Instruction(opcode, addr);
 			}
 		}
 
@@ -248,7 +248,7 @@ namespace DSODecompiler.Disassembly
 
 		protected void SetReturnableValue (Instruction instruction)
 		{
-			switch (instruction.Op.ReturnValue)
+			switch (instruction.Opcode.ReturnValue)
 			{
 				case ReturnValue.ToFalse:
 				{

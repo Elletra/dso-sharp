@@ -24,11 +24,7 @@ namespace DSODecompiler.ControlFlow
 		public Instruction LastInstruction => Instructions.Count > 0 ? Instructions[^1] : null;
 
 		public InstructionNode (uint key) : base(key) { }
-
-		public InstructionNode (ControlFlowNode node) : base(node.Addr)
-		{
-			ExtractInstructions(node);
-		}
+		public InstructionNode (ControlFlowNode node) : base(node.Addr) => ExtractInstructions(node);
 
 		public void ExtractInstructions (ControlFlowNode node)
 		{

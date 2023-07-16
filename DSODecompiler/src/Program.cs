@@ -15,7 +15,7 @@ namespace DSODecompiler
 			var fileName = "test";
 			var loader = new FileLoader();
 			var fileData = loader.LoadFile($"{fileName}.cs.dso", 210);
-			var disassembler = new Disassembler(new OpFactory());
+			var disassembler = new Disassembler(new OpcodeFactory());
 			var disassembly = disassembler.Disassemble(fileData);
 			var graphs = new ControlFlowGraphBuilder().Build(disassembly);
 			var analyzer = new StructureAnalyzer();

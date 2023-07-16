@@ -11,12 +11,12 @@ namespace DSODecompiler.Disassembly
 	/// </summary>
 	public class Instruction
 	{
-		public Op Op { get; }
+		public Opcode Opcode { get; }
 		public uint Addr { get; }
 
-		public Instruction (Op op, uint addr)
+		public Instruction (Opcode opcode, uint addr)
 		{
-			Op = op;
+			Opcode = opcode;
 			Addr = addr;
 		}
 
@@ -24,7 +24,7 @@ namespace DSODecompiler.Disassembly
 		/// Mostly a utility function for <see cref="ToString"/>.
 		/// </summary>
 		/// <returns>An array of relevant values to be printed.</returns>
-		public virtual object[] GetValues () => new object[] { Addr, Op.Opcode };
+		public virtual object[] GetValues () => new object[] { Addr, Opcode.Value };
 
 		public override string ToString ()
 		{
@@ -72,8 +72,8 @@ namespace DSODecompiler.Disassembly
 
 		public List<string> Arguments { get; } = new();
 
-		public FunctionInstruction (Op op, uint addr, string name, string ns, string package,
-			bool hasBody, uint endAddr) : base(op, addr)
+		public FunctionInstruction (Opcode opcode, uint addr, string name, string ns, string package,
+			bool hasBody, uint endAddr) : base(opcode, addr)
 		{
 			Name = name;
 			Namespace = ns;
@@ -87,7 +87,7 @@ namespace DSODecompiler.Disassembly
 			var values = new object[7 + Arguments.Count];
 
 			values[0] = Addr;
-			values[1] = Op.Opcode;
+			values[1] = Opcode.Value;
 			values[2] = Name;
 			values[3] = Namespace;
 			values[4] = Package;
@@ -114,15 +114,15 @@ namespace DSODecompiler.Disassembly
 		public bool IsDataBlock { get; }
 		public uint FailJumpAddr { get; }
 
-		public CreateObjectInstruction (Op op, uint addr, string parent, bool isDataBlock, uint failJumpAddr)
-			: base(op, addr)
+		public CreateObjectInstruction (Opcode opcode, uint addr, string parent, bool isDataBlock, uint failJumpAddr)
+			: base(opcode, addr)
 		{
 			Parent = parent;
 			IsDataBlock = isDataBlock;
 			FailJumpAddr = failJumpAddr;
 		}
 
-		public override object[] GetValues () => new object[] { Addr, Op.Opcode, Parent, IsDataBlock, FailJumpAddr };
+		public override object[] GetValues () => new object[] { Addr, Opcode.Value, Parent, IsDataBlock, FailJumpAddr };
 	}
 
 	/// <summary>
@@ -132,12 +132,12 @@ namespace DSODecompiler.Disassembly
 	{
 		public bool PlaceAtRoot { get; }
 
-		public AddObjectInstruction (Op op, uint addr, bool placeAtRoot) : base(op, addr)
+		public AddObjectInstruction (Opcode opcode, uint addr, bool placeAtRoot) : base(opcode, addr)
 		{
 			PlaceAtRoot = placeAtRoot;
 		}
 
-		public override object[] GetValues () => new object[] { Addr, Op.Opcode, PlaceAtRoot };
+		public override object[] GetValues () => new object[] { Addr, Opcode.Value, PlaceAtRoot };
 	}
 
 	/// <summary>
@@ -150,12 +150,12 @@ namespace DSODecompiler.Disassembly
 		/// </summary>
 		public bool Value { get; }
 
-		public EndObjectInstruction (Op op, uint addr, bool value) : base(op, addr)
+		public EndObjectInstruction (Opcode opcode, uint addr, bool value) : base(opcode, addr)
 		{
 			Value = value;
 		}
 
-		public override object[] GetValues () => new object[] { Addr, Op.Opcode, Value };
+		public override object[] GetValues () => new object[] { Addr, Opcode.Value, Value };
 	}
 
 	/// <summary>
@@ -165,15 +165,15 @@ namespace DSODecompiler.Disassembly
 	{
 		public uint TargetAddr { get; }
 
-		public bool IsUnconditional => Op.Opcode == Opcode.OP_JMP;
+		public bool IsUnconditional => Opcode.StringValue == "OP_JMP";
 		public bool IsConditional => !IsUnconditional;
 
-		public BranchInstruction (Op op, uint addr, uint targetAddr) : base(op, addr)
+		public BranchInstruction (Opcode opcode, uint addr, uint targetAddr) : base(opcode, addr)
 		{
 			TargetAddr = targetAddr;
 		}
 
-		public override object[] GetValues () => new object[] { Addr, Op.Opcode, TargetAddr };
+		public override object[] GetValues () => new object[] { Addr, Opcode.Value, TargetAddr };
 	}
 
 	/// <summary>
@@ -183,12 +183,12 @@ namespace DSODecompiler.Disassembly
 	{
 		public bool ReturnsValue { get; }
 
-		public ReturnInstruction (Op op, uint addr, bool returnsValue) : base(op, addr)
+		public ReturnInstruction (Opcode opcode, uint addr, bool returnsValue) : base(opcode, addr)
 		{
 			ReturnsValue = returnsValue;
 		}
 
-		public override object[] GetValues () => new object[] { Addr, Op.Opcode, ReturnsValue };
+		public override object[] GetValues () => new object[] { Addr, Opcode.Value, ReturnsValue };
 	}
 
 	/// <summary>
@@ -200,12 +200,12 @@ namespace DSODecompiler.Disassembly
 	{
 		public string Name { get; }
 
-		public VariableInstruction (Op op, uint addr, string name) : base(op, addr)
+		public VariableInstruction (Opcode opcode, uint addr, string name) : base(opcode, addr)
 		{
 			Name = name;
 		}
 
-		public override object[] GetValues () => new object[] { Addr, Op.Opcode, Name };
+		public override object[] GetValues () => new object[] { Addr, Opcode.Value, Name };
 	}
 
 	/// <summary>
@@ -217,12 +217,12 @@ namespace DSODecompiler.Disassembly
 	{
 		public string Name { get; }
 
-		public FieldInstruction (Op op, uint addr, string name) : base(op, addr)
+		public FieldInstruction (Opcode opcode, uint addr, string name) : base(opcode, addr)
 		{
 			Name = name;
 		}
 
-		public override object[] GetValues () => new object[] { Addr, Op.Opcode, Name };
+		public override object[] GetValues () => new object[] { Addr, Opcode.Value, Name };
 	}
 
 	/// <summary>
@@ -232,11 +232,11 @@ namespace DSODecompiler.Disassembly
 	/// </summary>
 	public class ConvertToTypeInstruction : Instruction
 	{
-		public TypeReq Type => Op.TypeReq;
+		public TypeReq Type => Opcode.TypeReq;
 
-		public ConvertToTypeInstruction (Op op, uint addr) : base(op, addr) {}
+		public ConvertToTypeInstruction (Opcode opcode, uint addr) : base(opcode, addr) {}
 
-		public override object[] GetValues () => new object[] { Addr, Op.Opcode, Type.ToString() };
+		public override object[] GetValues () => new object[] { Addr, Opcode.Value, Type.ToString() };
 	}
 
 	/// <summary>
@@ -250,10 +250,10 @@ namespace DSODecompiler.Disassembly
 	{
 		public T Value { get; }
 
-		public bool IsTaggedString => Op.Opcode == Opcode.OP_TAG_TO_STR;
-		public bool IsIdentifier => Op.Opcode == Opcode.OP_LOADIMMED_IDENT;
+		public bool IsTaggedString => Opcode.StringValue == "OP_TAG_TO_STR";
+		public bool IsIdentifier => Opcode.StringValue == "OP_LOADIMMED_IDENT";
 
-		public ImmediateInstruction (Op op, uint addr, T value) : base(op, addr)
+		public ImmediateInstruction (Opcode opcode, uint addr, T value) : base(opcode, addr)
 		{
 			Value = value;
 		}
@@ -261,7 +261,7 @@ namespace DSODecompiler.Disassembly
 		public override object[] GetValues () => new object[]
 		{
 			Addr,
-			Op.Opcode,
+			Opcode.Value,
 			typeof(T) == typeof(string) ? $"\"{Value}\"" : Value,
 		};
 	}
@@ -275,14 +275,14 @@ namespace DSODecompiler.Disassembly
 		public string Namespace { get; } = null;
 		public uint CallType { get; }
 
-		public CallInstruction (Op op, uint addr, string name, string ns, uint callType) : base(op, addr)
+		public CallInstruction (Opcode opcode, uint addr, string name, string ns, uint callType) : base(opcode, addr)
 		{
 			Name = name;
 			Namespace = ns;
 			CallType = callType;
 		}
 
-		public override object[] GetValues () => new object[] { Addr, Op.Opcode, Name, Namespace, CallType };
+		public override object[] GetValues () => new object[] { Addr, Opcode.Value, Name, Namespace, CallType };
 	}
 
 	/// <summary>
@@ -295,11 +295,11 @@ namespace DSODecompiler.Disassembly
 	{
 		public char Char { get; }
 
-		public AppendStringInstruction (Op op, uint addr, char ch) : base(op, addr)
+		public AppendStringInstruction (Opcode opcode, uint addr, char ch) : base(opcode, addr)
 		{
 			Char = ch;
 		}
 
-		public override object[] GetValues () => new object[] { Addr, Op.Opcode, (uint) Char };
+		public override object[] GetValues () => new object[] { Addr, Opcode.Value, (uint) Char };
 	}
 }
