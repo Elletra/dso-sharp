@@ -46,10 +46,10 @@ namespace DSODecompiler.ControlFlow
 		public void AddNodes<T> (params T[] nodes) where T : CollapsedNode => Body.AddRange(nodes);
 	}
 
-	public abstract class JumpNode : CollapsedNode { }
-	public class ElseNode : JumpNode { }
-	public class BreakNode : JumpNode { }
-	public class ContinueNode : JumpNode { }
+	public abstract class UnconditionalNode : CollapsedNode { }
+	public class ElseNode : UnconditionalNode { }
+	public class BreakNode : UnconditionalNode { }
+	public class ContinueNode : UnconditionalNode { }
 
 	public class SequenceNode : CollapsedNode
 	{

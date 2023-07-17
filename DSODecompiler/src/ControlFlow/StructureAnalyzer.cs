@@ -211,7 +211,7 @@ namespace DSODecompiler.ControlFlow
 				{
 					if (loop.HasNode(node))
 					{
-						CollapseJump<BreakNode>(node);
+						CollapseUnconditional<BreakNode>(node);
 						node.RemoveEdgeTo(target);
 
 						return true;
@@ -220,7 +220,7 @@ namespace DSODecompiler.ControlFlow
 			}
 			else if (successor != null && successor.GetSuccessor(0) == target && successor.Predecessors.Count < 3)
 			{
-				CollapseJump<ElseNode>(node);
+				CollapseUnconditional<ElseNode>(node);
 				node.RemoveEdgeTo(successor);
 
 				return true;
@@ -262,7 +262,7 @@ namespace DSODecompiler.ControlFlow
 				//       So if it's something like that, please don't contact me about it. But if you DO
 				//       find something that is marked incorrectly as a continue and is NOT functionally
 				//       equivalent to something else, please let me know.
-				CollapseJump<ContinueNode>(node);
+				CollapseUnconditional<ContinueNode>(node);
 
 				if (target != successor)
 				{
@@ -346,9 +346,9 @@ namespace DSODecompiler.ControlFlow
 			return sequence;
 		}
 
-		protected void CollapseJump<T> (ControlFlowNode node) where T : JumpNode, new()
+		protected void CollapseUnconditional<T> (ControlFlowNode node) where T : UnconditionalNode, new()
 		{
-			if (IsUnconditional(node) && node.Instructions.Count <= 1)
+			if (node.Instructions.Count <= 1)
 			{
 				collapsedNodes[node.Addr] = new T();
 
