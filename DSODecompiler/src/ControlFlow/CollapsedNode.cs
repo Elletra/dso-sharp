@@ -5,16 +5,7 @@ using DSODecompiler.Disassembly;
 
 namespace DSODecompiler.ControlFlow
 {
-
-	public abstract class CollapsedNode
-	{
-		public uint Addr { get; }
-
-		public CollapsedNode (uint addr)
-		{
-			Addr = addr;
-		}
-	}
+	public abstract class CollapsedNode { }
 
 	public class InstructionNode : CollapsedNode
 	{
@@ -23,8 +14,7 @@ namespace DSODecompiler.ControlFlow
 		public Instruction FirstInstruction => Instructions.Count > 0 ? Instructions[0] : null;
 		public Instruction LastInstruction => Instructions.Count > 0 ? Instructions[^1] : null;
 
-		public InstructionNode (uint key) : base(key) { }
-		public InstructionNode (ControlFlowNode node) : base(node.Addr) => ExtractInstructions(node);
+		public InstructionNode (ControlFlowNode node) => ExtractInstructions(node);
 
 		public void ExtractInstructions (ControlFlowNode node)
 		{
@@ -33,21 +23,15 @@ namespace DSODecompiler.ControlFlow
 		}
 	}
 
-	public class ConditionalNode : InstructionNode
+	public class ConditionalNode : CollapsedNode
 	{
 		public CollapsedNode Then = null;
 		public CollapsedNode Else = null;
-
-		public ConditionalNode (uint key) : base(key) { }
-		public ConditionalNode (ControlFlowNode node) : base(node) { }
 	}
 
-	public class LoopNode : InstructionNode
+	public class LoopNode : CollapsedNode
 	{
 		public readonly List<CollapsedNode> Body = new();
-
-		public LoopNode (uint key) : base(key) { }
-		public LoopNode (ControlFlowNode node) : base(node) { }
 
 		public T AddNode<T> (T node) where T : CollapsedNode
 		{
@@ -62,29 +46,14 @@ namespace DSODecompiler.ControlFlow
 		public void AddNodes<T> (params T[] nodes) where T : CollapsedNode => Body.AddRange(nodes);
 	}
 
-	public class ElseNode : InstructionNode
-	{
-		public ElseNode (uint key) : base(key) { }
-		public ElseNode (ControlFlowNode node) : base(node) { }
-	}
-
-	public class BreakNode : InstructionNode
-	{
-		public BreakNode (uint key) : base(key) { }
-		public BreakNode (ControlFlowNode node) : base(node) { }
-	}
-
-	public class ContinueNode : InstructionNode
-	{
-		public ContinueNode (uint key) : base(key) { }
-		public ContinueNode (ControlFlowNode node) : base(node) { }
-	}
+	public abstract class JumpNode : CollapsedNode { }
+	public class ElseNode : JumpNode { }
+	public class BreakNode : JumpNode { }
+	public class ContinueNode : JumpNode { }
 
 	public class SequenceNode : CollapsedNode
 	{
 		public readonly List<CollapsedNode> Nodes = new();
-
-		public SequenceNode (uint key) : base(key) { }
 
 		/// <summary>
 		/// Adds <paramref name="node"/>, if it's not null, to the list of nodes.<br/><br/>

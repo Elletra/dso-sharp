@@ -145,10 +145,15 @@ namespace DSODecompiler.ControlFlow
 
 				if (then.IsSequential && !loopFinder.IsLoopEnd(then))
 				{
-					collapsedNodes[node.Addr] = new ConditionalNode(node)
+					var sequence = new SequenceNode();
+
+					sequence.AddNode(ExtractCollapsed(node, remove: false));
+					sequence.AddNode(new ConditionalNode()
 					{
 						Then = ExtractCollapsed(then),
-					};
+					});
+
+					collapsedNodes[node.Addr] = sequence;
 
 					reduced = true;
 				}
@@ -159,11 +164,16 @@ namespace DSODecompiler.ControlFlow
 
 				if (then.IsSequential && @else.IsSequential && !loopFinder.IsLoopEnd(then) && !loopFinder.IsLoopEnd(@else))
 				{
-					collapsedNodes[node.Addr] = new ConditionalNode(node)
+					var sequence = new SequenceNode();
+
+					sequence.AddNode(ExtractCollapsed(node, remove: false));
+					sequence.AddNode(new ConditionalNode()
 					{
 						Then = ExtractCollapsed(then),
 						Else = ExtractCollapsed(@else),
-					};
+					});
+
+					collapsedNodes[node.Addr] = sequence;
 
 					node.AddEdgeTo(thenSuccessor);
 
@@ -201,8 +211,7 @@ namespace DSODecompiler.ControlFlow
 				{
 					if (loop.HasNode(node))
 					{
-						collapsedNodes[node.Addr] = new BreakNode(node);
-
+						CollapseJump<BreakNode>(node);
 						node.RemoveEdgeTo(target);
 
 						return true;
@@ -211,8 +220,7 @@ namespace DSODecompiler.ControlFlow
 			}
 			else if (successor != null && successor.GetSuccessor(0) == target && successor.Predecessors.Count < 3)
 			{
-				collapsedNodes[node.Addr] = new ElseNode(node);
-
+				CollapseJump<ElseNode>(node);
 				node.RemoveEdgeTo(successor);
 
 				return true;
@@ -254,7 +262,7 @@ namespace DSODecompiler.ControlFlow
 				//       So if it's something like that, please don't contact me about it. But if you DO
 				//       find something that is marked incorrectly as a continue and is NOT functionally
 				//       equivalent to something else, please let me know.
-				collapsedNodes[node.Addr] = new ContinueNode(node);
+				CollapseJump<ContinueNode>(node);
 
 				if (target != successor)
 				{
@@ -280,37 +288,38 @@ namespace DSODecompiler.ControlFlow
 
 			if (isSelfLoop)
 			{
-				loop = new LoopNode(node);
+				loop = new();
 
 				node.RemoveEdgeTo(node);
-				loop.AddNode(collapsedNodes.GetValueOrDefault(node.Addr));
-
-				collapsedNodes[node.Addr] = loop;
-
-				return true;
+				loop.AddNode(ExtractCollapsed(node, remove: false));
 			}
-
-			var next = node.GetSuccessor(0);
-
-			if (!loopFinder.IsLoop(node, next) || next.Predecessors.Count > 1)
+			else
 			{
-				return false;
+				var next = node.GetSuccessor(0);
+
+				if (!loopFinder.IsLoop(node, next) || next.Predecessors.Count > 1)
+				{
+					return false;
+				}
+
+				loop = new();
+
+				node.AddEdgeTo(next.GetSuccessor(0));
+				loop.AddNode(ExtractCollapsed(node, remove: false));
+				loop.AddNode(ExtractCollapsed(next));
 			}
-
-			loop = new LoopNode(node);
-
-			node.AddEdgeTo(next.GetSuccessor(0));
-			loop.AddNode(collapsedNodes.GetValueOrDefault(node.Addr));
-			loop.AddNode(ExtractCollapsed(next));
 
 			collapsedNodes[node.Addr] = loop;
 
 			return true;
 		}
 
-		protected CollapsedNode ExtractCollapsed (ControlFlowNode node)
+		protected CollapsedNode ExtractCollapsed (ControlFlowNode node, bool remove = true)
 		{
-			graph.RemoveNode(node);
+			if (remove)
+			{
+				graph.RemoveNode(node);
+			}
 
 			return ExtractCollapsed(node.Addr) ?? new InstructionNode(node);
 		}
@@ -330,11 +339,30 @@ namespace DSODecompiler.ControlFlow
 
 		protected SequenceNode ExtractSequence (ControlFlowNode node)
 		{
-			var sequence = new SequenceNode(node.Addr);
+			var sequence = new SequenceNode();
 
 			sequence.AddNode(GetCollapsed(node.Addr) ?? new InstructionNode(node));
 
 			return sequence;
+		}
+
+		protected void CollapseJump<T> (ControlFlowNode node) where T : JumpNode, new()
+		{
+			if (IsUnconditional(node) && node.Instructions.Count <= 1)
+			{
+				collapsedNodes[node.Addr] = new T();
+
+				node.Instructions.Clear();
+			}
+			else
+			{
+				var sequence = new SequenceNode();
+
+				sequence.AddNode(ExtractCollapsed(node, remove: false));
+				sequence.AddNode(new T());
+
+				collapsedNodes[node.Addr] = sequence;
+			}
 		}
 
 		protected CollapsedNode GetCollapsed (uint key) => collapsedNodes.ContainsKey(key)
