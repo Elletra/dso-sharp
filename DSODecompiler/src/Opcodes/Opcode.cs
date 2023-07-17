@@ -29,7 +29,7 @@ namespace DSODecompiler.Opcodes
 		public TypeReq TypeReq { get; }
 
 		public bool HasValue => _value.HasValue;
-		public bool IsValid => HasValue && StringValue != null && StringValue != "OP_INVALID";
+		public bool IsValid => HasValue && StringValue != null;
 
 		public Opcode (uint? value, string stringValue, ReturnValue returnValue, TypeReq typeReq)
 		{

@@ -57,7 +57,7 @@ namespace DSODecompiler.Disassembly
 			var value = reader.Read();
 			var opcode = factory.CreateOpcode(value);
 
-			if (!opcode.IsValid)
+			if (opcode == null || !opcode.IsValid)
 			{
 				throw new Exception($"Invalid opcode {value} at {addr}");
 			}
@@ -150,12 +150,85 @@ namespace DSODecompiler.Disassembly
 				case "OP_RETURN":
 					return new ReturnInstruction(opcode, addr, returnableValue);
 
+				case "OP_CMPEQ":
+				case "OP_CMPGR":
+				case "OP_CMPGE":
+				case "OP_CMPLT":
+				case "OP_CMPLE":
+				case "OP_CMPNE":
+				case "OP_XOR":
+				case "OP_MOD":
+				case "OP_BITAND":
+				case "OP_BITOR":
+				case "OP_SHR":
+				case "OP_SHL":
+				case "OP_AND":
+				case "OP_OR":
+				case "OP_ADD":
+				case "OP_SUB":
+				case "OP_MUL":
+				case "OP_DIV":
+					return new BinaryInstruction(opcode, addr);
+
+				case "OP_COMPARE_STR":
+					return new BinaryStringInstruction(opcode, addr);
+
+				case "OP_NOT":
+				case "OP_NOTF":
+				case "OP_ONESCOMPLEMENT":
+				case "OP_NEG":
+					return new UnaryInstruction(opcode, addr);
+
 				case "OP_SETCURVAR":
 				case "OP_SETCURVAR_CREATE":
 					return new VariableInstruction(opcode, addr, name: reader.ReadIdent());
 
+				case "OP_SETCURVAR_ARRAY":
+				case "OP_SETCURVAR_ARRAY_CREATE":
+					return new VariableArrayInstruction(opcode, addr);
+
+				case "OP_LOADVAR_UINT":
+				case "OP_LOADVAR_FLT":
+				case "OP_LOADVAR_STR":
+					return new LoadVariableInstruction(opcode, addr);
+
+				case "OP_SAVEVAR_UINT":
+				case "OP_SAVEVAR_FLT":
+				case "OP_SAVEVAR_STR":
+					return new SaveVariableInstruction(opcode, addr);
+
+				case "OP_SETCUROBJECT":
+					return new ObjectInstruction(opcode, addr);
+
+				case "OP_SETCUROBJECT_NEW":
+					return new ObjectNewInstruction(opcode, addr);
+
 				case "OP_SETCURFIELD":
 					return new FieldInstruction(opcode, addr, name: reader.ReadIdent());
+
+				case "OP_SETCURFIELD_ARRAY":
+					return new FieldArrayInstruction(opcode, addr);
+
+				case "OP_LOADFIELD_UINT":
+				case "OP_LOADFIELD_FLT":
+				case "OP_LOADFIELD_STR":
+					return new LoadFieldInstruction(opcode, addr);
+
+				case "OP_SAVEFIELD_UINT":
+				case "OP_SAVEFIELD_FLT":
+				case "OP_SAVEFIELD_STR":
+					return new SaveFieldInstruction(opcode, addr);
+
+				case "OP_STR_TO_UINT":
+				case "OP_STR_TO_FLT":
+				case "OP_STR_TO_NONE":
+				case "OP_FLT_TO_UINT":
+				case "OP_FLT_TO_STR":
+				case "OP_FLT_TO_NONE":
+				case "OP_UINT_TO_FLT":
+				case "OP_UINT_TO_STR":
+				case "OP_UINT_TO_NONE":
+					return new ConvertToTypeInstruction(opcode, addr);
 
 				case "OP_LOADIMMED_UINT":
 					return new ImmediateInstruction<uint>(opcode, addr, value: reader.Read());
@@ -182,14 +255,40 @@ namespace DSODecompiler.Disassembly
 					);
 				}
 
+				case "OP_ADVANCE_STR":
+					return new AdvanceStringInstruction(opcode, addr);
+
 				case "OP_ADVANCE_STR_APPENDCHAR":
-					return new AppendStringInstruction(opcode, addr, reader.ReadChar());
+					return new AppendCharInstruction(opcode, addr, reader.ReadChar());
+
+				case "OP_ADVANCE_STR_COMMA":
+					return new AdvanceCommaInstruction(opcode, addr);
+
+				case "OP_REWIND_STR":
+					return new RewindStringInstruction(opcode, addr);
+
+				case "OP_TERMINATE_REWIND_STR":
+					return new TerminateRewindInstruction(opcode, addr);
+
+				case "OP_PUSH":
+					return new PushInstruction(opcode, addr);
+
+				case "OP_PUSH_FRAME":
+					return new PushFrameInstruction(opcode, addr);
+
+				case "OP_BREAK":
+					return new DebugBreakInstruction(opcode, addr);
 
 				case "OP_INVALID":
-					return null;
+					return new InvalidInstruction(opcode, addr);
+
+				case "OP_UNUSED1":
+				case "OP_UNUSED2":
+				case "OP_UNUSED3":
+					return new UnusedInstruction(opcode, addr);
 
 				default:
-					return new Instruction(opcode, addr);
+					return null;
 			}
 		}
 

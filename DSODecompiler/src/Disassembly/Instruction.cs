@@ -4,12 +4,18 @@ using DSODecompiler.Opcodes;
 
 namespace DSODecompiler.Disassembly
 {
+	/**
+	 * There's a bunch of empty subclasses of Instruction in order to let ASTBuilder use classes
+	 * instead of checking opcodes, which is much better.
+	 *
+	 * I know it's not the most elegant solution, and I feel kind of gross about it, but I think
+	 * it's okay...
+	 */
+
 	/// <summary>
-	/// Base instruction class.<br/><br/>
-	///
-	/// Used both as a base class and for instructions that don't have any operands or special properties.
+	/// Base instruction class.
 	/// </summary>
-	public class Instruction
+	public abstract class Instruction
 	{
 		public Opcode Opcode { get; }
 		public uint Addr { get; }
@@ -192,9 +198,31 @@ namespace DSODecompiler.Disassembly
 	}
 
 	/// <summary>
+	/// Opcodes for binary instructions like OP_ADD, OP_XOR, OP_CMPEQ, etc.
+	/// </summary>
+	public class BinaryInstruction : Instruction
+	{
+		public BinaryInstruction (Opcode opcode, uint addr) : base(opcode, addr) { }
+	}
+
+	/// <summary>
+	/// A separate instruction for OP_COMPARE_STR because the operands are inverse of the other
+	/// binary operations.
+	/// </summary>
+	public class BinaryStringInstruction : Instruction
+	{
+		public BinaryStringInstruction (Opcode opcode, uint addr) : base(opcode, addr) { }
+	}
+
+	public class UnaryInstruction : Instruction
+	{
+		public UnaryInstruction (Opcode opcode, uint addr) : base(opcode, addr) { }
+	}
+
+	/// <summary>
 	/// Variable instruction for regular variables only.<br/><br/>
 	///
-	/// "Array"-indexing a variable is made up of multiple instructions and doesn't involve this one.
+	/// For "array"-indexing a variable, see <see cref="VariableArrayInstruction"/>.
 	/// </summary>
 	public class VariableInstruction : Instruction
 	{
@@ -209,9 +237,47 @@ namespace DSODecompiler.Disassembly
 	}
 
 	/// <summary>
-	/// Field instruction<br/><br/>
-	///
-	/// Unlike variables, this instruction <em>is</em> used in "array"-indexing a field.
+	/// "Array"-indexing a variable (e.g. OP_SETCURVAR_ARRAY, OP_SETCURVAR_ARRAY_CREATE, etc.).
+	/// </summary>
+	public class VariableArrayInstruction : Instruction
+	{
+		public VariableArrayInstruction (Opcode opcode, uint addr) : base(opcode, addr) { }
+	}
+
+	/// <summary>
+	/// OP_LOADVAR_*
+	/// </summary>
+	public class LoadVariableInstruction : Instruction
+	{
+		public LoadVariableInstruction (Opcode opcode, uint addr) : base(opcode, addr) { }
+	}
+	
+	/// <summary>
+	/// OP_SAVEVAR_*
+	/// </summary>
+	public class SaveVariableInstruction : Instruction
+	{
+		public SaveVariableInstruction (Opcode opcode, uint addr) : base(opcode, addr) { }
+	}
+
+	/// <summary>
+	/// OP_SETCUROBJECT
+	/// </summary>
+	public class ObjectInstruction : Instruction
+	{
+		public ObjectInstruction (Opcode opcode, uint addr) : base(opcode, addr) { }
+	}
+
+	/// <summary>
+	/// OP_SETCUROBJECT_NEW
+	/// </summary>
+	public class ObjectNewInstruction : Instruction
+	{
+		public ObjectNewInstruction (Opcode opcode, uint addr) : base(opcode, addr) { }
+	}
+
+	/// <summary>
+	/// Field instruction.
 	/// </summary>
 	public class FieldInstruction : Instruction
 	{
@@ -223,6 +289,30 @@ namespace DSODecompiler.Disassembly
 		}
 
 		public override object[] GetValues () => new object[] { Addr, Opcode.Value, Name };
+	}
+
+	/// <summary>
+	/// "Array"-indexing a field (e.g. OP_SETCURFIELD_ARRAY).
+	/// </summary>
+	public class FieldArrayInstruction : Instruction
+	{
+		public FieldArrayInstruction (Opcode opcode, uint addr) : base(opcode, addr) { }
+	}
+
+	/// <summary>
+	/// OP_LOADFIELD_*
+	/// </summary>
+	public class LoadFieldInstruction : Instruction
+	{
+		public LoadFieldInstruction (Opcode opcode, uint addr) : base(opcode, addr) { }
+	}
+
+	/// <summary>
+	/// OP_SAVEFIELD_*
+	/// </summary>
+	public class SaveFieldInstruction : Instruction
+	{
+		public SaveFieldInstruction (Opcode opcode, uint addr) : base(opcode, addr) { }
 	}
 
 	/// <summary>
@@ -286,20 +376,97 @@ namespace DSODecompiler.Disassembly
 	}
 
 	/// <summary>
-	/// Advance-string instruction with appended character (used for SPC, TAB, and NL keywords).<br/><br/>
-	///
-	/// The other advance-string instructions don't get their own class because they don't have any
-	/// operands or special properties.
+	/// OP_ADVANCE_STR
 	/// </summary>
-	public class AppendStringInstruction : Instruction
+	public class AdvanceStringInstruction : Instruction
+	{
+		public AdvanceStringInstruction (Opcode opcode, uint addr) : base(opcode, addr) { }
+	}
+
+	/// <summary>
+	/// Advance-string instruction with appended character (used for SPC, TAB, and NL keywords).<br/><br/>
+	/// </summary>
+	public class AppendCharInstruction : Instruction
 	{
 		public char Char { get; }
 
-		public AppendStringInstruction (Opcode opcode, uint addr, char ch) : base(opcode, addr)
+		public AppendCharInstruction (Opcode opcode, uint addr, char ch) : base(opcode, addr)
 		{
 			Char = ch;
 		}
 
 		public override object[] GetValues () => new object[] { Addr, Opcode.Value, (uint) Char };
+	}
+
+	/// <summary>
+	/// OP_ADVANCE_STR_COMMA
+	/// </summary>
+	public class AdvanceCommaInstruction : Instruction
+	{
+		public AdvanceCommaInstruction (Opcode opcode, uint addr) : base(opcode, addr) { }
+	}
+
+	/// <summary>
+	/// OP_ADVANCE_STR_NUL
+	/// </summary>
+	public class AdvanceNullInstruction : Instruction
+	{
+		public AdvanceNullInstruction (Opcode opcode, uint addr) : base(opcode, addr) { }
+	}
+
+	/// <summary>
+	/// OP_REWIND_STR
+	/// </summary>
+	public class RewindStringInstruction : Instruction
+	{
+		public RewindStringInstruction (Opcode opcode, uint addr) : base(opcode, addr) { }
+	}
+
+	/// <summary>
+	/// OP_TERMINATE_REWIND_STR
+	/// </summary>
+	public class TerminateRewindInstruction : Instruction
+	{
+		public TerminateRewindInstruction (Opcode opcode, uint addr) : base(opcode, addr) { }
+	}
+
+	/// <summary>
+	/// OP_PUSH
+	/// </summary>
+	public class PushInstruction : Instruction
+	{
+		public PushInstruction (Opcode opcode, uint addr) : base(opcode, addr) { }
+	}
+
+	/// <summary>
+	/// OP_PUSH_FRAME
+	/// </summary>
+	public class PushFrameInstruction : Instruction
+	{
+		public PushFrameInstruction (Opcode opcode, uint addr) : base(opcode, addr) { }
+	}
+
+	/// <summary>
+	/// OP_BREAK
+	/// </summary>
+	public class DebugBreakInstruction : Instruction
+	{
+		public DebugBreakInstruction (Opcode opcode, uint addr) : base(opcode, addr) { }
+	}
+
+	/// <summary>
+	/// OP_UNUSED#
+	/// </summary>
+	public class UnusedInstruction : Instruction
+	{
+		public UnusedInstruction (Opcode opcode, uint addr) : base(opcode, addr) { }
+	}
+
+	/// <summary>
+	/// OP_INVALID
+	/// </summary>
+	public class InvalidInstruction : Instruction
+	{
+		public InvalidInstruction (Opcode opcode, uint addr) : base(opcode, addr) { }
 	}
 }
