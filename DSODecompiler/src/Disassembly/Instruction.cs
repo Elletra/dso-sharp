@@ -174,6 +174,11 @@ namespace DSODecompiler.Disassembly
 		public bool IsUnconditional => Opcode.StringValue == "OP_JMP";
 		public bool IsConditional => !IsUnconditional;
 
+		/// <summary>
+		/// Checks whether this is a branch for the logical operators <code>||</code> or <code>&&</code>.
+		/// </summary>
+		public bool IsLogicalOperator => Opcode.StringValue == "OP_JMPIF_NP" || Opcode.StringValue == "OP_JMPIFNOT_NP";
+
 		public BranchInstruction (Opcode opcode, uint addr, uint targetAddr) : base(opcode, addr)
 		{
 			TargetAddr = targetAddr;
