@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 
+using DSODecompiler.AST;
 using DSODecompiler.Loader;
 using DSODecompiler.Opcodes;
 using DSODecompiler.Disassembly;
@@ -97,6 +98,9 @@ namespace DSODecompiler
 				if (!writeGraph)
 				{
 					var collapsed = analyzer.Analyze(graph);
+					var astBuilder = new ASTBuilder();
+					var astNodes = astBuilder.Build(collapsed);
+
 					{ } // Just for debug breakpoint
 				}
 			}
