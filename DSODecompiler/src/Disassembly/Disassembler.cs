@@ -264,6 +264,9 @@ namespace DSODecompiler.Disassembly
 				case "OP_ADVANCE_STR_COMMA":
 					return new AdvanceCommaInstruction(opcode, addr);
 
+				case "OP_ADVANCE_STR_NUL":
+					return new AdvanceNullInstruction(opcode, addr);
+
 				case "OP_REWIND_STR":
 					return new RewindStringInstruction(opcode, addr);
 
