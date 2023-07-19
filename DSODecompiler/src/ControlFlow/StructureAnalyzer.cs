@@ -233,13 +233,13 @@ namespace DSODecompiler.ControlFlow
 				//       the first version of this decompiler, it'll do.
 				//
 				//       I just really hope it doesn't accidentally mark the wrong thing as a continue...
-				//       Please let me know if it does, but only if it's not FUNCTIONALLY EQUIVALENT.
+				//       Please let me know if it does, but only if it's not functionally equivalent.
 				//
 				//       What I mean by that is this:
 				//
 				//       while (true)
 				//       {
-				//           if ( ... )
+				//           if (...)
 				//           {
 				//               echo("if statement is true");
 				//               continue;
@@ -247,21 +247,21 @@ namespace DSODecompiler.ControlFlow
 				//           echo("if statement is false");
 				//       }
 				//
-				//      ...is FUNCTIONALLY EQUIVALENT to this:
+				//      ...is functionally equivalent to this:
 				//
 				//       while (true)
 				//       {
-				//           if ( ... )
+				//           if (...)
 				//               echo("if statement is true");
 				//           else
 				//               echo("if statement is false");
 				//       }
 				//
-				//       and will look IDENTICAL in the TorqueScript bytecode.
+				//       and will produce the exact same TorqueScript bytecode.
 				//
-				//       So if it's something like that, please don't contact me about it. But if you DO
-				//       find something that is marked incorrectly as a continue and is NOT functionally
-				//       equivalent to something else, please let me know.
+				//       So if it's something like that, please don't contact me about it. But if
+				//       you DO find something that is marked incorrectly as a continue and is NOT
+				//       functionally equivalent to something else, please let me know.
 				CollapseUnconditional(node, new ContinueNode(node));
 
 				if (target != successor)
@@ -341,7 +341,7 @@ namespace DSODecompiler.ControlFlow
 		{
 			var sequence = new SequenceNode();
 
-			sequence.AddNode(GetCollapsed(node.Addr) ?? new InstructionNode(node));
+			sequence.AddNode(ExtractCollapsed(node, remove: false));
 
 			return sequence;
 		}
