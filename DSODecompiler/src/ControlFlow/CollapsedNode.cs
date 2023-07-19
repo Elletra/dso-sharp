@@ -46,10 +46,32 @@ namespace DSODecompiler.ControlFlow
 		public void AddNodes<T> (params T[] nodes) where T : CollapsedNode => Body.AddRange(nodes);
 	}
 
-	public abstract class UnconditionalNode : CollapsedNode { }
-	public class ElseNode : UnconditionalNode { }
-	public class BreakNode : UnconditionalNode { }
-	public class ContinueNode : UnconditionalNode { }
+	public abstract class UnconditionalNode : CollapsedNode
+	{
+		public Instruction Instruction { get; }
+
+		public UnconditionalNode (ControlFlowNode node)
+		{
+			Instruction = node.LastInstruction;
+
+			node.Instructions.RemoveAt(node.Instructions.Count - 1);
+		}
+	}
+
+	public class ElseNode : UnconditionalNode
+	{
+		public ElseNode (ControlFlowNode node) : base(node) { }
+	}
+
+	public class BreakNode : UnconditionalNode
+	{
+		public BreakNode (ControlFlowNode node) : base(node) { }
+	}
+
+	public class ContinueNode : UnconditionalNode
+	{
+		public ContinueNode (ControlFlowNode node) : base(node) { }
+	}
 
 	public class SequenceNode : CollapsedNode
 	{
