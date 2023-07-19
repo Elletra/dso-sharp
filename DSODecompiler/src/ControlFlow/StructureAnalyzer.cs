@@ -218,8 +218,12 @@ namespace DSODecompiler.ControlFlow
 					}
 				}
 			}
-			else if (successor != null && successor.GetSuccessor(0) == target && successor.Predecessors.Count < 3)
+			else if (successor != null && successor.GetSuccessor(0) == target && successor.Predecessors.Count < 3 && !loopFinder.IsLoopEnd(target))
 			{
+				/* TODO: The only reason the above clusterfuck if statement works is that there are
+				         no gotos in TorqueScript. If there were, it would require a massive overhaul
+				         of how this class works. */
+
 				CollapseUnconditional(node, new ElseNode(node));
 				node.RemoveEdgeTo(successor);
 
