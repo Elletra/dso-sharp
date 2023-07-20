@@ -259,6 +259,18 @@ namespace DSODecompiler.AST
 						break;
 					}
 
+					case CallInstruction insn:
+					{
+						var frame = PopNode() as PushFrameNode;
+						var call = new FunctionCallNode(insn);
+
+						frame.Nodes.ForEach(argument => call.Arguments.Push(argument));
+
+						PushNode(call);
+
+						break;
+					}
+
 					case ConvertToTypeInstruction:
 						break;
 

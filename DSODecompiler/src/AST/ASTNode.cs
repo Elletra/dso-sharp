@@ -1,4 +1,5 @@
-﻿using DSODecompiler.Disassembly;
+﻿using DSODecompiler.ControlFlow;
+using DSODecompiler.Disassembly;
 using DSODecompiler.Opcodes;
 
 using System;
@@ -169,7 +170,7 @@ namespace DSODecompiler.AST
 		public Opcode Opcode { get; set; } = null;
 	}
 
-	public class CallNode : ASTNode
+	public class FunctionCallNode : ASTNode
 	{
 		public enum CallType : uint
 		{
@@ -185,11 +186,11 @@ namespace DSODecompiler.AST
 
 		public ASTNodeList Arguments = new();
 
-		public CallNode (string name, string ns, uint type)
+		public FunctionCallNode (CallInstruction instruction)
 		{
-			Name = name;
-			Namespace = ns;
-			Type = (CallType) type;
+			Name = instruction.Name;
+			Namespace = instruction.Namespace;
+			Type = (CallType) instruction.CallType;
 		}
 	}
 
