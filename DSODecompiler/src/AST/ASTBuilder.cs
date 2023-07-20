@@ -432,10 +432,16 @@ namespace DSODecompiler.AST
 					case ConvertToTypeInstruction:
 					case LoadVariableInstruction:
 					case LoadFieldInstruction:
+					case DebugBreakInstruction:
+					case InvalidInstruction:
+					case UnusedInstruction:
 						break;
 
+					case FunctionInstruction insn:
+						throw new Exception($"Unexpected function instruction at {insn.Addr}");
+
 					default:
-						throw new NotImplementedException();
+						throw new NotImplementedException($"Failed to parse unknown instruction {instruction.GetType().Name}");
 				}
 			});
 		}
