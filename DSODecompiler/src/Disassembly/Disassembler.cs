@@ -259,7 +259,7 @@ namespace DSODecompiler.Disassembly
 					return new AdvanceStringInstruction(opcode, addr);
 
 				case "OP_ADVANCE_STR_APPENDCHAR":
-					return new AppendCharInstruction(opcode, addr, reader.ReadChar());
+					return new AdvanceAppendInstruction(opcode, addr, reader.ReadChar());
 
 				case "OP_ADVANCE_STR_COMMA":
 					return new AdvanceCommaInstruction(opcode, addr);

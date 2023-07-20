@@ -391,11 +391,11 @@ namespace DSODecompiler.Disassembly
 	/// <summary>
 	/// Advance-string instruction with appended character (used for SPC, TAB, and NL keywords).<br/><br/>
 	/// </summary>
-	public class AppendCharInstruction : Instruction
+	public class AdvanceAppendInstruction : Instruction
 	{
 		public char Char { get; }
 
-		public AppendCharInstruction (Opcode opcode, uint addr, char ch) : base(opcode, addr)
+		public AdvanceAppendInstruction (Opcode opcode, uint addr, char ch) : base(opcode, addr)
 		{
 			Char = ch;
 		}
