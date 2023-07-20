@@ -110,7 +110,7 @@ namespace DSODecompiler.AST
 					{
 						if (insn.IsLogicalOperator)
 						{
-							PushNode(new BinaryExpressionNode(insn));
+							PushNode(new BinaryExpressionNode(insn, PopNode()));
 						}
 
 						break;
@@ -187,8 +187,8 @@ namespace DSODecompiler.AST
 
 					case PushInstruction insn:
 					{
-						var expression = PopNode(parentFallback: true);
-						var popped = PopNode(parentFallback: true);
+						var expression = PopNode();
+						var popped = PopNode();
 
 						if (popped is not PushFrameNode frame)
 						{
@@ -213,7 +213,7 @@ namespace DSODecompiler.AST
 
 						ASTNode node;
 
-						while ((node = PopNode(parentFallback: true)) is AssignmentNode && node != null)
+						while ((node = PopNode()) is AssignmentNode && node != null)
 						{
 							stack.Push(node);
 						}
@@ -241,7 +241,7 @@ namespace DSODecompiler.AST
 
 						ASTNode node;
 
-						while ((node = PopNode(parentFallback: true)) is not PushFrameNode && node != null)
+						while ((node = PopNode()) is not PushFrameNode && node != null)
 						{
 							stack.Push(node);
 						}
@@ -271,7 +271,7 @@ namespace DSODecompiler.AST
 						if (objectNode.IsRoot)
 						{
 							// Pop extra 0 uint at the beginning of every root object.
-							PopNode(parentFallback: true);
+							PopNode();
 						}
 
 						PushNode(objectNode);
@@ -456,12 +456,10 @@ namespace DSODecompiler.AST
 
 		protected void ParseConditional (ConditionalNode node)
 		{
-			var testExpr = PopNode(parentFallback: true);
+			var testExpr = PopNode();
 
-			if (testExpr is BinaryExpressionNode binaryExpr && binaryExpr.IsLogicalOperator
-				&& binaryExpr.Left == null && binaryExpr.Right == null)
+			if (testExpr is BinaryExpressionNode binaryExpr && binaryExpr.IsLogicalOperator && binaryExpr.Right == null)
 			{
-				binaryExpr.Left = PopNode(parentFallback: true);
 				binaryExpr.Right = ParseChildExpression(node.Then);
 
 				PushNode(binaryExpr);
@@ -539,11 +537,16 @@ namespace DSODecompiler.AST
 		}
 
 		protected ASTNode PushNode (ASTNode node) => list.Push(node);
-		protected ASTNode PopNode (bool parentFallback = false)
+
+		/// <summary>
+		/// Pops a node from the list, and if that fails, it pops a node from the parent list.
+		/// </summary>
+		/// <returns></returns>
+		protected ASTNode PopNode ()
 		{
 			var node = list.Pop();
 
-			if (node == null && parentFallback && parentList != null)
+			if (node == null && parentList != null)
 			{
 				node = parentList.Pop();
 			}
