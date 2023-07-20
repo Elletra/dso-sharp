@@ -44,6 +44,8 @@ namespace DSODecompiler.AST
 
 			return node;
 		}
+
+		public ASTNode Peek () => nodes.Count > 0 ? nodes[^1] : null;
 	}
 
 	public class BreakStatementNode : ASTNode { }
@@ -160,7 +162,7 @@ namespace DSODecompiler.AST
 		public StringConstantNode (string value, bool isTagged) : base(value) => IsTaggedString = isTagged;
 	}
 
-	public class AssignNode : ASTNode
+	public class AssignmentNode : ASTNode
 	{
 		public VariableFieldNode VariableField { get; set; } = null;
 		public ASTNode Expression { get; set; } = null;
@@ -210,15 +212,35 @@ namespace DSODecompiler.AST
 
 	public class ObjectNode : ASTNode
 	{
+		public string ParentObject { get; }
+		public bool IsDataBlock { get; }
+
 		public ASTNode ClassNameExpression { get; set; } = null;
-		public string ParentObject { get; set; } = null;
 		public ASTNode NameExpression { get; set; } = null;
+
+		/// <summary>
+		/// Whether this is a standalone object declaration, or a subobject of another object.<br/><br/>
+		///
+		/// Example:<br/><br/>
+		///
+		/// <code>
+		///	new ScriptObject() // Root object
+		///	{
+		///		new ScriptObject(); // Subobject
+		///	};
+		/// </code>
+		/// </summary>
+		public bool IsRoot { get; set; } = false;
 
 		public ASTNodeList Arguments = new();
 		public ASTNodeList Slots = new();
 		public ASTNodeList Subobjects = new();
 
-		public bool IsDataBlock { get; set; } = false;
+		public ObjectNode (CreateObjectInstruction instruction)
+		{
+			ParentObject = instruction.Parent;
+			IsDataBlock = instruction.IsDataBlock;
+		}
 	}
 
 	/// <summary>

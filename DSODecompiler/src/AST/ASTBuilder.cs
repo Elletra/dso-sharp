@@ -143,12 +143,118 @@ namespace DSODecompiler.AST
 						break;
 					}
 
+					case UnaryInstruction insn:
+					{
+						PushNode(new UnaryExpressionNode(insn, PopNode()));
+						break;
+					}
+
 					case ReturnInstruction insn:
 					{
 						PushNode(new ReturnStatementNode()
 						{
 							Value = insn.ReturnsValue ? PopNode() : null,
 						});
+
+						break;
+					}
+
+					case PushFrameInstruction insn:
+					{
+						PushNode(new PushFrameNode());
+						break;
+					}
+
+					case PushInstruction insn:
+					{
+						var expression = PopNode(parentFallback: true);
+						var popped = PopNode(parentFallback: true);
+
+						if (popped is not PushFrameNode frame)
+						{
+							throw new Exception($"Expected PushFrameNode, got {popped?.GetType().Name}");
+						}
+
+						frame.Nodes.Push(expression);
+						PushNode(frame);
+
+						break;
+					}
+
+					case CreateObjectInstruction insn:
+					{
+						PushNode(new ObjectNode(insn));
+						break;
+					}
+
+					case AddObjectInstruction insn:
+					{
+						var stack = new Stack<ASTNode>();
+
+						ASTNode node;
+
+						while ((node = PopNode(parentFallback: true)) is AssignmentNode && node != null)
+						{
+							stack.Push(node);
+						}
+
+						if (node is not ObjectNode objectNode)
+						{
+							throw new Exception($"Expected ObjectNode, got {node.GetType().Name}");
+						}
+
+						objectNode.IsRoot = insn.PlaceAtRoot;
+
+						while (stack.Count > 0)
+						{
+							objectNode.Slots.Push(stack.Pop());
+						}
+
+						PushNode(objectNode);
+
+						break;
+					}
+
+					case EndObjectInstruction insn:
+					{
+						var stack = new Stack<ASTNode>();
+
+						ASTNode node;
+
+						while ((node = PopNode(parentFallback: true)) is not PushFrameNode && node != null)
+						{
+							stack.Push(node);
+						}
+
+						var frame = node as PushFrameNode;
+
+						node = stack.Pop();
+
+						if (node is not ObjectNode objectNode)
+						{
+							throw new Exception($"Expected ObjectNode, got {node.GetType().Name}");
+						}
+
+						while (stack.Count > 0)
+						{
+							objectNode.Subobjects.Push(stack.Pop());
+						}
+
+						objectNode.ClassNameExpression = frame.Nodes[0];
+						objectNode.NameExpression = frame.Nodes[1];
+
+						for (var i = 2; i < frame.Nodes.Count; i++)
+						{
+							objectNode.Arguments.Push(frame.Nodes[i]);
+						}
+
+						if (objectNode.IsRoot)
+						{
+							// Pop extra 0 uint at the beginning of every root object.
+							PopNode(parentFallback: true);
+						}
+
+						PushNode(objectNode);
 
 						break;
 					}
@@ -172,11 +278,11 @@ namespace DSODecompiler.AST
 
 		protected void ParseConditional (ConditionalNode node)
 		{
-			var testExpr = PopNode(tryParent: true);
+			var testExpr = PopNode(parentFallback: true);
 
 			if (testExpr is BinaryExpressionNode binaryExpr && binaryExpr.IsLogicalOperator)
 			{
-				binaryExpr.Left = PopNode(tryParent: true);
+				binaryExpr.Left = PopNode(parentFallback: true);
 				binaryExpr.Right = ParseChildExpression(node.Then);
 
 				PushNode(binaryExpr);
@@ -254,14 +360,28 @@ namespace DSODecompiler.AST
 		}
 
 		protected ASTNode PushNode (ASTNode node) => list.Push(node);
-		protected ASTNode PopNode (bool tryParent = false)
+		protected ASTNode PopNode (bool parentFallback = false)
 		{
-			if (tryParent && parentList != null)
+			var node = list.Pop();
+
+			if (node == null && parentFallback && parentList != null)
 			{
-				return parentList.Pop();
+				node = parentList.Pop();
 			}
 
-			return list.Pop();
+			return node;
+		}
+
+		protected ASTNode PeekNode (bool parentFallback = false)
+		{
+			var node = list.Peek();
+
+			if (node == null && parentFallback && parentList != null)
+			{
+				node = parentList.Peek();
+			}
+
+			return node;
 		}
 	}
 }
