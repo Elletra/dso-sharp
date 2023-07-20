@@ -165,9 +165,16 @@ namespace DSODecompiler.AST
 
 	public class StringConstantNode : ConstantNode<string>
 	{
-		public bool IsTaggedString { get; }
+		public enum StringType
+		{
+			String,
+			TaggedString,
+			Identifier,
+		};
 
-		public StringConstantNode (string value, bool isTagged) : base(value) => IsTaggedString = isTagged;
+		public StringType Type { get; }
+
+		public StringConstantNode (string value, StringType type) : base(value) => Type = type;
 	}
 
 	public class AssignmentNode : ASTNode

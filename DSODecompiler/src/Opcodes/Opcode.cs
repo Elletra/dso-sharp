@@ -24,6 +24,12 @@ namespace DSODecompiler.Opcodes
 		private readonly uint? _value = null;
 		public uint Value { get => _value ?? 0; }
 
+		/// <summary>
+		/// The reason this exists at all is for extensibility. Values in switch cases <em>must</em>
+		/// be constant, and we don't want a giant if-else chain, so we use strings.<br/><br/>
+		///
+		/// This lets other classes extend this one and add more opcode values if they wish.
+		/// </summary>
 		public string StringValue { get; }
 		public ReturnValue ReturnValue { get; }
 		public TypeReq TypeReq { get; }

@@ -110,7 +110,19 @@ namespace DSODecompiler.AST
 
 					case ImmediateInstruction<string> insn:
 					{
-						PushNode(new ConstantNode<string>(insn.Value));
+						var type = StringConstantNode.StringType.String;
+
+						if (insn.IsTaggedString)
+						{
+							type = StringConstantNode.StringType.TaggedString;
+						}
+						else if (insn.IsIdentifier)
+						{
+							type = StringConstantNode.StringType.Identifier;
+						}
+
+						PushNode(new StringConstantNode(insn.Value, type));
+
 						break;
 					}
 
