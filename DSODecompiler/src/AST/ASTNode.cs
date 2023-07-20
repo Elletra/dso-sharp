@@ -121,18 +121,23 @@ namespace DSODecompiler.AST
 			: this(instruction.Opcode, expression) { }
 	}
 
-	public class VariableFieldNode : ASTNode
+	public abstract class VariableFieldNode : ASTNode
 	{
 		public string Name { get; set; } = null;
 		public ASTNode ArrayIndex { get; set; } = null;
+		public bool IsArray => ArrayIndex != null;
+	}
 
-		/// <summary>
-		/// This is only for field access, because it has OP_SETCUROBJECT and OP_SETCUROBJECT_NEW
-		/// opcodes, which involve slightly different instructions.
-		/// </summary>
-		public bool IsNewObject { get; set; } = false;
+	public class VariableNode : VariableFieldNode
+	{
+		public VariableNode (string name = null) => Name = name;
+	}
 
-		public VariableFieldNode (string name = null) => Name = name;
+	public class FieldNode : VariableFieldNode
+	{
+		public ASTNode ObjectExpr { get; set; } = null;
+
+		public FieldNode (string name = null) => Name = name;
 	}
 
 	public abstract class StringConcatNode : ASTNode
@@ -170,6 +175,25 @@ namespace DSODecompiler.AST
 		public VariableFieldNode VariableField { get; set; } = null;
 		public ASTNode Expression { get; set; } = null;
 		public Opcode Opcode { get; set; } = null;
+
+		public AssignmentNode (VariableFieldNode variableField, ASTNode expression, Instruction instruction = null)
+		{
+			VariableField = variableField;
+			Expression = expression;
+			Opcode = instruction?.Opcode;
+		}
+
+		public AssignmentNode (BinaryExpressionNode binaryExpr)
+		{
+			if (binaryExpr.Left is not VariableFieldNode)
+			{
+				throw new ArgumentException($"Left expression is not VariableFieldNode", nameof(binaryExpr));
+			}
+
+			VariableField = binaryExpr.Left as VariableFieldNode;
+			Expression = binaryExpr.Right;
+			Opcode = binaryExpr.Opcode;
+		}
 	}
 
 	public class FunctionCallNode : ASTNode

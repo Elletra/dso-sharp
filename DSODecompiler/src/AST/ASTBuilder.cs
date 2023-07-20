@@ -325,8 +325,93 @@ namespace DSODecompiler.AST
 						break;
 					}
 
+					case ObjectInstruction:
+					case ObjectNewInstruction:
+					{
+						var field = new FieldNode();
+
+						if (instruction is not ObjectNewInstruction)
+						{
+							field.ObjectExpr = PopNode();
+						}
+
+						PushNode(field);
+
+						break;
+					}
+
+					case FieldInstruction insn:
+					{
+						var field = PopNode() as FieldNode;
+
+						field.Name = insn.Name;
+
+						PushNode(field);
+
+						break;
+					}
+
+					case FieldArrayInstruction:
+					{
+						var field = PopNode() as FieldNode;
+
+						field.ArrayIndex = PopNode();
+
+						PushNode(field);
+
+						break;
+					}
+
+					case VariableInstruction insn:
+					{
+						PushNode(new VariableNode(insn.Name));
+						break;
+					}
+
+					case VariableArrayInstruction:
+					{
+						var stringNode = PopNode();
+
+						if (stringNode is not StringConcatNode concat)
+						{
+							throw new Exception($"Expected subclass of StringConcatNode, got {stringNode.GetType().Name}");
+						}
+
+						var name = (concat.Left as ConstantNode<string>).Value;
+
+						PushNode(new VariableNode(name)
+						{
+							ArrayIndex = concat.Right,
+						});
+
+						break;
+					}
+
+					case SaveVariableInstruction:
+					case SaveFieldInstruction:
+					{
+						var node = PopNode();
+
+						if (node is VariableFieldNode variableField)
+						{
+							PushNode(new AssignmentNode(variableField, PopNode()));
+						}
+						else if (node is BinaryExpressionNode binaryExpr)
+						{
+							PushNode(new AssignmentNode(binaryExpr));
+						}
+						else
+						{
+							throw new Exception($"Expected VariableFieldNode or BinaryExpressionNode, got {node.GetType().Name}");
+						}
+
+						break;
+					}
+
 					case AdvanceNullInstruction:
 					case ConvertToTypeInstruction:
+					case LoadVariableInstruction:
+					case LoadFieldInstruction:
 						break;
 
 					default:
