@@ -308,8 +308,24 @@ namespace DSODecompiler.AST
 						break;
 					}
 
-					case AdvanceNullInstruction:
+					// Terminate rewind means we don't do anything, so just remove the concat/string
+					// node we pushed earlier.
 					case TerminateRewindInstruction:
+					{
+						var expression = PopNode();
+						var stringNode = PopNode();
+
+						if (stringNode is not StringConcatNode)
+						{
+							throw new Exception($"Expected subclass of StringConcatNode, got {stringNode.GetType().Name}");
+						}
+
+						PushNode(expression);
+
+						break;
+					}
+
+					case AdvanceNullInstruction:
 					case ConvertToTypeInstruction:
 						break;
 
