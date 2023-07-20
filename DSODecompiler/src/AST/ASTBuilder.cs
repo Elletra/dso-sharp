@@ -458,7 +458,8 @@ namespace DSODecompiler.AST
 		{
 			var testExpr = PopNode(parentFallback: true);
 
-			if (testExpr is BinaryExpressionNode binaryExpr && binaryExpr.IsLogicalOperator)
+			if (testExpr is BinaryExpressionNode binaryExpr && binaryExpr.IsLogicalOperator
+				&& binaryExpr.Left == null && binaryExpr.Right == null)
 			{
 				binaryExpr.Left = PopNode(parentFallback: true);
 				binaryExpr.Right = ParseChildExpression(node.Then);
