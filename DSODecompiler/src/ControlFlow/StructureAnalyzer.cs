@@ -11,6 +11,8 @@ namespace DSODecompiler.ControlFlow
 	/// This doesn't implement everything described in the Schwartz paper, but it works for our current
 	/// target, which is normal DSO files produced by the Torque Game Engine.<br/><br/>
 	///
+	/// TODO: Refactor?<br/><br/>
+	///
 	/// <strong>Sources:</strong><br/><br/>
 	///
 	/// <list type="number">
