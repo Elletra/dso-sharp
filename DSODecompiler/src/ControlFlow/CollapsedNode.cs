@@ -23,6 +23,18 @@ namespace DSODecompiler.ControlFlow
 		}
 	}
 
+	public class FunctionNode : CollapsedNode
+	{
+		public FunctionInstruction Instruction { get; }
+		public CollapsedNode Body { get; }
+
+		public FunctionNode (FunctionInstruction instruction, CollapsedNode body)
+		{
+			Instruction = instruction;
+			Body = body;
+		}
+	}
+
 	public class ConditionalNode : CollapsedNode
 	{
 		public CollapsedNode Then = null;

@@ -66,7 +66,13 @@ namespace DSODecompiler.ControlFlow
 				}
 			}
 
-			graph.EntryPoint = graph.GetNodes()[0].Addr;
+			var entryPoint = graph.GetNodes()[0].Addr;
+			graph.EntryPoint = entryPoint;
+
+			if (graph.IsFunction)
+			{
+				collapsedNodes[entryPoint] = new FunctionNode(graph.FunctionInstruction, ExtractCollapsed(entryPoint));
+			}
 
 			return collapsedNodes[graph.EntryPoint];
 		}
@@ -220,9 +226,9 @@ namespace DSODecompiler.ControlFlow
 			}
 			else if (successor != null && successor.GetSuccessor(0) == target && successor.Predecessors.Count < 3 && !loopFinder.IsLoopEnd(target))
 			{
-				/* TODO: The only reason the above clusterfuck if statement works is that there are
-				         no gotos in TorqueScript. If there were, it would require a massive overhaul
-				         of how this class works. */
+				/* TODO: The only reason the above clusterfuck works is that there are no gotos in
+				         TorqueScript. If there were, it would require a massive overhaul of how
+				         this entire class works. */
 
 				CollapseUnconditional(node, new ElseNode(node));
 				node.RemoveEdgeTo(successor);
