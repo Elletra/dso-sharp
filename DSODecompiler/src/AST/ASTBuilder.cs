@@ -271,6 +271,45 @@ namespace DSODecompiler.AST
 						break;
 					}
 
+					case AdvanceStringInstruction:
+					{
+						PushNode(new ConcatNode());
+						break;
+					}
+
+					case AdvanceAppendInstruction insn:
+					{
+						PushNode(new ConcatNode(insn.Char));
+						break;
+					}
+
+					case AdvanceCommaInstruction:
+					{
+						PushNode(new CommaCatNode());
+						break;
+					}
+
+					case RewindStringInstruction:
+					{
+						var right = PopNode();
+						var stringNode = PopNode();
+						var left = PopNode();
+
+						if (stringNode is not StringConcatNode concat)
+						{
+							throw new Exception($"Expected subclass of StringConcatNode, got {stringNode.GetType().Name}");
+						}
+
+						concat.Left = left;
+						concat.Right = right;
+
+						PushNode(concat);
+
+						break;
+					}
+
+					case AdvanceNullInstruction:
+					case TerminateRewindInstruction:
 					case ConvertToTypeInstruction:
 						break;
 

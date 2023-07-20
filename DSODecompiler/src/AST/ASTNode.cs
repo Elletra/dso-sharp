@@ -135,19 +135,21 @@ namespace DSODecompiler.AST
 		public VariableFieldNode (string name = null) => Name = name;
 	}
 
-	public class ConcatNode : ASTNode
+	public abstract class StringConcatNode : ASTNode
 	{
 		public ASTNode Left { get; set; } = null;
 		public ASTNode Right { get; set; } = null;
+	}
 
+	public class ConcatNode : StringConcatNode
+	{
 		public char? AppendChar { get; set; } = null;
+
+		public ConcatNode () { }
+		public ConcatNode (char appendChar) => AppendChar = appendChar;
 	}
 
-	public class CommaCatNode : ASTNode
-	{
-		public ASTNode Left { get; set; } = null;
-		public ASTNode Right { get; set; } = null;
-	}
+	public class CommaCatNode : StringConcatNode { }
 
 	public class ConstantNode<T> : ASTNode
 	{
