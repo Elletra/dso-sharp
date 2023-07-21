@@ -226,7 +226,7 @@ namespace DSODecompiler.ControlFlow
 					}
 				}
 			}
-			else if (successor != null && successor.GetSuccessor(0) == target && successor.Predecessors.Count < 3 && !loopFinder.IsLoopEnd(target))
+			else if (successor != null && successor.GetSuccessor(0) == target && successor.Predecessors.Count < 3)
 			{
 				/* TODO: The only reason the above clusterfuck works is that there are no gotos in
 				         TorqueScript. If there were, it would require a massive overhaul of how
