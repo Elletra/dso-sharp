@@ -92,6 +92,15 @@ namespace DSODecompiler.ControlFlow
 			}
 		}
 
+		/// <summary>
+		/// A hack for an edge case where a function declaration follows a conditional. We insert a
+		/// dummy node for the next address so they connect properly.
+		/// </summary>
+		protected void CreateDummyNode (ControlFlowGraph graph, uint addr)
+		{
+			graph.AddNode(addr).IsDummyNode = true;
+		}
+
 		protected ControlFlowGraph CreateGraph (uint addr)
 		{
 			var graph = new ControlFlowGraph();
@@ -112,10 +121,18 @@ namespace DSODecompiler.ControlFlow
 			{
 				foreach (ControlFlowNode node in graph.GetNodes())
 				{
-					if (node.LastInstruction is BranchInstruction branch && !graph.AddEdge(node.Addr, branch.TargetAddr))
+					if (node.LastInstruction is not BranchInstruction branch)
 					{
-						throw new Exception($"Tried to add edge to nonexistent node ({node.Addr}=>{branch.TargetAddr})");
+						continue;
 					}
+
+					// Gross hack
+					if (!graph.HasNode(branch.TargetAddr))
+					{
+						CreateDummyNode(graph, branch.TargetAddr);
+					}
+
+					graph.AddEdge(node.Addr, branch.TargetAddr);
 				}
 			}
 		}

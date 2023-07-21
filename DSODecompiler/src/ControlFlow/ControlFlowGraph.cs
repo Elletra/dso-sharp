@@ -22,6 +22,12 @@ namespace DSODecompiler.ControlFlow
 		/// </summary>
 		public int ReversePostorder { get; set; }
 
+		/// <summary>
+		/// A hack for an edge case where a function declaration follows a conditional. We insert a
+		/// dummy node for the next address so they connect properly.
+		/// </summary>
+		public bool IsDummyNode { get; set; } = false;
+
 		public uint Addr => Key;
 
 		public Instruction FirstInstruction => Instructions.Count > 0 ? Instructions[0] : null;
