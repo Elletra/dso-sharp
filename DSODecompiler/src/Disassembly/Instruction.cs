@@ -184,7 +184,7 @@ namespace DSODecompiler.Disassembly
 			TargetAddr = targetAddr;
 		}
 
-		public override object[] GetValues () => new object[] { Addr, Opcode.Value, TargetAddr };
+		public override object[] GetValues () => new object[] { Addr, Opcode.StringValue, TargetAddr };
 	}
 
 	/// <summary>
