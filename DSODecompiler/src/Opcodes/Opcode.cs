@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Reflection.Emit;
+using System.Reflection.Metadata;
 
 namespace DSODecompiler.Opcodes
 {
@@ -44,5 +45,16 @@ namespace DSODecompiler.Opcodes
 			ReturnValue = returnValue;
 			TypeReq = typeReq;
 		}
+
+		public override bool Equals (object obj) => obj is Opcode opcode
+			&& Equals(opcode.Value, Value)
+			&& Equals(opcode.StringValue, StringValue)
+			&& Equals(opcode.ReturnValue, ReturnValue)
+			&& Equals(opcode.TypeReq, TypeReq);
+
+		public override int GetHashCode () => Value.GetHashCode()
+			^ (StringValue?.GetHashCode() ?? 0)
+			^ ReturnValue.GetHashCode()
+			^ TypeReq.GetHashCode();
 	}
 }
