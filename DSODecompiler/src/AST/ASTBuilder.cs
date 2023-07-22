@@ -460,7 +460,7 @@ namespace DSODecompiler.AST
 
 			if (testExpr is BinaryExpressionNode binaryExpr && binaryExpr.IsLogicalOperator && binaryExpr.Right == null)
 			{
-				binaryExpr.Right = ParseChildExpression(node.Then);
+				binaryExpr.Right = ParseChildExpression(node.Then, list);
 
 				PushNode(binaryExpr);
 			}
@@ -468,25 +468,24 @@ namespace DSODecompiler.AST
 			{
 				PushNode(new IfNode(testExpr)
 				{
-					Then = ParseChild(node.Then),
-					Else = node.Else != null ? ParseChild(node.Else) : null,
+					Then = ParseChild(node.Then, list),
+					Else = node.Else != null ? ParseChild(node.Else, list) : null,
 				});
 			}
 		}
 
 		protected void ParseLoop (LoopNode node)
 		{
-			var body = new ASTNodeList();
+			var loop = new LoopStatementNode();
 
 			node.Body.ForEach(child =>
 			{
-				body.Push(ParseChild(child));
+				loop.Body.Push(ParseChild(child, loop.Body));
 			});
 
-			PushNode(new LoopStatementNode(body.Pop())
-			{
-				Body = body,
-			});
+			loop.TestExpression = loop.Body.Pop();
+
+			PushNode(loop);
 		}
 
 		protected void ParseBreak (BreakNode _) => PushNode(new BreakStatementNode());
@@ -497,7 +496,7 @@ namespace DSODecompiler.AST
 			var instruction = node.Instruction;
 			var function = new FunctionStatementNode(instruction.Name, instruction.Name, instruction.Package)
 			{
-				Body = ParseChild(node.Body),
+				Body = ParseChild(node.Body, list),
 			};
 
 			instruction.Arguments.ForEach(function.Arguments.Add);
@@ -511,7 +510,7 @@ namespace DSODecompiler.AST
 		/// <param name="node"></param>
 		/// <param name="parentNodeList"></param>
 		/// <returns></returns>
-		protected ASTNodeList ParseChild (CollapsedNode node, ASTNodeList parentNodeList = null)
+		protected ASTNodeList ParseChild (CollapsedNode node, ASTNodeList parentNodeList)
 		{
 			return new ASTBuilder().Build(node, parentNodeList);
 		}
@@ -523,7 +522,7 @@ namespace DSODecompiler.AST
 		/// <param name="parentNodeList"></param>
 		/// <exception cref="Exception">When we got a node list with more or fewer than 1 node.</exception>
 		/// <returns></returns>
-		protected ASTNode ParseChildExpression (CollapsedNode node, ASTNodeList parentNodeList = null)
+		protected ASTNode ParseChildExpression (CollapsedNode node, ASTNodeList parentNodeList)
 		{
 			var list = ParseChild(node, parentNodeList);
 			var count = list.Count;

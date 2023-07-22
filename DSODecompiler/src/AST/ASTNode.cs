@@ -76,15 +76,12 @@ namespace DSODecompiler.AST
 	public class LoopStatementNode : ASTNode
 	{
 		public ASTNode InitExpression { get; set; } = null;
-		public ASTNode TestExpression { get; } = null;
+		public ASTNode TestExpression { get; set; } = null;
 		public ASTNode EndExpression { get; set; } = null;
 
 		public ASTNodeList Body = new();
 
-		public LoopStatementNode (ASTNode testExpression)
-		{
-			TestExpression = testExpression ?? throw new ArgumentNullException(nameof(testExpression));
-		}
+		public LoopStatementNode (ASTNode testExpression = null) => TestExpression = testExpression;
 	}
 
 	public class BinaryExpressionNode : ASTNode
