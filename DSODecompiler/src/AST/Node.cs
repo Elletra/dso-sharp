@@ -6,26 +6,26 @@ using System.Collections.Generic;
 
 namespace DSODecompiler.AST
 {
-	public abstract class ASTNode
+	public abstract class Node
 	{
 		public virtual bool IsExpression => true;
-		public override bool Equals (object obj) => obj is ASTNode;
+		public override bool Equals (object obj) => obj is Node;
 		public override int GetHashCode () => base.GetHashCode();
 	}
 
-	public class ASTNodeList : ASTNode
+	public class NodeList : Node
 	{
-		protected List<ASTNode> nodes = new();
+		protected List<Node> nodes = new();
 
 		public override bool IsExpression => false;
 		public int Count => nodes.Count;
-		public ASTNode this[int index] => nodes[index];
+		public Node this[int index] => nodes[index];
 
-		public void ForEach (Action<ASTNode> action) => nodes.ForEach(action);
+		public void ForEach (Action<Node> action) => nodes.ForEach(action);
 
-		public ASTNode Push (ASTNode node)
+		public Node Push (Node node)
 		{
-			if (node is ASTNodeList list)
+			if (node is NodeList list)
 			{
 				list.ForEach(child => Push(child));
 			}
@@ -37,7 +37,7 @@ namespace DSODecompiler.AST
 			return node;
 		}
 
-		public ASTNode Pop ()
+		public Node Pop ()
 		{
 			if (nodes.Count <= 0)
 			{
@@ -51,11 +51,11 @@ namespace DSODecompiler.AST
 			return node;
 		}
 
-		public ASTNode Peek () => nodes.Count > 0 ? nodes[^1] : null;
+		public Node Peek () => nodes.Count > 0 ? nodes[^1] : null;
 
 		public override bool Equals (object obj)
 		{
-			if (obj is not ASTNodeList list || list.Count != Count)
+			if (obj is not NodeList list || list.Count != Count)
 			{
 				return false;
 			}
@@ -84,7 +84,7 @@ namespace DSODecompiler.AST
 		}
 	}
 
-	public class BreakStatementNode : ASTNode 
+	public class BreakStatementNode : Node 
 	{
 		public override bool IsExpression => false;
 
@@ -92,7 +92,7 @@ namespace DSODecompiler.AST
 		public override int GetHashCode () => base.GetHashCode();
 	}
 
-	public class ContinueStatementNode : ASTNode
+	public class ContinueStatementNode : Node
 	{
 		public override bool IsExpression => false;
 
@@ -105,7 +105,7 @@ namespace DSODecompiler.AST
 	///
 	/// TODO: Again, I will come back and fix the code so I don't need to do this.
 	/// </summary>
-	public class ContinuePointMarkerNode : ASTNode
+	public class ContinuePointMarkerNode : Node
 	{
 		public override bool IsExpression => false;
 
@@ -113,11 +113,11 @@ namespace DSODecompiler.AST
 		public override int GetHashCode () => base.GetHashCode();
 	}
 
-	public class ReturnStatementNode : ASTNode
+	public class ReturnStatementNode : Node
 	{
 		public override bool IsExpression => false;
 
-		public ASTNode Value { get; set; } = null;
+		public Node Value { get; set; } = null;
 
 		public override bool Equals (object obj) => obj is ReturnStatementNode node && Equals(node.Value, Value);
 		public override int GetHashCode () => Value?.GetHashCode() ?? 0;
@@ -126,7 +126,7 @@ namespace DSODecompiler.AST
 	/// <summary>
 	/// For both ternaries and regular if/if-else statements.
 	/// </summary>
-	public class IfNode : ASTNode
+	public class IfNode : Node
 	{
 		/// <summary>
 		/// This is a bit trickier because ternaries and if statements are impossible to differentiate
@@ -140,12 +140,12 @@ namespace DSODecompiler.AST
 
 		public bool HasElse => Else != null && Else.Count > 0;
 
-		public ASTNode TestExpression { get; }
+		public Node TestExpression { get; }
 
-		public ASTNodeList Then = new();
-		public ASTNodeList Else = new();
+		public NodeList Then = new();
+		public NodeList Else = new();
 
-		public IfNode (ASTNode testExpression)
+		public IfNode (Node testExpression)
 		{
 			TestExpression = testExpression ?? throw new ArgumentNullException(nameof(testExpression));
 		}
@@ -158,13 +158,13 @@ namespace DSODecompiler.AST
 		public override int GetHashCode () => TestExpression.GetHashCode() ^ Then.GetHashCode() ^ Else.GetHashCode();
 	}
 
-	public class LoopStatementNode : ASTNode
+	public class LoopStatementNode : Node
 	{
 		public override bool IsExpression => false;
 
-		public ASTNode InitExpression { get; set; } = null;
-		public ASTNode TestExpression { get; set; } = null;
-		public ASTNode EndExpression { get; set; } = null;
+		public Node InitExpression { get; set; } = null;
+		public Node TestExpression { get; set; } = null;
+		public Node EndExpression { get; set; } = null;
 
 		/// <summary>
 		/// Whether this loop was collapsed from an if-loop structure. This is to prevent it from
@@ -172,9 +172,9 @@ namespace DSODecompiler.AST
 		/// </summary>
 		public bool WasCollapsed { get; set; } = false;
 
-		public ASTNodeList Body = new();
+		public NodeList Body = new();
 
-		public LoopStatementNode (ASTNode testExpression = null) => TestExpression = testExpression;
+		public LoopStatementNode (Node testExpression = null) => TestExpression = testExpression;
 
 		public override bool Equals (object obj) => obj is LoopStatementNode loop
 			&& Equals(loop.InitExpression, InitExpression)
@@ -187,16 +187,16 @@ namespace DSODecompiler.AST
 			^ Body.GetHashCode();
 	}
 
-	public class BinaryExpressionNode : ASTNode
+	public class BinaryExpressionNode : Node
 	{
 		public Opcode Operator { get; }
 
-		public ASTNode Left { get; set; } = null;
-		public ASTNode Right { get; set; } = null;
+		public Node Left { get; set; } = null;
+		public Node Right { get; set; } = null;
 
 		public bool IsLogicalOperator { get; }
 
-		public BinaryExpressionNode (Instruction instruction, ASTNode left = null, ASTNode right = null)
+		public BinaryExpressionNode (Instruction instruction, Node left = null, Node right = null)
 		{
 			Operator = instruction.Opcode;
 			Left = left;
@@ -215,18 +215,18 @@ namespace DSODecompiler.AST
 			^ (Right?.GetHashCode() ?? 0);
 	}
 
-	public class UnaryExpressionNode : ASTNode
+	public class UnaryExpressionNode : Node
 	{
 		public Opcode Operator { get; }
-		public ASTNode Expression { get; set; } = null;
+		public Node Expression { get; set; } = null;
 
-		public UnaryExpressionNode (Opcode opcode, ASTNode expression)
+		public UnaryExpressionNode (Opcode opcode, Node expression)
 		{
 			Operator = opcode;
 			Expression = expression;
 		}
 
-		public UnaryExpressionNode (Instruction instruction, ASTNode expression)
+		public UnaryExpressionNode (Instruction instruction, Node expression)
 			: this(instruction.Opcode, expression) { }
 
 		public override bool Equals (object obj) => obj is UnaryExpressionNode unary
@@ -236,10 +236,10 @@ namespace DSODecompiler.AST
 		public override int GetHashCode () => Operator.GetHashCode() ^ (Expression?.GetHashCode() ?? 0);
 	}
 
-	public abstract class VariableFieldNode : ASTNode
+	public abstract class VariableFieldNode : Node
 	{
 		public string Name { get; set; } = null;
-		public ASTNode ArrayIndex { get; set; } = null;
+		public Node ArrayIndex { get; set; } = null;
 		public bool IsArray => ArrayIndex != null;
 
 		public override bool Equals (object obj) => obj is VariableFieldNode node
@@ -259,7 +259,7 @@ namespace DSODecompiler.AST
 
 	public class FieldNode : VariableFieldNode
 	{
-		public ASTNode ObjectExpr { get; set; } = null;
+		public Node ObjectExpr { get; set; } = null;
 
 		public FieldNode (string name = null) => Name = name;
 
@@ -269,10 +269,10 @@ namespace DSODecompiler.AST
 		public override int GetHashCode () => base.GetHashCode() ^ (ObjectExpr?.GetHashCode() ?? 0);
 	}
 
-	public abstract class StringConcatNode : ASTNode
+	public abstract class StringConcatNode : Node
 	{
-		public ASTNode Left { get; set; } = null;
-		public ASTNode Right { get; set; } = null;
+		public Node Left { get; set; } = null;
+		public Node Right { get; set; } = null;
 
 		public override bool Equals (object obj) => obj is StringConcatNode node
 			&& Equals(node.Left, Left)
@@ -298,7 +298,7 @@ namespace DSODecompiler.AST
 		public override int GetHashCode () => base.GetHashCode();
 	}
 
-	public class ConstantNode<T> : ASTNode
+	public class ConstantNode<T> : Node
 	{
 		public T Value { get; }
 
@@ -324,13 +324,13 @@ namespace DSODecompiler.AST
 		public override int GetHashCode () => base.GetHashCode() ^ Type.GetHashCode();
 	}
 
-	public class AssignmentNode : ASTNode
+	public class AssignmentNode : Node
 	{
 		public VariableFieldNode VariableField { get; set; } = null;
-		public ASTNode Expression { get; set; } = null;
+		public Node Expression { get; set; } = null;
 		public Opcode Operator { get; set; } = null;
 
-		public AssignmentNode (VariableFieldNode variableField, ASTNode expression, Instruction instruction = null)
+		public AssignmentNode (VariableFieldNode variableField, Node expression, Instruction instruction = null)
 		{
 			VariableField = variableField;
 			Expression = expression;
@@ -359,7 +359,7 @@ namespace DSODecompiler.AST
 			^ (Operator?.GetHashCode() ?? 0);
 	}
 
-	public class FunctionCallNode : ASTNode
+	public class FunctionCallNode : Node
 	{
 		public enum CallType : uint
 		{
@@ -373,7 +373,7 @@ namespace DSODecompiler.AST
 
 		public CallType Type { get; }
 
-		public ASTNodeList Arguments = new();
+		public NodeList Arguments = new();
 
 		public FunctionCallNode (CallInstruction instruction)
 		{
@@ -394,14 +394,14 @@ namespace DSODecompiler.AST
 			^ Arguments.GetHashCode();
 	}
 
-	public class FunctionStatementNode : ASTNode
+	public class FunctionStatementNode : Node
 	{
 		public override bool IsExpression => false;
 
 		public string Name { get; }
 		public string Namespace { get; }
 		public string Package { get; }
-		public ASTNodeList Body { get; set; } = null;
+		public NodeList Body { get; set; } = null;
 
 		public readonly List<string> Arguments = new();
 
@@ -440,13 +440,13 @@ namespace DSODecompiler.AST
 			^ Arguments.GetHashCode();
 	}
 
-	public class ObjectNode : ASTNode
+	public class ObjectNode : Node
 	{
 		public string ParentObject { get; }
 		public bool IsDataBlock { get; }
 
-		public ASTNode ClassNameExpression { get; set; } = null;
-		public ASTNode NameExpression { get; set; } = null;
+		public Node ClassNameExpression { get; set; } = null;
+		public Node NameExpression { get; set; } = null;
 
 		/// <summary>
 		/// Whether this is a standalone object declaration, or a subobject of another object.<br/><br/>
@@ -462,9 +462,9 @@ namespace DSODecompiler.AST
 		/// </summary>
 		public bool IsRoot { get; set; } = false;
 
-		public ASTNodeList Arguments = new();
-		public ASTNodeList Slots = new();
-		public ASTNodeList Subobjects = new();
+		public NodeList Arguments = new();
+		public NodeList Slots = new();
+		public NodeList Subobjects = new();
 
 		public ObjectNode (CreateObjectInstruction instruction)
 		{
@@ -495,11 +495,11 @@ namespace DSODecompiler.AST
 	/// <summary>
 	/// Not a valid node -- It just acts as a marker to stop popping nodes from the stack.
 	/// </summary>
-	public class PushFrameNode : ASTNode
+	public class PushFrameNode : Node
 	{
 		public override bool IsExpression => false;
 
-		public ASTNodeList Nodes = new();
+		public NodeList Nodes = new();
 
 		public override bool Equals (object obj) => obj is PushFrameNode node && Equals(node.Nodes, Nodes);
 		public override int GetHashCode () => Nodes.GetHashCode();

@@ -24,8 +24,8 @@ namespace DSODecompiler.AST
 			public Exception (string message, Exception inner) : base(message, inner) { }
 		}
 
-		protected ASTNodeList list;
-		protected ASTNodeList parentList;
+		protected NodeList list;
+		protected NodeList parentList;
 
 		/// <summary>
 		/// Builds an AST tree from a tree of <seealso cref="CollapsedNode"/>s.<br/><br/>
@@ -36,7 +36,7 @@ namespace DSODecompiler.AST
 		/// <param name="root"></param>
 		/// <param name="parentNodeList"></param>
 		/// <returns></returns>
-		public ASTNodeList Build (CollapsedNode root, ASTNodeList parentNodeList = null)
+		public NodeList Build (CollapsedNode root, NodeList parentNodeList = null)
 		{
 			list = new();
 			parentList = parentNodeList;
@@ -214,9 +214,9 @@ namespace DSODecompiler.AST
 
 					case AddObjectInstruction insn:
 					{
-						var stack = new Stack<ASTNode>();
+						var stack = new Stack<Node>();
 
-						ASTNode node;
+						Node node;
 
 						while ((node = PopNode()) is AssignmentNode && node != null)
 						{
@@ -242,9 +242,9 @@ namespace DSODecompiler.AST
 
 					case EndObjectInstruction insn:
 					{
-						var stack = new Stack<ASTNode>();
+						var stack = new Stack<Node>();
 
-						ASTNode node;
+						Node node;
 
 						while ((node = PopNode()) is not PushFrameNode && node != null)
 						{
@@ -477,7 +477,7 @@ namespace DSODecompiler.AST
 					Else = conditional.Else != null ? ParseChild(conditional.Else, list) : null,
 				};
 
-				ASTNode node = ifNode;
+				Node node = ifNode;
 
 				// Collapse if-loop into while/for loop.
 				if (ifNode.Then.Count == 1
@@ -548,7 +548,7 @@ namespace DSODecompiler.AST
 		/// <param name="node"></param>
 		/// <param name="parentNodeList"></param>
 		/// <returns></returns>
-		protected ASTNodeList ParseChild (CollapsedNode node, ASTNodeList parentNodeList)
+		protected NodeList ParseChild (CollapsedNode node, NodeList parentNodeList)
 		{
 			return new ASTBuilder().Build(node, parentNodeList);
 		}
@@ -560,7 +560,7 @@ namespace DSODecompiler.AST
 		/// <param name="parentNodeList"></param>
 		/// <exception cref="Exception">When we got a node list with more or fewer than 1 node.</exception>
 		/// <returns></returns>
-		protected ASTNode ParseChildExpression (CollapsedNode node, ASTNodeList parentNodeList)
+		protected Node ParseChildExpression (CollapsedNode node, NodeList parentNodeList)
 		{
 			var list = ParseChild(node, parentNodeList);
 			var count = list.Count;
@@ -573,13 +573,13 @@ namespace DSODecompiler.AST
 			return list[0];
 		}
 
-		protected ASTNode PushNode (ASTNode node) => list.Push(node);
+		protected Node PushNode (Node node) => list.Push(node);
 
 		/// <summary>
 		/// Pops a node from the list, and if that fails, it pops a node from the parent list.
 		/// </summary>
 		/// <returns></returns>
-		protected ASTNode PopNode ()
+		protected Node PopNode ()
 		{
 			var node = list.Pop();
 
@@ -591,7 +591,7 @@ namespace DSODecompiler.AST
 			return node;
 		}
 
-		protected ASTNode PeekNode ()
+		protected Node PeekNode ()
 		{
 			var node = list.Peek();
 
