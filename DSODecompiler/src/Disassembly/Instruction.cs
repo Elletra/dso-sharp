@@ -30,7 +30,7 @@ namespace DSODecompiler.Disassembly
 		/// Mostly a utility function for <see cref="ToString"/>.
 		/// </summary>
 		/// <returns>An array of relevant values to be printed.</returns>
-		public virtual object[] GetValues () => new object[] { Addr, Opcode.Value };
+		public virtual object[] GetValues () => new object[] { Addr, Opcode.StringValue };
 
 		public override string ToString ()
 		{
@@ -93,7 +93,7 @@ namespace DSODecompiler.Disassembly
 			var values = new object[7 + Arguments.Count];
 
 			values[0] = Addr;
-			values[1] = Opcode.Value;
+			values[1] = Opcode.StringValue;
 			values[2] = Name;
 			values[3] = Namespace;
 			values[4] = Package;
@@ -128,7 +128,7 @@ namespace DSODecompiler.Disassembly
 			FailJumpAddr = failJumpAddr;
 		}
 
-		public override object[] GetValues () => new object[] { Addr, Opcode.Value, Parent, IsDataBlock, FailJumpAddr };
+		public override object[] GetValues () => new object[] { Addr, Opcode.StringValue, Parent, IsDataBlock, FailJumpAddr };
 	}
 
 	/// <summary>
@@ -143,7 +143,7 @@ namespace DSODecompiler.Disassembly
 			PlaceAtRoot = placeAtRoot;
 		}
 
-		public override object[] GetValues () => new object[] { Addr, Opcode.Value, PlaceAtRoot };
+		public override object[] GetValues () => new object[] { Addr, Opcode.StringValue, PlaceAtRoot };
 	}
 
 	/// <summary>
@@ -161,7 +161,7 @@ namespace DSODecompiler.Disassembly
 			Value = value;
 		}
 
-		public override object[] GetValues () => new object[] { Addr, Opcode.Value, Value };
+		public override object[] GetValues () => new object[] { Addr, Opcode.StringValue, Value };
 	}
 
 	/// <summary>
@@ -199,7 +199,7 @@ namespace DSODecompiler.Disassembly
 			ReturnsValue = returnsValue;
 		}
 
-		public override object[] GetValues () => new object[] { Addr, Opcode.Value, ReturnsValue };
+		public override object[] GetValues () => new object[] { Addr, Opcode.StringValue, ReturnsValue };
 	}
 
 	/// <summary>
@@ -238,7 +238,7 @@ namespace DSODecompiler.Disassembly
 			Name = name;
 		}
 
-		public override object[] GetValues () => new object[] { Addr, Opcode.Value, Name };
+		public override object[] GetValues () => new object[] { Addr, Opcode.StringValue, Name };
 	}
 
 	/// <summary>
@@ -293,7 +293,7 @@ namespace DSODecompiler.Disassembly
 			Name = name;
 		}
 
-		public override object[] GetValues () => new object[] { Addr, Opcode.Value, Name };
+		public override object[] GetValues () => new object[] { Addr, Opcode.StringValue, Name };
 	}
 
 	/// <summary>
@@ -331,7 +331,7 @@ namespace DSODecompiler.Disassembly
 
 		public ConvertToTypeInstruction (Opcode opcode, uint addr) : base(opcode, addr) {}
 
-		public override object[] GetValues () => new object[] { Addr, Opcode.Value, Type.ToString() };
+		public override object[] GetValues () => new object[] { Addr, Opcode.StringValue, Type.ToString() };
 	}
 
 	/// <summary>
@@ -356,7 +356,7 @@ namespace DSODecompiler.Disassembly
 		public override object[] GetValues () => new object[]
 		{
 			Addr,
-			Opcode.Value,
+			Opcode.StringValue,
 			typeof(T) == typeof(string) ? $"\"{Value}\"" : Value,
 		};
 	}
@@ -377,7 +377,7 @@ namespace DSODecompiler.Disassembly
 			CallType = callType;
 		}
 
-		public override object[] GetValues () => new object[] { Addr, Opcode.Value, Name, Namespace, CallType };
+		public override object[] GetValues () => new object[] { Addr, Opcode.StringValue, Name, Namespace, CallType };
 	}
 
 	/// <summary>
@@ -400,7 +400,7 @@ namespace DSODecompiler.Disassembly
 			Char = ch;
 		}
 
-		public override object[] GetValues () => new object[] { Addr, Opcode.Value, (uint) Char };
+		public override object[] GetValues () => new object[] { Addr, Opcode.StringValue, (uint) Char };
 	}
 
 	/// <summary>
