@@ -20,6 +20,9 @@ namespace DSODecompiler
 			var disassembly = disassembler.Disassemble(fileData);
 			var graphs = new ControlFlowGraphBuilder().Build(disassembly);
 			var analyzer = new StructureAnalyzer();
+			var disasmWriter = new DisassemblyWriter();
+
+			disasmWriter.WriteToFile(disassembly, $"./{fileName}.txt");
 
 			StreamWriter writer = null;
 			var writeGraph = false;
