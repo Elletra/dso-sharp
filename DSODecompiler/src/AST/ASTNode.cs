@@ -52,6 +52,13 @@ namespace DSODecompiler.AST
 	public class BreakStatementNode : ASTNode { }
 	public class ContinueStatementNode : ASTNode { }
 
+	/// <summary>
+	/// Hacks on hacks on hacks... This is just to get for loops working.<br/><br/>
+	///
+	/// TODO: Again, I will come back and fix the code so I don't need to do this.
+	/// </summary>
+	public class ContinuePointMarkerNode : ASTNode { }
+
 	public class ReturnStatementNode : ASTNode
 	{
 		public ASTNode Value { get; set; } = null;

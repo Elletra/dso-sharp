@@ -48,6 +48,11 @@ namespace DSODecompiler.AST
 
 		protected void Parse (CollapsedNode root)
 		{
+			if (root.IsContinuePoint)
+			{
+				PushNode(new ContinuePointMarkerNode());
+			}
+
 			switch (root)
 			{
 				case InstructionNode node:
@@ -484,6 +489,17 @@ namespace DSODecompiler.AST
 			});
 
 			loop.TestExpression = loop.Body.Pop();
+			loop.EndExpression = loop.Body.Pop();
+
+			if (loop.Body.Peek() is ContinuePointMarkerNode)
+			{
+				loop.Body.Pop();
+			}
+			else if (loop.EndExpression != null)
+			{
+				loop.Body.Push(loop.EndExpression);
+				loop.EndExpression = null;
+			}
 
 			PushNode(loop);
 		}

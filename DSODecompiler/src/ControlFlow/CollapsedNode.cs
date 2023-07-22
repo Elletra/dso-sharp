@@ -5,7 +5,14 @@ using DSODecompiler.Disassembly;
 
 namespace DSODecompiler.ControlFlow
 {
-	public abstract class CollapsedNode { }
+	public abstract class CollapsedNode
+	{
+		/// <summary>
+		/// TODO: A hack so I can get for loops working correctly. I hate to do this, but I just want
+		/// this shit <em><strong>done</strong></em>.
+		/// </summary>
+		public bool IsContinuePoint { get; set; } = false;
+	}
 
 	public class InstructionNode : CollapsedNode
 	{

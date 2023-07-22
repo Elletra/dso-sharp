@@ -42,17 +42,19 @@ namespace DSODecompiler.ControlFlow
 		protected ControlFlowGraph graph;
 		protected Dictionary<uint, CollapsedNode> collapsedNodes;
 		protected LoopFinder loopFinder;
+		protected HashSet<uint> continuePoints;
 
 		public CollapsedNode Analyze (ControlFlowGraph cfg)
 		{
 			graph = cfg;
 			collapsedNodes = new();
 			loopFinder = new();
+			continuePoints = new();
 
 			// Edge case where there's only one node, but it still needs to be reduced!
 			if (graph.Count == 1)
 			{
-				collapsedNodes[graph.EntryPoint] = new InstructionNode(graph.GetEntryPoint());
+				AddCollapsed(graph.EntryPoint, new InstructionNode(graph.GetEntryPoint()));
 			}
 
 			while (graph.Count > 1)
@@ -69,11 +71,12 @@ namespace DSODecompiler.ControlFlow
 			}
 
 			var entryPoint = graph.GetNodes()[0].Addr;
+
 			graph.EntryPoint = entryPoint;
 
 			if (graph.IsFunction)
 			{
-				collapsedNodes[entryPoint] = new FunctionNode(graph.FunctionInstruction, ExtractCollapsed(entryPoint));
+				AddCollapsed(entryPoint, new FunctionNode(graph.FunctionInstruction, ExtractCollapsed(entryPoint)));
 			}
 
 			return collapsedNodes[graph.EntryPoint];
@@ -128,7 +131,7 @@ namespace DSODecompiler.ControlFlow
 			node.AddEdgeTo(next.GetSuccessor(0));
 			sequence.AddNode(ExtractCollapsed(next));
 
-			collapsedNodes[node.Addr] = sequence;
+			AddCollapsed(node.Addr, sequence);
 
 			return true;
 		}
@@ -161,7 +164,7 @@ namespace DSODecompiler.ControlFlow
 						Then = ExtractCollapsed(then),
 					});
 
-					collapsedNodes[node.Addr] = sequence;
+					AddCollapsed(node.Addr, sequence);
 
 					reduced = true;
 				}
@@ -181,7 +184,7 @@ namespace DSODecompiler.ControlFlow
 						Else = ExtractCollapsed(@else),
 					});
 
-					collapsedNodes[node.Addr] = sequence;
+					AddCollapsed(node.Addr, sequence);
 
 					node.AddEdgeTo(thenSuccessor);
 
@@ -228,9 +231,8 @@ namespace DSODecompiler.ControlFlow
 			}
 			else if (successor != null && successor.GetSuccessor(0) == target && successor.Predecessors.Count < 3)
 			{
-				/* TODO: The only reason the above clusterfuck works is that there are no gotos in
-				         TorqueScript. If there were, it would require a massive overhaul of how
-				         this entire class works. */
+				/* TODO: The only reason the above works is that there are no gotos in TorqueScript.
+				         If there were, it would require a massive overhaul of how this entire class works. */
 
 				CollapseUnconditional(node, new ElseNode(node));
 				node.RemoveEdgeTo(successor);
@@ -275,6 +277,14 @@ namespace DSODecompiler.ControlFlow
 				//       you DO find something that is marked incorrectly as a continue and is NOT
 				//       functionally equivalent to something else, please let me know.
 				CollapseUnconditional(node, new ContinueNode(node));
+
+				// TODO: Hacks on hacks... Sigh... I really just want this thing done. Please forgive me.
+				continuePoints.Add(target.Addr);
+
+				if (collapsedNodes.ContainsKey(target.Addr))
+				{
+					collapsedNodes[target.Addr].IsContinuePoint = true;
+				}
 
 				if (target != successor)
 				{
@@ -321,7 +331,7 @@ namespace DSODecompiler.ControlFlow
 				loop.AddNode(ExtractCollapsed(next));
 			}
 
-			collapsedNodes[node.Addr] = loop;
+			AddCollapsed(node.Addr, loop);
 
 			return true;
 		}
@@ -333,7 +343,12 @@ namespace DSODecompiler.ControlFlow
 				graph.RemoveNode(node);
 			}
 
-			return ExtractCollapsed(node.Addr) ?? new InstructionNode(node);
+			var collapsed = ExtractCollapsed(node.Addr) ?? new InstructionNode(node);
+
+			// TODO: Have I mentioned this is a hack yet?
+			collapsed.IsContinuePoint = continuePoints.Contains(node.Addr);
+
+			return collapsed;
 		}
 
 		protected CollapsedNode ExtractCollapsed (uint key)
@@ -362,7 +377,7 @@ namespace DSODecompiler.ControlFlow
 		{
 			if (node.Instructions.Count <= 0)
 			{
-				collapsedNodes[node.Addr] = unconditional;
+				AddCollapsed(node.Addr, unconditional);
 			}
 			else
 			{
@@ -371,8 +386,14 @@ namespace DSODecompiler.ControlFlow
 				sequence.AddNode(ExtractCollapsed(node, remove: false));
 				sequence.AddNode(unconditional);
 
-				collapsedNodes[node.Addr] = sequence;
+				AddCollapsed(node.Addr, sequence);
 			}
+		}
+
+		protected void AddCollapsed (uint addr, CollapsedNode collapsed)
+		{
+			collapsedNodes[addr] = collapsed;
+			collapsed.IsContinuePoint = continuePoints.Contains(addr);
 		}
 
 		protected CollapsedNode GetCollapsed (uint key) => collapsedNodes.ContainsKey(key)
