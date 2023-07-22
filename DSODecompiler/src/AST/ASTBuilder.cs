@@ -480,13 +480,17 @@ namespace DSODecompiler.AST
 				ASTNode node = ifNode;
 
 				// Collapse if-loop into while/for loop.
-				if (ifNode.Then.Count == 1 && !ifNode.HasElse && ifNode.Then[0] is LoopStatementNode loop
-					&& !loop.WasCollapsed && Equals(ifNode.TestExpression, loop.TestExpression))
+				if (ifNode.Then.Count == 1
+					&& !ifNode.HasElse
+					&& ifNode.Then[0] is LoopStatementNode loop
+					&& !loop.WasCollapsed
+					&& Equals(ifNode.TestExpression, loop.TestExpression))
 				{
 					node = loop;
 					loop.WasCollapsed = true;
 
-					if ((loop.InitExpression == null && (PeekNode()?.IsExpression ?? false))
+					if ((loop.InitExpression == null
+						&& (PeekNode()?.IsExpression ?? false))
 						&& (loop.EndExpression != null || (loop.Body.Count > 0 && loop.Body[^1].IsExpression)))
 					{
 						if (loop.InitExpression == null)
