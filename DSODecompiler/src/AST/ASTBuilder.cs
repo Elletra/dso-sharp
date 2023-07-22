@@ -492,15 +492,8 @@ namespace DSODecompiler.AST
 					if ((loop.InitExpression == null && (PeekNode()?.IsExpression ?? false))
 						&& (loop.EndExpression != null || (loop.Body.Count > 0 && loop.Body[^1].IsExpression)))
 					{
-						if (loop.InitExpression == null)
-						{
-							loop.InitExpression = PopNode();
-						}
-
-						if (loop.EndExpression == null)
-						{
-							loop.EndExpression = loop.Body.Pop();
-						}
+						loop.InitExpression ??= PopNode();
+						loop.EndExpression ??= loop.Body.Pop();
 					}
 				}
 
