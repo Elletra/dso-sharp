@@ -459,23 +459,49 @@ namespace DSODecompiler.AST
 			});
 		}
 
-		protected void ParseConditional (ConditionalNode node)
+		protected void ParseConditional (ConditionalNode conditional)
 		{
 			var testExpr = PopNode();
 
 			if (testExpr is BinaryExpressionNode binaryExpr && binaryExpr.IsLogicalOperator && binaryExpr.Right == null)
 			{
-				binaryExpr.Right = ParseChildExpression(node.Then, list);
+				binaryExpr.Right = ParseChildExpression(conditional.Then, list);
 
 				PushNode(binaryExpr);
 			}
 			else
 			{
-				PushNode(new IfNode(testExpr)
+				var ifNode = new IfNode(testExpr)
 				{
-					Then = ParseChild(node.Then, list),
-					Else = node.Else != null ? ParseChild(node.Else, list) : null,
-				});
+					Then = ParseChild(conditional.Then, list),
+					Else = conditional.Else != null ? ParseChild(conditional.Else, list) : null,
+				};
+
+				ASTNode node = ifNode;
+
+				// Collapse if-loop into while/for loop.
+				if (ifNode.Then.Count == 1 && !ifNode.HasElse && ifNode.Then[0] is LoopStatementNode loop
+					&& !loop.WasCollapsed && Equals(ifNode.TestExpression, loop.TestExpression))
+				{
+					node = loop;
+					loop.WasCollapsed = true;
+
+					if ((loop.InitExpression == null && (PeekNode()?.IsExpression ?? false))
+						&& (loop.EndExpression != null || (loop.Body.Count > 0 && loop.Body[^1].IsExpression)))
+					{
+						if (loop.InitExpression == null)
+						{
+							loop.InitExpression = PopNode();
+						}
+
+						if (loop.EndExpression == null)
+						{
+							loop.EndExpression = loop.Body.Pop();
+						}
+					}
+				}
+
+				PushNode(node);
 			}
 		}
 
@@ -569,11 +595,11 @@ namespace DSODecompiler.AST
 			return node;
 		}
 
-		protected ASTNode PeekNode (bool parentFallback = false)
+		protected ASTNode PeekNode ()
 		{
 			var node = list.Peek();
 
-			if (node == null && parentFallback && parentList != null)
+			if (node == null && parentList != null)
 			{
 				node = parentList.Peek();
 			}
