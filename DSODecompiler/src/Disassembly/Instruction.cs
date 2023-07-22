@@ -5,7 +5,7 @@ using DSODecompiler.Opcodes;
 namespace DSODecompiler.Disassembly
 {
 	/**
-	 * There's a bunch of empty subclasses of Instruction in order to let ASTBuilder use classes
+	 * There's a bunch of empty subclasses of Instruction in order to let AST.Builder use classes
 	 * instead of checking opcodes, which is much better.
 	 *
 	 * I know it's not the most elegant solution, and I feel kind of gross about it, but I think

@@ -15,7 +15,7 @@ namespace DSODecompiler.AST
 	///
 	/// TODO: Refactor?
 	/// </summary>
-	public class ASTBuilder
+	public class Builder
 	{
 		public class Exception : System.Exception
 		{
@@ -550,7 +550,7 @@ namespace DSODecompiler.AST
 		/// <returns></returns>
 		protected NodeList ParseChild (CollapsedNode node, NodeList parentNodeList)
 		{
-			return new ASTBuilder().Build(node, parentNodeList);
+			return new Builder().Build(node, parentNodeList);
 		}
 
 		/// <summary>

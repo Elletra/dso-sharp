@@ -101,7 +101,7 @@ namespace DSODecompiler
 				if (!writeGraph)
 				{
 					var collapsed = analyzer.Analyze(graph);
-					var astBuilder = new ASTBuilder();
+					var astBuilder = new Builder();
 					var astNodes = astBuilder.Build(collapsed);
 
 					{ } // Just for debug breakpoint
