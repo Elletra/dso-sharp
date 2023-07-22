@@ -489,8 +489,7 @@ namespace DSODecompiler.AST
 					node = loop;
 					loop.WasCollapsed = true;
 
-					if ((loop.InitExpression == null
-						&& (PeekNode()?.IsExpression ?? false))
+					if ((loop.InitExpression == null && (PeekNode()?.IsExpression ?? false))
 						&& (loop.EndExpression != null || (loop.Body.Count > 0 && loop.Body[^1].IsExpression)))
 					{
 						if (loop.InitExpression == null)
