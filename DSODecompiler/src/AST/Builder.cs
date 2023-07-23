@@ -1,21 +1,21 @@
-﻿using DSODecompiler.ControlFlow;
+﻿using DSODecompiler.AST.Nodes;
+using DSODecompiler.ControlFlow;
 using DSODecompiler.Disassembly;
-using DSODecompiler.Util;
 
 using System;
 using System.Collections.Generic;
 
 namespace DSODecompiler.AST
 {
-	/// <summary>
-	/// Builds an AST tree from a tree of <seealso cref="CollapsedNode"/>s.<br/><br/>
-	///
-	/// This is an ugly class. I'm so sorry... I've just reached my burnout point and wanted to get
-	/// this decompiler <em><strong>done</strong></em>.<br/><br/>
-	///
-	/// TODO: Refactor?
-	/// </summary>
-	public class Builder
+    /// <summary>
+    /// Builds an AST tree from a tree of <seealso cref="CollapsedNode"/>s.<br/><br/>
+    ///
+    /// This is an ugly class. I'm so sorry... I've just reached my burnout point and wanted to get
+    /// this decompiler <em><strong>done</strong></em>.<br/><br/>
+    ///
+    /// TODO: Refactor?
+    /// </summary>
+    public class Builder
 	{
 		public class Exception : System.Exception
 		{
