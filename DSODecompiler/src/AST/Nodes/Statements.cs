@@ -21,9 +21,11 @@ namespace DSODecompiler.AST.Nodes
 
 	public class ReturnStatementNode : Node
 	{
-		public override bool IsExpression => false;
-
 		public Node Value { get; set; } = null;
+
+		public bool ReturnsValue => Value != null;
+
+		public override bool IsExpression => false;
 
 		public override bool Equals (object obj) => obj is ReturnStatementNode node && Equals(node.Value, Value);
 		public override int GetHashCode () => Value?.GetHashCode() ?? 0;

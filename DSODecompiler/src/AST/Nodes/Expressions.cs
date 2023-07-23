@@ -147,8 +147,8 @@ namespace DSODecompiler.AST.Nodes
 	public class AssignmentNode : Node
 	{
 		public VariableFieldNode VariableField { get; set; } = null;
-		public Node Expression { get; set; } = null;
 		public Opcode Operator { get; set; } = null;
+		public Node Expression { get; set; } = null;
 
 		public AssignmentNode (VariableFieldNode variableField, Node expression, Instruction instruction = null)
 		{

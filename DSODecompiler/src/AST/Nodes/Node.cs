@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 
 namespace DSODecompiler.AST.Nodes
 {
@@ -10,7 +12,7 @@ namespace DSODecompiler.AST.Nodes
         public override int GetHashCode() => base.GetHashCode();
     }
 
-    public class NodeList : Node
+    public class NodeList : Node, IEnumerable<Node>
     {
         protected List<Node> nodes = new();
 
@@ -75,9 +77,11 @@ namespace DSODecompiler.AST.Nodes
             foreach (var node in nodes)
             {
                 hash ^= node.GetHashCode();
-            }
+			}
+			return hash;
+		}
 
-            return hash;
-        }
-    }
+		public IEnumerator<Node> GetEnumerator () => nodes.GetEnumerator();
+		IEnumerator IEnumerable.GetEnumerator () => nodes.GetEnumerator();
+	}
 }

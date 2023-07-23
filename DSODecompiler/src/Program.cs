@@ -1,11 +1,12 @@
 ﻿using System;
 using System.IO;
-
+using System.Linq;
 using DSODecompiler.AST;
+using DSODecompiler.CodeGeneration;
+using DSODecompiler.ControlFlow;
+using DSODecompiler.Disassembly;
 using DSODecompiler.Loader;
 using DSODecompiler.Opcodes;
-using DSODecompiler.Disassembly;
-using DSODecompiler.ControlFlow;
 
 namespace DSODecompiler
 {
@@ -103,6 +104,9 @@ namespace DSODecompiler
 					var collapsed = analyzer.Analyze(graph);
 					var astBuilder = new Builder();
 					var astNodes = astBuilder.Build(collapsed);
+					var stream = new TokenStreamGenerator().Generate(astNodes);
+
+					Console.WriteLine(string.Join("", stream));
 
 					{ } // Just for debug breakpoint
 				}
