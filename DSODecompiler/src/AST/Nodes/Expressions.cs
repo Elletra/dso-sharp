@@ -216,11 +216,11 @@ namespace DSODecompiler.AST.Nodes
 
 	public class ObjectNode : Node
 	{
-		public string ParentObject { get; }
 		public bool IsDataBlock { get; }
-
 		public Node ClassNameExpression { get; set; } = null;
 		public Node NameExpression { get; set; } = null;
+		public string ParentObject { get; }
+
 
 		/// <summary>
 		/// Whether this is a standalone object declaration, or a subobject of another object.<br/><br/>
@@ -236,9 +236,12 @@ namespace DSODecompiler.AST.Nodes
 		/// </summary>
 		public bool IsRoot { get; set; } = false;
 
-		public NodeList Arguments = new();
-		public NodeList Slots = new();
-		public NodeList Subobjects = new();
+		public NodeList Arguments { get; set; } = new();
+		public NodeList Slots { get; set; } = new();
+		public NodeList Subobjects { get; set; } = new();
+
+		public bool HasParent => ParentObject != null && ParentObject != "";
+		public bool HasBody => Slots.Count > 0 || Subobjects.Count > 0;
 
 		public ObjectNode (CreateObjectInstruction instruction)
 		{

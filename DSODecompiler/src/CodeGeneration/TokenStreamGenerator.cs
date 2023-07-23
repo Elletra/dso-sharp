@@ -51,20 +51,7 @@ namespace DSODecompiler.CodeGeneration
 			return tokens;
 		}
 
-		protected void Generate ()
-		{
-			foreach (var node in list)
-			{
-				Write(node);
-
-				if (ShouldAppendSemicolon(node))
-				{
-					Write(";");
-				}
-
-				Write("\n");
-			}
-		}
+		protected void Generate () => WriteStatementList(list);
 
 		/// <summary>
 		/// Whether a node in a statement list should have a semicolon appended to it.
@@ -86,6 +73,38 @@ namespace DSODecompiler.CodeGeneration
 
 			_ => true,
 		};
+
+		protected void WriteStatementList (NodeList list)
+		{
+			foreach (var node in list)
+			{
+				WriteIndent();
+				Write(node);
+
+				if (ShouldAppendSemicolon(node))
+				{
+					Write(";");
+				}
+
+				Write("\n");
+			}
+		}
+
+		protected void WriteExpressionList (NodeList list, Node except = null)
+		{
+			foreach (var node in list)
+			{
+				if (except == null || node != except)
+				{
+					Write(node);
+
+					if (node != list[^1])
+					{
+						Write(",", " ");
+					}
+				}
+			}
+		}
 
 		protected void Write (Node node) => Write(node, addParens: false);
 
@@ -148,6 +167,14 @@ namespace DSODecompiler.CodeGeneration
 
 					case AssignmentNode assignment:
 						Write(assignment);
+						break;
+
+					case FunctionCallNode call:
+						Write(call);
+						break;
+
+					case ObjectNode obj:
+						Write(obj);
 						break;
 
 					default:
@@ -242,9 +269,14 @@ namespace DSODecompiler.CodeGeneration
 
 		protected void Write (VariableFieldNode node)
 		{
-			Write(node.Name, "[");
-			Write(node.ArrayIndex);
-			Write("]");
+			Write(node.Name);
+
+			if (node.IsArray)
+			{
+				Write("[");
+				Write(node.ArrayIndex);
+				Write("]");
+			}
 		}
 
 		protected void Write (VariableNode node) => Write(node as VariableFieldNode);
@@ -311,14 +343,70 @@ namespace DSODecompiler.CodeGeneration
 		protected void Write (AssignmentNode node)
 		{
 			Write(node.VariableField);
-			Write(node.Operator, padLeft: true, padRight: false);
-			Write("=");
+			Write(" ");
+
+			if (node.Operator != null)
+			{
+				Write(node.Operator, padLeft: false, padRight: false);
+			}
+
+			Write("=", " ");
 			Write(node.Expression);
 		}
 
 		protected void Write (FunctionCallNode node)
 		{
+			var isMethod = node.Type == FunctionCallNode.CallType.MethodCall;
 
+			if (isMethod)
+			{
+				Write(node.Arguments[0], addParens: true);
+				Write(".");
+			}
+			else if (node.Namespace != null)
+			{
+				Write(node.Namespace, "::");
+			}
+
+			Write(node.Name, "(");
+			WriteExpressionList(node.Arguments, isMethod && node.Arguments.Count > 0 ? node.Arguments[0] : null);
+			Write(")");
+		}
+
+		protected void Write (ObjectNode node)
+		{
+			Write(node.IsDataBlock ? "datablock" : "new", " ");
+			Write(node.ClassNameExpression, addParens: !node.IsDataBlock);
+			Write(" ", "(");
+			Write(node.NameExpression);
+
+			if (node.HasParent)
+			{
+				Write(" ", ":", " ", node.ParentObject);
+			}
+
+			if (node.Arguments.Count > 0)
+			{
+				Write(",", " ");
+				WriteExpressionList(node.Arguments);
+			}
+
+			Write(")");
+
+			if (node.HasBody)
+			{
+				Write("\n", "{", "\n");
+
+				Indent();
+
+				WriteStatementList(node.Slots);
+				Write("\n");
+				WriteStatementList(node.Subobjects);
+
+				Unindent();
+
+				Write("}");
+			}
 		}
 
 		protected void Write (ReturnStatementNode node)
