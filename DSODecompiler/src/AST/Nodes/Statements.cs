@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace DSODecompiler.AST.Nodes
 {
@@ -89,5 +90,52 @@ namespace DSODecompiler.AST.Nodes
 			^ (TestExpression?.GetHashCode() ?? 0)
 			^ (EndExpression?.GetHashCode() ?? 0)
 			^ Body.GetHashCode();
+	}
+
+
+	public class FunctionStatementNode : Node
+	{
+		public override bool IsExpression => false;
+
+		public string Name { get; }
+		public string Namespace { get; }
+		public string Package { get; }
+		public NodeList Body { get; set; } = null;
+
+		public readonly List<string> Arguments = new();
+
+		public FunctionStatementNode (string name, string ns, string package)
+		{
+			Name = name;
+			Namespace = ns;
+			Package = package;
+		}
+
+		public override bool Equals (object obj)
+		{
+			if (obj is not FunctionStatementNode node || node.Arguments.Count != Arguments.Count)
+			{
+				return false;
+			}
+
+			for (var i = 0; i < node.Arguments.Count; i++)
+			{
+				if (!Equals(node.Arguments[i], Arguments[i]))
+				{
+					return false;
+				}
+			}
+
+			return Equals(node.Name, Name)
+				&& Equals(node.Namespace, Namespace)
+				&& Equals(node.Package, Package)
+				&& Equals(node.Body, Body);
+		}
+
+		public override int GetHashCode () => (Name?.GetHashCode() ?? 0)
+			^ (Namespace?.GetHashCode() ?? 0)
+			^ (Package?.GetHashCode() ?? 0)
+			^ (Body?.GetHashCode() ?? 0)
+			^ Arguments.GetHashCode();
 	}
 }

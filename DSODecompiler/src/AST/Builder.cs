@@ -480,6 +480,7 @@ namespace DSODecompiler.AST
 				Node node = ifNode;
 
 				// Collapse if-loop into while/for loop.
+				// TODO: Maybe do this in a separate `Humanizer` class instead of doing it inline?
 				if (ifNode.Then.Count == 1
 					&& !ifNode.HasElse
 					&& ifNode.Then[0] is LoopStatementNode loop
