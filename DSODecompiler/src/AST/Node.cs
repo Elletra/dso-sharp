@@ -134,11 +134,10 @@ namespace DSODecompiler.AST
 		/// </summary>
 		public override bool IsExpression => Then.Count == 1
 			&& Then[0].IsExpression
-			&& HasElse
 			&& Else.Count == 1
 			&& Else[0].IsExpression;
 
-		public bool HasElse => Else != null && Else.Count > 0;
+		public bool HasElse => Else.Count > 0;
 
 		public Node TestExpression { get; }
 

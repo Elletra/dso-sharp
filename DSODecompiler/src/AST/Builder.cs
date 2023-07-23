@@ -474,7 +474,7 @@ namespace DSODecompiler.AST
 				var ifNode = new IfNode(testExpr)
 				{
 					Then = ParseChild(conditional.Then, list),
-					Else = conditional.Else != null ? ParseChild(conditional.Else, list) : null,
+					Else = conditional.Else != null ? ParseChild(conditional.Else, list) : new(),
 				};
 
 				Node node = ifNode;
