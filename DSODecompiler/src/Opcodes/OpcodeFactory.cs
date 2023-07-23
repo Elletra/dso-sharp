@@ -118,6 +118,10 @@ namespace DSODecompiler.Opcodes
 				case "OP_FLT_TO_NONE":
 				case "OP_UINT_TO_NONE":
 				case "OP_RETURN":
+				case "OP_JMPIF":
+				case "OP_JMPIFF":
+				case "OP_JMPIFNOT":
+				case "OP_JMPIFFNOT":
 					return ReturnValue.ToFalse;
 
 				case "OP_LOADVAR_STR":
