@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+
 using DSODecompiler.AST;
+using DSODecompiler.AST.Nodes;
 using DSODecompiler.CodeGeneration;
 using DSODecompiler.ControlFlow;
 using DSODecompiler.Disassembly;
@@ -34,6 +36,8 @@ namespace DSODecompiler
 				writer = new($"{fileName}.dot");
 				writer.WriteLine("digraph {");
 			}
+
+			var lists = new List<NodeList>();
 
 			foreach (var (_, graph) in graphs)
 			{
@@ -103,12 +107,8 @@ namespace DSODecompiler
 				{
 					var collapsed = analyzer.Analyze(graph);
 					var astBuilder = new Builder();
-					var astNodes = astBuilder.Build(collapsed);
-					var stream = new TokenStreamGenerator().Generate(astNodes);
 
-					Console.WriteLine(string.Join("", stream));
-
-					{ } // Just for debug breakpoint
+					lists.Add(astBuilder.Build(collapsed));
 				}
 			}
 
@@ -125,6 +125,10 @@ namespace DSODecompiler
 				process.Start();
 				process.WaitForExit();
 			}
+
+			var stream = new TokenStreamGenerator().Generate(new Bundler().Bundle(lists));
+
+			Console.WriteLine(string.Join("", stream));
 		}
 	}
 }

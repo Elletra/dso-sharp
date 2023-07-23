@@ -73,6 +73,7 @@ namespace DSODecompiler.CodeGeneration
 		/// <returns></returns>
 		protected bool ShouldAppendSemicolon (Node node) => node switch
 		{
+			PackageNode => true,
 			FunctionStatementNode => false,
 			IfNode => false,
 			LoopStatementNode => false,

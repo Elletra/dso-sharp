@@ -94,7 +94,6 @@ namespace DSODecompiler.AST.Nodes
 			^ Body.GetHashCode();
 	}
 
-
 	public class FunctionStatementNode : Node
 	{
 		public override bool IsExpression => false;
@@ -139,5 +138,20 @@ namespace DSODecompiler.AST.Nodes
 			^ (Package?.GetHashCode() ?? 0)
 			^ (Body?.GetHashCode() ?? 0)
 			^ Arguments.GetHashCode();
+	}
+
+	public class PackageNode : Node
+	{
+		public string Name { get; }
+
+		public readonly NodeList Functions = new();
+
+		public PackageNode (string name) => Name = name;
+
+		public override bool Equals (object obj) => obj is PackageNode package
+			&& Equals(package.Name, Name)
+			&& Equals(package.Functions, Functions);
+
+		public override int GetHashCode () => Name.GetHashCode() ^ Functions.GetHashCode();
 	}
 }
