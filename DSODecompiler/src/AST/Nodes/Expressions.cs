@@ -247,19 +247,19 @@ namespace DSODecompiler.AST.Nodes
 		}
 
 		public override bool Equals (object obj) => obj is ObjectNode node
-			&& Equals(node.ParentObject, ParentObject)
 			&& Equals(node.IsDataBlock, IsDataBlock)
 			&& Equals(node.ClassNameExpression, ClassNameExpression)
 			&& Equals(node.NameExpression, NameExpression)
+			&& Equals(node.ParentObject, ParentObject)
 			&& Equals(node.IsRoot, IsRoot)
 			&& Equals(node.Arguments, Arguments)
 			&& Equals(node.Slots, Slots)
 			&& Equals(node.Subobjects, Subobjects);
 
-		public override int GetHashCode () => (ParentObject?.GetHashCode() ?? 0)
-			^ (IsDataBlock.GetHashCode())
+		public override int GetHashCode () => (IsDataBlock.GetHashCode())
 			^ (ClassNameExpression?.GetHashCode() ?? 0)
 			^ (NameExpression?.GetHashCode() ?? 0)
+			^ (ParentObject?.GetHashCode() ?? 0)
 			^ (IsRoot.GetHashCode())
 			^ (Arguments.GetHashCode())
 			^ (Slots.GetHashCode())
