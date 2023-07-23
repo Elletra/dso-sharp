@@ -47,8 +47,8 @@ namespace DSODecompiler.AST.Nodes
 
 		public Node TestExpression { get; }
 
-		public NodeList Then = new();
-		public NodeList Else = new();
+		public NodeList Then { get; set; } = new();
+		public NodeList Else { get; set; } = new();
 
 		public IfNode (Node testExpression)
 		{
@@ -77,7 +77,7 @@ namespace DSODecompiler.AST.Nodes
 		/// </summary>
 		public bool WasCollapsed { get; set; } = false;
 
-		public NodeList Body = new();
+		public NodeList Body { get; set; } = new();
 
 		public LoopStatementNode (Node testExpression = null) => TestExpression = testExpression;
 
@@ -100,7 +100,7 @@ namespace DSODecompiler.AST.Nodes
 		public string Name { get; }
 		public string Namespace { get; }
 		public string Package { get; }
-		public NodeList Body { get; set; } = null;
+		public NodeList Body { get; set; } = new();
 
 		public readonly List<string> Arguments = new();
 
