@@ -194,6 +194,10 @@ namespace DSODecompiler.CodeGeneration
 						Write(ret);
 						break;
 
+					case FunctionStatementNode function:
+						Write(function);
+						break;
+
 					case ContinuePointMarkerNode:
 						break;
 
@@ -549,6 +553,50 @@ namespace DSODecompiler.CodeGeneration
 				Write(" ");
 				Write(node.Value, addParens: false, isExpr: true);
 			}
+		}
+
+		protected void Write (FunctionStatementNode node)
+		{
+			Write("function", " ");
+
+			if (node.Namespace != null)
+			{
+				Write(node.Namespace, "::");
+			}
+
+			Write(node.Name, " ", "(");
+
+			var unused = 1;
+
+			for (var i = 0; i < node.Arguments.Count; i++)
+			{
+				var argument = node.Arguments[i];
+
+				if (argument == null)
+				{
+					// TODO: There's a possibility for someone to name a variable this, which
+					//       would mess this up... Maybe come up something better later?
+					Write($"%__:unused{unused++}");
+				}
+				else
+				{
+					Write(argument);
+				}
+
+				if (i < node.Arguments.Count - 1)
+				{
+					Write(",", " ");
+				}
+			}
+
+			Write(")", "\n");
+			WriteIndent("{", "\n");
+
+			Indent();
+			WriteStatementList(node.Body);
+			Unindent();
+
+			WriteIndent("}", "\n");
 		}
 
 		protected void Write (string token) => tokens.Push(token);

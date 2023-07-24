@@ -533,7 +533,7 @@ namespace DSODecompiler.AST
 		protected void ParseFunction (FunctionNode node)
 		{
 			var instruction = node.Instruction;
-			var function = new FunctionStatementNode(instruction.Name, instruction.Name, instruction.Package)
+			var function = new FunctionStatementNode(instruction.Name, instruction.Namespace, instruction.Package)
 			{
 				Body = ParseChild(node.Body, list),
 			};
