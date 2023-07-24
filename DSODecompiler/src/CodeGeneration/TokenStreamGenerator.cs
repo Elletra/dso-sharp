@@ -365,9 +365,13 @@ namespace DSODecompiler.CodeGeneration
 				// long as it's not a tagged string of course...
 				Write(node.Value);
 			}
+			else if (node.Type == StringConstantNode.StringType.Identifier)
+			{
+				Write(node.Value);
+			}
 			else
 			{
-				Write($"{quote}{node.Value}{quote}");
+				Write($"{quote}{EscapeString(node.Value, quote[0])}{quote}");
 			}
 		}
 
@@ -654,5 +658,47 @@ namespace DSODecompiler.CodeGeneration
 		}
 
 		protected void WriteNewline () => tokens.Push("\n");
+
+		protected string EscapeString (string str, char quoteChar)
+		{
+			str = str.Replace("\\", "\\\\").Replace("\t", "\\\t")
+				.Replace("\r", "\\\r").Replace("\n", "\\\n")
+				.Replace("\x01", "\\c0").Replace("\x02", "\\c1")
+				.Replace("\x03", "\\c2").Replace("\x04", "\\c3")
+				.Replace("\x05", "\\c4").Replace("\x06", "\\c5")
+				.Replace("\x07", "\\c6").Replace("\x08", "\\c7")
+				.Replace("\x09", "\\c8").Replace("\x0A", "\\c9")
+				.Replace("\x0B", "\\cr").Replace("\x0C", "\\cp")
+				.Replace("\x0D", "\\co");
+
+			if (quoteChar == '\'')
+			{
+				str = str.Replace("'", "\\'");
+			}
+			else if (quoteChar == '"')
+			{
+				str = str.Replace("\"", "\\\"");
+			}
+			else
+			{
+				throw new ArgumentException("Invalid quote character", nameof(quoteChar));
+			}
+
+			var escaped = "";
+
+			foreach (var ch in str)
+			{
+				if (ch < 32 || ch > 126)
+				{
+					escaped += $"\\x{ch:X}";
+				}
+				else
+				{
+					escaped += ch;
+				}
+			}
+
+			return escaped;
+		}
 	}
 }
