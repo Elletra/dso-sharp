@@ -198,6 +198,10 @@ namespace DSODecompiler.CodeGeneration
 						Write(function);
 						break;
 
+					case PackageNode package:
+						Write(package);
+						break;
+
 					case ContinuePointMarkerNode:
 						break;
 
@@ -531,13 +535,13 @@ namespace DSODecompiler.CodeGeneration
 			WriteStatementList(node.Body);
 			Unindent();
 
-			WriteIndent("}", "\n");
+			WriteIndent("}");
 
 			if (type == LoopStatementNode.LoopType.DoWhile)
 			{
 				WriteIndent("while", " ", "(");
 				Write(node.TestExpression, addParens: false, isExpr: true);
-				Write(")", "\n");
+				Write(")");
 			}
 		}
 
@@ -596,7 +600,19 @@ namespace DSODecompiler.CodeGeneration
 			WriteStatementList(node.Body);
 			Unindent();
 
-			WriteIndent("}", "\n");
+			WriteIndent("}");
+		}
+
+		protected void Write (PackageNode node)
+		{
+			Write("package", " ", node.Name, "\n");
+			WriteIndent("{", "\n");
+
+			Indent();
+			WriteStatementList(node.Functions);
+			Unindent();
+
+			WriteIndent("}");
 		}
 
 		protected void Write (string token) => tokens.Push(token);
