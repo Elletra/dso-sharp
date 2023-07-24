@@ -18,8 +18,14 @@ namespace DSODecompiler
 		{
 			var fileName = "test";
 			var loader = new FileLoader();
+
+			Console.WriteLine($"Loading file {fileName}...");
+
 			var fileData = loader.LoadFile($"{fileName}.cs.dso", 210);
 			var disassembler = new Disassembler(new OpcodeFactory());
+
+			Console.WriteLine("Disassembling...");
+
 			var disassembly = disassembler.Disassemble(fileData);
 			var graphs = new ControlFlowGraphBuilder().Build(disassembly);
 			var analyzer = new StructureAnalyzer();
@@ -38,6 +44,8 @@ namespace DSODecompiler
 			}
 
 			var lists = new List<NodeList>();
+
+			Console.WriteLine("Performing structural analysis...");
 
 			foreach (var (_, graph) in graphs)
 			{
@@ -114,6 +122,8 @@ namespace DSODecompiler
 				}
 			}
 
+			Console.WriteLine("Structural analysis complete. Generating code...");
+
 			if (writeGraph)
 			{
 				writer.WriteLine("}");
@@ -131,7 +141,7 @@ namespace DSODecompiler
 			var stream = new TokenStreamGenerator().Generate(new Bundler().Bundle(lists));
 			var code = string.Join("", stream);
 
-			Console.WriteLine(code);
+			//Console.WriteLine(code);
 
 			var codeWriter = new StreamWriter($"./decompiled-{fileName}.cs");
 
