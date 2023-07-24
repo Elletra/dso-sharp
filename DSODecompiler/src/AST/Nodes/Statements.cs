@@ -67,11 +67,18 @@ namespace DSODecompiler.AST.Nodes
 
 	public class LoopStatementNode : Node
 	{
-		public override bool IsExpression => false;
+		public enum LoopType
+		{
+			DoWhile,
+			While,
+			For,
+		};
 
 		public Node InitExpression { get; set; } = null;
 		public Node TestExpression { get; set; } = null;
 		public Node EndExpression { get; set; } = null;
+
+		public override bool IsExpression => false;
 
 		/// <summary>
 		/// Whether this loop was collapsed from an if-loop structure. This is to prevent it from
@@ -82,6 +89,16 @@ namespace DSODecompiler.AST.Nodes
 		public NodeList Body { get; set; } = new();
 
 		public LoopStatementNode (Node testExpression = null) => TestExpression = testExpression;
+
+		public LoopType GetLoopType ()
+		{
+			if (InitExpression != null && EndExpression != null)
+			{
+				return LoopType.For;
+			}
+
+			return WasCollapsed ? LoopType.While : LoopType.DoWhile;
+		}
 
 		public override bool Equals (object obj) => obj is LoopStatementNode loop
 			&& Equals(loop.InitExpression, InitExpression)

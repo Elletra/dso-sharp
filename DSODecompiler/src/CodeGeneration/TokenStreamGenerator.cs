@@ -66,6 +66,7 @@ namespace DSODecompiler.CodeGeneration
 			LoopStatementNode => false,
 			BreakStatementNode => true,
 			ContinueStatementNode => true,
+			ContinuePointMarkerNode => false,
 			ReturnStatementNode => true,
 			FunctionCallNode => true,
 			AssignmentNode => true,
@@ -149,10 +150,6 @@ namespace DSODecompiler.CodeGeneration
 						Write(comma);
 						break;
 
-					case ReturnStatementNode ret:
-						Write(ret);
-						break;
-
 					case ConstantNode<uint> constant:
 						Write(constant);
 						break;
@@ -173,6 +170,10 @@ namespace DSODecompiler.CodeGeneration
 						Write(call);
 						break;
 
+					case ObjectNode obj:
+						Write(obj);
+						break;
+
 					case IfNode ifNode:
 						Write(ifNode, isTernary: isExpr);
 						break;
@@ -181,8 +182,19 @@ namespace DSODecompiler.CodeGeneration
 						Write(loop);
 						break;
 
-					case ObjectNode obj:
-						Write(obj);
+					case BreakStatementNode breakNode:
+						Write(breakNode);
+						break;
+
+					case ContinueStatementNode continueNode:
+						Write(continueNode);
+						break;
+
+					case ReturnStatementNode ret:
+						Write(ret);
+						break;
+
+					case ContinuePointMarkerNode:
 						break;
 
 					default:
@@ -403,7 +415,8 @@ namespace DSODecompiler.CodeGeneration
 
 			if (node.HasBody)
 			{
-				Write("\n", "{", "\n");
+				Write("\n");
+				WriteIndent("{", "\n");
 
 				Indent();
 
@@ -413,7 +426,7 @@ namespace DSODecompiler.CodeGeneration
 
 				Unindent();
 
-				Write("}");
+				WriteIndent("}");
 			}
 		}
 
@@ -435,17 +448,18 @@ namespace DSODecompiler.CodeGeneration
 			}
 			else
 			{
-				Write(")", "\n", "{", "\n");
+				Write(")", "\n");
+				WriteIndent("{", "\n");
 
 				Indent();
 				WriteStatementList(node.Then);
 				Unindent();
 
-				Write("}", "\n");
+				WriteIndent("}", "\n");
 
 				if (node.HasElse)
 				{
-					Write("else");
+					WriteIndent("else");
 
 					if (node.Else.Count == 1 && node.Else[0] is IfNode)
 					{
@@ -454,17 +468,77 @@ namespace DSODecompiler.CodeGeneration
 					}
 					else
 					{
-						Write("\n", "{", "\n");
+						Write("\n");
+						WriteIndent("{", "\n");
 
 						Indent();
 						WriteStatementList(node.Else);
 						Unindent();
 
-						Write("}", "\n");
+						WriteIndent("}", "\n");
 					}
 				}
 			}
 		}
+
+		protected void Write (LoopStatementNode node)
+		{
+			var type = node.GetLoopType();
+
+			switch (type)
+			{
+				case LoopStatementNode.LoopType.DoWhile:
+				{
+					Write("do", "\n");
+					WriteIndent("{", "\n");
+
+					break;
+				}
+
+				case LoopStatementNode.LoopType.While:
+				{
+					Write("while", " ", "(");
+					Write(node.TestExpression, addParens: false, isExpr: true);
+					Write(")", "\n");
+					WriteIndent("{", "\n");
+
+					break;
+				}
+
+				case LoopStatementNode.LoopType.For:
+				{
+					Write("for", " ", "(");
+					Write(node.InitExpression, addParens: false, isExpr: true);
+					Write(";", " ");
+					Write(node.TestExpression, addParens: false, isExpr: true);
+					Write(";", " ");
+					Write(node.EndExpression, addParens: false, isExpr: true);
+					Write(")", "\n");
+					WriteIndent("{", "\n");
+
+					break;
+				}
+				
+				default:
+					break;
+			}
+
+			Indent();
+			WriteStatementList(node.Body);
+			Unindent();
+
+			WriteIndent("}", "\n");
+
+			if (type == LoopStatementNode.LoopType.DoWhile)
+			{
+				WriteIndent("while", " ", "(");
+				Write(node.TestExpression, addParens: false, isExpr: true);
+				Write(")", "\n");
+			}
+		}
+
+		protected void Write (BreakStatementNode _) => Write("break");
+		protected void Write (ContinueStatementNode _) => Write("continue");
 
 		protected void Write (ReturnStatementNode node)
 		{
@@ -499,11 +573,16 @@ namespace DSODecompiler.CodeGeneration
 		protected void Indent () => indent++;
 		protected void Unindent () => indent--;
 
-		protected void WriteIndent ()
+		protected void WriteIndent (params string[] then)
 		{
 			for (var i = 0; i < indent; i++)
 			{
 				tokens.Push("\t");
+			}
+
+			if (then.Length > 0)
+			{
+				Write(then);
 			}
 		}
 
