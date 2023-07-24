@@ -42,7 +42,7 @@ namespace DSODecompiler.ControlFlow
 		protected ControlFlowGraph graph;
 		protected Dictionary<uint, CollapsedNode> collapsedNodes;
 		protected LoopFinder loopFinder;
-		protected Queue<uint> unreducedJumps;
+		protected Queue<ControlFlowNode> unreducedJumps;
 		protected HashSet<uint> continuePoints;
 
 		public CollapsedNode Analyze (ControlFlowGraph cfg)
@@ -169,7 +169,10 @@ namespace DSODecompiler.ControlFlow
 			{
 				var elsePredecessor = @else.GetPredecessor(0);
 
-				if (!collapsedNodes.ContainsKey(elsePredecessor.Addr) && elsePredecessor?.GetBranchTarget() == elseSuccessor)
+				if (!collapsedNodes.ContainsKey(elsePredecessor.Addr)
+					&& elsePredecessor?.GetBranchTarget() == elseSuccessor
+					&& elseSuccessor.Predecessors.Count < 3
+					&& @else.Predecessors.Count < 3)
 				{
 					CollapseUnconditional(elsePredecessor, new ElseNode(elsePredecessor));
 					elsePredecessor.RemoveEdgeTo(@else);
@@ -240,9 +243,9 @@ namespace DSODecompiler.ControlFlow
 
 			if (!loopFinder.IsLoopEnd(targetPred))
 			{
-				if (!unreducedJumps.Contains(node.Addr))
+				if (!unreducedJumps.Contains(node))
 				{
-					unreducedJumps.Enqueue(node.Addr);
+					unreducedJumps.Enqueue(node);
 				}
 			}
 			else
@@ -311,10 +314,9 @@ namespace DSODecompiler.ControlFlow
 		{
 			while (unreducedJumps.Count > 0)
 			{
-				var addr = unreducedJumps.Dequeue();
-				var node = graph.GetNode(addr);
+				var node = unreducedJumps.Dequeue();
 
-				if (!collapsedNodes.ContainsKey(addr))
+				if (!collapsedNodes.ContainsKey(node.Addr) && node.Instructions.Count > 0 && node.IsUnconditional)
 				{
 					// TODO: This is bad. As far as I know, there aren't any TorqueScript compilers that
 					//       produce gotos, but it is entirely possible to write one that does. It is bad
