@@ -538,6 +538,13 @@ namespace DSODecompiler.AST
 				Body = ParseChild(node.Body, list),
 			};
 
+			// The TorqueScript compiler always tacks on an extra return at the ends of functions, so
+			// we're just going to pop it off.
+			if (function.Body.Count > 0 && function.Body[^1] is ReturnStatementNode ret && !ret.ReturnsValue)
+			{
+				function.Body.Pop();
+			}
+
 			instruction.Arguments.ForEach(function.Arguments.Add);
 
 			PushNode(function);

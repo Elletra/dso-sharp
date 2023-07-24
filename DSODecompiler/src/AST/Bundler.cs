@@ -23,6 +23,13 @@ namespace DSODecompiler.AST
 				Bundle(list);
 			}
 
+			// The TorqueScript compiler always tacks on an extra return at the ends of files, so
+			// we're just going to pop it off.
+			if (bundle.Count > 0 && bundle[^1] is ReturnStatementNode ret && !ret.ReturnsValue)
+			{
+				bundle.Pop();
+			}
+
 			return bundle;
 		}
 
