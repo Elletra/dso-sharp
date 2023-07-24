@@ -35,6 +35,9 @@ namespace DSODecompiler.CodeGeneration
 		IEnumerator IEnumerable.GetEnumerator () => stream.GetEnumerator();
 	}
 
+	/// <summary>
+	/// Giant clusterfuck class that probably needs refactoring.
+	/// </summary>
 	public class TokenStreamGenerator
 	{
 		protected TokenStream tokens;

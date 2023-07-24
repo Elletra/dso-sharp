@@ -109,6 +109,8 @@ namespace DSODecompiler
 					var astBuilder = new Builder();
 
 					lists.Add(astBuilder.Build(collapsed));
+
+					{ }
 				}
 			}
 
@@ -127,8 +129,15 @@ namespace DSODecompiler
 			}
 
 			var stream = new TokenStreamGenerator().Generate(new Bundler().Bundle(lists));
+			var code = string.Join("", stream);
 
-			Console.WriteLine(string.Join("", stream));
+			Console.WriteLine(code);
+
+			var codeWriter = new StreamWriter($"./decompiled-{fileName}.cs");
+
+			codeWriter.Write(code);
+			codeWriter.Flush();
+			codeWriter.Close();
 		}
 	}
 }
