@@ -42,6 +42,7 @@ namespace DSODecompiler.ControlFlow
 		protected ControlFlowGraph graph;
 		protected Dictionary<uint, CollapsedNode> collapsedNodes;
 		protected LoopFinder loopFinder;
+		protected Queue<uint> unreducedJumps;
 		protected HashSet<uint> continuePoints;
 
 		public CollapsedNode Analyze (ControlFlowGraph cfg)
@@ -49,6 +50,7 @@ namespace DSODecompiler.ControlFlow
 			graph = cfg;
 			collapsedNodes = new();
 			loopFinder = new();
+			unreducedJumps = new();
 			continuePoints = new();
 
 			// Edge case where there's only one node, but it still needs to be reduced!
@@ -59,6 +61,8 @@ namespace DSODecompiler.ControlFlow
 
 			while (graph.Count > 1)
 			{
+				var noProgress = true;
+
 				foreach (ControlFlowNode node in graph.PostorderDFS(graph.EntryPoint))
 				{
 					var reduced = true;
@@ -66,7 +70,17 @@ namespace DSODecompiler.ControlFlow
 					while (reduced)
 					{
 						reduced = ReduceNode(node);
+
+						if (reduced)
+						{
+							noProgress = false;
+						}
 					}
+				}
+
+				if (noProgress)
+				{
+					ReduceUnreducedJumps();
 				}
 			}
 
@@ -96,7 +110,7 @@ namespace DSODecompiler.ControlFlow
 
 		protected bool ReduceAcyclic (ControlFlowNode node)
 		{
-			if (node.LastInstruction is BranchInstruction branch && branch.IsUnconditional)
+			if (node.LastInstruction is BranchInstruction branch && branch.IsUnconditional && !collapsedNodes.ContainsKey(node.Addr))
 			{
 				return ReduceUnconditional(node);
 			}
@@ -150,6 +164,20 @@ namespace DSODecompiler.ControlFlow
 			var thenSuccessor = then.GetSuccessor(0);
 			var elseSuccessor = @else.GetSuccessor(0);
 
+			// Try to collapse an else node if we can.
+			if (@else != null)
+			{
+				var elsePredecessor = @else.GetPredecessor(0);
+
+				if (!collapsedNodes.ContainsKey(elsePredecessor.Addr) && elsePredecessor?.GetBranchTarget() == elseSuccessor)
+				{
+					CollapseUnconditional(elsePredecessor, new ElseNode(elsePredecessor));
+					elsePredecessor.RemoveEdgeTo(@else);
+
+					return true;
+				}
+			}
+
 			if (thenSuccessor == @else)
 			{
 				/* if-then */
@@ -197,12 +225,11 @@ namespace DSODecompiler.ControlFlow
 
 		protected bool ReduceUnconditional (ControlFlowNode node)
 		{
-			if (!IsUnconditional(node) || loopFinder.IsLoopEnd(node) || collapsedNodes.ContainsKey(node.Addr))
+			if (!IsUnconditional(node) || loopFinder.IsLoopEnd(node))
 			{
 				return false;
 			}
 
-			var successor = node.GetSuccessor(0);
 			var target = node.GetBranchTarget();
 			var targetPred = target?.GetPredecessor(0);
 
@@ -211,9 +238,17 @@ namespace DSODecompiler.ControlFlow
 				return false;
 			}
 
-			// Reduce breaks
-			if (loopFinder.IsLoopEnd(targetPred))
+			if (!loopFinder.IsLoopEnd(targetPred))
 			{
+				if (!unreducedJumps.Contains(node.Addr))
+				{
+					unreducedJumps.Enqueue(node.Addr);
+				}
+			}
+			else
+			{
+				/* Reduce breaks */
+
 				var loopStart = targetPred.GetBranchTarget();
 				var loops = loopFinder.Find(loopStart);
 
@@ -228,70 +263,6 @@ namespace DSODecompiler.ControlFlow
 						return true;
 					}
 				}
-			}
-			else if (successor != null && successor.GetSuccessor(0) == target && successor.Predecessors.Count < 3)
-			{
-				/* TODO: The only reason the above works is that there are no gotos in TorqueScript.
-				         If there were, it would require a massive overhaul of how this entire class works. */
-
-				CollapseUnconditional(node, new ElseNode(node));
-				node.RemoveEdgeTo(successor);
-
-				return true;
-			}
-			else
-			{
-				// TODO: This is bad. As far as I know, there aren't any TorqueScript compilers that
-				//       produce gotos, but it is entirely possible to write one that does. It is bad
-				//       to assume that anything that's not an else or a break is a continue, but for
-				//       the first version of this decompiler, it'll do.
-				//
-				//       I just really hope it doesn't accidentally mark the wrong thing as a continue...
-				//       Please let me know if it does, but only if it's not functionally equivalent.
-				//
-				//       What I mean by that is this:
-				//
-				//       while (true)
-				//       {
-				//           if (...)
-				//           {
-				//               echo("if statement is true");
-				//               continue;
-				//           }
-				//           echo("if statement is false");
-				//       }
-				//
-				//      ...is functionally equivalent to this:
-				//
-				//       while (true)
-				//       {
-				//           if (...)
-				//               echo("if statement is true");
-				//           else
-				//               echo("if statement is false");
-				//       }
-				//
-				//       and will produce the exact same TorqueScript bytecode.
-				//
-				//       So if it's something like that, please don't contact me about it. But if
-				//       you DO find something that is marked incorrectly as a continue and is NOT
-				//       functionally equivalent to something else, please let me know.
-				CollapseUnconditional(node, new ContinueNode(node));
-
-				// TODO: Hacks on hacks... Sigh... I really just want this thing done. Please forgive me.
-				continuePoints.Add(target.Addr);
-
-				if (collapsedNodes.ContainsKey(target.Addr))
-				{
-					collapsedNodes[target.Addr].IsContinuePoint = true;
-				}
-
-				if (target != successor)
-				{
-					node.RemoveEdgeTo(target);
-				}
-
-				return true;
 			}
 
 			return false;
@@ -336,14 +307,87 @@ namespace DSODecompiler.ControlFlow
 			return true;
 		}
 
+		protected void ReduceUnreducedJumps ()
+		{
+			while (unreducedJumps.Count > 0)
+			{
+				var addr = unreducedJumps.Dequeue();
+				var node = graph.GetNode(addr);
+
+				if (!collapsedNodes.ContainsKey(addr))
+				{
+					// TODO: This is bad. As far as I know, there aren't any TorqueScript compilers that
+					//       produce gotos, but it is entirely possible to write one that does. It is bad
+					//       to assume that anything that's not an else or a break is a continue, but for
+					//       the first version of this decompiler, it'll do.
+					//
+					//       I just really hope it doesn't accidentally mark the wrong thing as a continue...
+					//       Please let me know if it does, but only if it's not functionally equivalent.
+					//
+					//       What I mean by that is this:
+					//
+					//       while (true)
+					//       {
+					//           if (...)
+					//           {
+					//               echo("if statement is true");
+					//               continue;
+					//           }
+					//           echo("if statement is false");
+					//       }
+					//
+					//      ...is functionally equivalent to this:
+					//
+					//       while (true)
+					//       {
+					//           if (...)
+					//               echo("if statement is true");
+					//           else
+					//               echo("if statement is false");
+					//       }
+					//
+					//       and will produce the exact same TorqueScript bytecode.
+					//
+					//       So if it's something like that, please don't contact me about it. But if
+					//       you DO find something that is marked incorrectly as a continue and is NOT
+					//       functionally equivalent to something else, please let me know.
+					CollapseUnconditional(node, new ContinueNode(node));
+
+					if (node.GetBranchTarget() != node.GetSuccessor(0))
+					{
+						node.RemoveEdgeTo(node.GetBranchTarget());
+					}
+
+					break;
+				}
+			}
+		}
+
 		protected CollapsedNode ExtractCollapsed (ControlFlowNode node, bool remove = true)
 		{
+			var collapsed = ExtractCollapsed(node.Addr);
+
+			if (collapsed == null)
+			{
+				if (node.IsUnconditional)
+				{
+					// TODO: This runs into the same issue as above -- will need to fix at some point!
+					var continueNode = new ContinueNode(node);
+
+					CollapseUnconditional(node, continueNode);
+
+					collapsed = continueNode;
+				}
+				else
+				{
+					collapsed = new InstructionNode(node);
+				}
+			}
+
 			if (remove)
 			{
 				graph.RemoveNode(node);
 			}
-
-			var collapsed = ExtractCollapsed(node.Addr) ?? new InstructionNode(node);
 
 			// TODO: Have I mentioned this is a hack yet?
 			collapsed.IsContinuePoint = continuePoints.Contains(node.Addr);
@@ -375,6 +419,11 @@ namespace DSODecompiler.ControlFlow
 
 		protected void CollapseUnconditional<T> (ControlFlowNode node, T unconditional) where T : UnconditionalNode
 		{
+			if (unconditional is ContinueNode)
+			{
+				continuePoints.Add(node.GetBranchTarget().Addr);
+			}
+
 			if (node.Instructions.Count <= 0)
 			{
 				AddCollapsed(node.Addr, unconditional);
@@ -400,7 +449,6 @@ namespace DSODecompiler.ControlFlow
 			? collapsedNodes[key]
 			: null;
 
-		protected bool IsUnconditional (ControlFlowNode node) => node?.LastInstruction is BranchInstruction branch
-			&& branch.IsUnconditional;
+		protected bool IsUnconditional (ControlFlowNode node) => node?.IsUnconditional ?? false;
 	}
 }

@@ -30,6 +30,9 @@ namespace DSODecompiler.ControlFlow
 
 		public uint Addr => Key;
 
+		public bool IsBranch => LastInstruction is BranchInstruction;
+		public bool IsUnconditional => LastInstruction is BranchInstruction branch && branch.IsUnconditional;
+
 		public Instruction FirstInstruction => Instructions.Count > 0 ? Instructions[0] : null;
 
 		public Instruction LastInstruction => Instructions.Count > 0 ? Instructions[^1] : null;
