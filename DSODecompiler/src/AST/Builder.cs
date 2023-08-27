@@ -496,6 +496,11 @@ namespace DSODecompiler.AST
 						loop.InitExpression ??= PopNode();
 						loop.EndExpression ??= loop.Body.Pop();
 					}
+
+					if (loop.Body.Peek() is ContinuePointMarkerNode)
+					{
+						loop.Body.Pop();
+					}
 				}
 
 				PushNode(node);
