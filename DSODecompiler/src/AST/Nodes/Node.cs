@@ -1,83 +1,95 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 
 namespace DSODecompiler.AST.Nodes
 {
-    public abstract class Node
-    {
-        public virtual bool IsExpression => true;
-        public override bool Equals(object obj) => obj is Node;
-        public override int GetHashCode() => base.GetHashCode();
-    }
+	public abstract class Node
+	{
+		public enum NodeAssociativity : byte
+		{
+			None,
+			Left,
+			Right,
+		};
 
-    public class NodeList : Node, IEnumerable<Node>
-    {
-        protected List<Node> nodes = new();
+		public virtual NodeAssociativity Associativity => NodeAssociativity.None;
+		public bool IsAssociative => Associativity != NodeAssociativity.None;
+		public virtual int Precedence => -1;
 
-        public override bool IsExpression => false;
-        public int Count => nodes.Count;
-        public Node this[int index] => nodes[index];
+		public virtual bool IsExpression => true;
 
-        public void ForEach(Action<Node> action) => nodes.ForEach(action);
+		public override bool Equals(object obj) => obj is Node;
+		public override int GetHashCode() => base.GetHashCode();
+	}
 
-        public Node Push(Node node)
-        {
-            if (node is NodeList list)
-            {
-                list.ForEach(child => Push(child));
-            }
-            else
-            {
-                nodes.Add(node);
-            }
+	public class NodeList : Node, IEnumerable<Node>
+	{
+		protected List<Node> nodes = new();
 
-            return node;
-        }
+		public override bool IsExpression => false;
+		public int Count => nodes.Count;
+		public Node this[int index] => nodes[index];
 
-        public Node Pop()
-        {
-            if (nodes.Count <= 0)
-            {
-                return null;
-            }
+		public void ForEach(Action<Node> action) => nodes.ForEach(action);
 
-            var node = nodes[^1];
-
-            nodes.RemoveAt(nodes.Count - 1);
-
-            return node;
-        }
-
-        public Node Peek() => nodes.Count > 0 ? nodes[^1] : null;
-
-        public override bool Equals(object obj)
-        {
-            if (obj is not NodeList list || list.Count != Count)
-            {
-                return false;
-            }
-
-            for (var i = 0; i < list.Count; i++)
-            {
-                if (!list[i].Equals(this[i]))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        public override int GetHashCode()
-        {
-            var hash = base.GetHashCode();
-
-            foreach (var node in nodes)
-            {
-                hash ^= node.GetHashCode();
+		public Node Push(Node node)
+		{
+			if (node is NodeList list)
+			{
+				list.ForEach(child => Push(child));
 			}
+			else
+			{
+				nodes.Add(node);
+			}
+
+			return node;
+		}
+
+		public Node Pop()
+		{
+			if (nodes.Count <= 0)
+			{
+				return null;
+			}
+
+			var node = nodes[^1];
+
+			nodes.RemoveAt(nodes.Count - 1);
+
+			return node;
+		}
+
+		public Node Peek() => nodes.Count > 0 ? nodes[^1] : null;
+
+		public override bool Equals(object obj)
+		{
+			if (obj is not NodeList list || list.Count != Count)
+			{
+				return false;
+			}
+
+			for (var i = 0; i < list.Count; i++)
+			{
+				if (!list[i].Equals(this[i]))
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		public override int GetHashCode()
+		{
+			var hash = base.GetHashCode();
+
+			foreach (var node in nodes)
+			{
+				hash ^= node.GetHashCode();
+			}
+
 			return hash;
 		}
 

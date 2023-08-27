@@ -45,6 +45,9 @@ namespace DSODecompiler.AST.Nodes
 			&& Else.Count == 1
 			&& Else[0].IsExpression;
 
+		public override NodeAssociativity Associativity => NodeAssociativity.Left;
+		public override int Precedence => 12;
+
 		public bool HasElse => Else.Count > 0;
 
 		public Node TestExpression { get; }

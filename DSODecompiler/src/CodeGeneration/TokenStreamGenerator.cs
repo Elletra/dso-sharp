@@ -73,7 +73,7 @@ namespace DSODecompiler.CodeGeneration
 			ReturnStatementNode => true,
 			FunctionCallNode => true,
 			AssignmentNode => true,
-			ObjectNode => true,
+			NewObjectNode => true,
 
 			_ => true,
 		};
@@ -173,7 +173,7 @@ namespace DSODecompiler.CodeGeneration
 						Write(call);
 						break;
 
-					case ObjectNode obj:
+					case NewObjectNode obj:
 						Write(obj);
 						break;
 
@@ -285,17 +285,92 @@ namespace DSODecompiler.CodeGeneration
 			}
 		}
 
+		protected bool ShouldAddParens (BinaryExpressionNode parent, Node arm, bool isLeft)
+		{
+			if (arm.Associativity == Node.NodeAssociativity.None)
+			{
+				return false;
+			}
+
+			if (isLeft)
+			{
+				return arm.Associativity == Node.NodeAssociativity.Right || arm.Precedence > parent.Precedence;
+			}
+
+			return arm.Associativity == Node.NodeAssociativity.Left || arm.Precedence < parent.Precedence;
+		}
+
+		protected bool ShouldAddParens (UnaryExpressionNode _, Node node) => node switch
+		{
+			VariableFieldNode => false,
+			ConstantNode<uint> => false,
+			ConstantNode<double> => false,
+			StringConstantNode => false,
+			FunctionCallNode => false,
+			_ => node.Associativity != Node.NodeAssociativity.Right,
+		};
+
+		protected bool ShouldAddParens (FieldNode _, Node objectExpr) => objectExpr switch
+		{
+			VariableFieldNode => false,
+			ConstantNode<uint> => false,
+			ConstantNode<double> => false,
+			StringConstantNode => false,
+			FunctionCallNode => false,
+			_ => true,
+		};
+
+		protected bool ShouldAddParens (ConcatNode parent, Node arm, bool isLeft)
+		{
+			if (arm.Associativity == Node.NodeAssociativity.None)
+			{
+				return false;
+			}
+
+			if (isLeft)
+			{
+				return arm.Associativity == Node.NodeAssociativity.Right || arm.Precedence > parent.Precedence;
+			}
+
+			return arm.Associativity == Node.NodeAssociativity.Left || arm.Precedence < parent.Precedence;
+		}
+
+		protected bool ShouldAddParens (FunctionCallNode _, Node node) => node switch
+		{
+			UnaryExpressionNode => false,
+			VariableFieldNode => false,
+			ConstantNode<uint> => false,
+			ConstantNode<double> => false,
+			StringConstantNode => false,
+			FunctionCallNode => false,
+			_ => true,
+		};
+
+		protected bool ShouldAddParens (IfNode _, Node node, bool isThen) => isThen && node.Associativity == Node.NodeAssociativity.Right;
+
+		protected bool ShouldAddParens (IfNode node, bool isTernary)
+		{
+			var testExpr = node.TestExpression;
+
+			if (!isTernary || testExpr.Associativity == Node.NodeAssociativity.None)
+			{
+				return false;
+			}
+
+			return testExpr.Associativity == Node.NodeAssociativity.Right || testExpr.Precedence > node.Precedence;
+		}
+
 		protected void Write (BinaryExpressionNode node)
 		{
-			Write(node.Left, addParens: true, isExpr: true);
+			Write(node.Left, ShouldAddParens(node, node.Left, isLeft: true), isExpr: true);
 			Write(node.Operator);
-			Write(node.Right, addParens: true, isExpr: true);
+			Write(node.Right, ShouldAddParens(node, node.Right, isLeft: false), isExpr: true);
 		}
 
 		protected void Write (UnaryExpressionNode node)
 		{
 			Write(node.Operator, padLeft: false, padRight: false);
-			Write(node.Expression, addParens: true, isExpr: true);
+			Write(node.Expression, ShouldAddParens(node, node.Expression), isExpr: true);
 		}
 
 		protected void Write (VariableFieldNode node)
@@ -314,13 +389,14 @@ namespace DSODecompiler.CodeGeneration
 
 		protected void Write (FieldNode node)
 		{
-			Write(node.ObjectExpr, addParens: true, isExpr: true);
+			Write(node.ObjectExpr, ShouldAddParens(node, node.ObjectExpr), isExpr: true);
+			Write(".");
 			Write(node as VariableFieldNode);
 		}
 
 		protected void Write (ConcatNode node)
 		{
-			Write(node.Left, addParens: true, isExpr: true);
+			Write(node.Left, ShouldAddParens(node, node.Left, isLeft: true), isExpr: true);
 
 			Write(node.AppendChar switch
 			{
@@ -332,7 +408,7 @@ namespace DSODecompiler.CodeGeneration
 				_ => throw new NotImplementedException(),
 			}, padLeft: true, padRight: true);
 
-			Write(node.Right, addParens: true, isExpr: true);
+			Write(node.Right, ShouldAddParens(node, node.Right, isLeft: false), isExpr: true);
 		}
 
 		protected void Write (CommaCatNode node)
@@ -358,14 +434,7 @@ namespace DSODecompiler.CodeGeneration
 				quote = "'";
 			}
 
-			if (node.Type == StringConstantNode.StringType.String
-				&& (uint.TryParse(node.Value, out _) || double.TryParse(node.Value, out _)))
-			{
-				// If it can be parsed as an integer or a float, let's not add quotes around it, as
-				// long as it's not a tagged string of course...
-				Write(node.Value);
-			}
-			else if (node.Type == StringConstantNode.StringType.Identifier)
+			if (node.Type == StringConstantNode.StringType.Identifier)
 			{
 				Write(node.Value);
 			}
@@ -395,7 +464,7 @@ namespace DSODecompiler.CodeGeneration
 
 			if (isMethod)
 			{
-				Write(node.Arguments[0], addParens: true, isExpr: true);
+				Write(node.Arguments[0], ShouldAddParens(node, node.Arguments[0]), isExpr: true);
 				Write(".");
 			}
 			else if (node.Namespace != null)
@@ -408,11 +477,11 @@ namespace DSODecompiler.CodeGeneration
 			Write(")");
 		}
 
-		protected void Write (ObjectNode node)
+		protected void Write (NewObjectNode node)
 		{
 			Write(node.IsDataBlock ? "datablock" : "new", " ");
 			Write(node.ClassNameExpression, addParens: !node.IsDataBlock, isExpr: true);
-			Write(" ", "(");
+			Write("(");
 			Write(node.NameExpression, addParens: false, isExpr: true);
 
 			if (node.HasParent)
@@ -452,14 +521,14 @@ namespace DSODecompiler.CodeGeneration
 				Write("if", " ", "(");
 			}
 
-			Write(node.TestExpression, addParens: isTernary, isExpr: true);
+			Write(node.TestExpression, ShouldAddParens(node, isTernary), isExpr: true);
 
 			if (isTernary)
 			{
 				Write(" ", "?", " ");
-				Write(node.Then[0], addParens: true, isExpr: true);
+				Write(node.Then[0], ShouldAddParens(node, node.Then[0], isThen: true), isExpr: true);
 				Write(" ", ":", " ");
-				Write(node.Else[0], addParens: true, isExpr: true);
+				Write(node.Else[0], ShouldAddParens(node, node.Else[0], isThen: false), isExpr: true);
 			}
 			else
 			{
@@ -575,7 +644,7 @@ namespace DSODecompiler.CodeGeneration
 				Write(node.Namespace, "::");
 			}
 
-			Write(node.Name, " ", "(");
+			Write(node.Name, "(");
 
 			var unused = 1;
 

@@ -208,7 +208,7 @@ namespace DSODecompiler.AST
 
 					case CreateObjectInstruction insn:
 					{
-						PushNode(new ObjectNode(insn));
+						PushNode(new NewObjectNode(insn));
 						break;
 					}
 
@@ -223,9 +223,9 @@ namespace DSODecompiler.AST
 							stack.Push(node);
 						}
 
-						if (node is not ObjectNode objectNode)
+						if (node is not NewObjectNode objectNode)
 						{
-							throw new Exception($"Expected ObjectNode, got {node.GetType().Name}");
+							throw new Exception($"Expected NewObjectNode, got {node.GetType().Name}");
 						}
 
 						objectNode.IsRoot = insn.PlaceAtRoot;
@@ -255,9 +255,9 @@ namespace DSODecompiler.AST
 
 						node = stack.Pop();
 
-						if (node is not ObjectNode objectNode)
+						if (node is not NewObjectNode objectNode)
 						{
-							throw new Exception($"Expected ObjectNode, got {node.GetType().Name}");
+							throw new Exception($"Expected NewObjectNode, got {node.GetType().Name}");
 						}
 
 						while (stack.Count > 0)

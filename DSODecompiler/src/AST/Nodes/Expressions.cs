@@ -6,7 +6,6 @@ using System.Collections.Generic;
 
 namespace DSODecompiler.AST.Nodes
 {
-
     public class BinaryExpressionNode : Node
 	{
 		public Opcode Operator { get; }
@@ -16,12 +15,43 @@ namespace DSODecompiler.AST.Nodes
 
 		public bool IsLogicalOperator { get; }
 
+		public override NodeAssociativity Associativity => NodeAssociativity.Left;
+
+		public override int Precedence => Operator.StringValue switch
+		{
+			"OP_ADD" => 2,
+			"OP_SUB" => 2,
+			"OP_MUL" => 1,
+			"OP_DIV" => 1,
+			"OP_MOD" => 1,
+
+			"OP_CMPEQ" => 6,
+			"OP_CMPNE" => 6,
+			"OP_CMPGR" => 5,
+			"OP_CMPGE" => 5,
+			"OP_CMPLT" => 5,
+			"OP_CMPLE" => 5,
+			"OP_COMPARE_STR" => 4,
+
+			"OP_XOR" => 8,
+			"OP_BITAND" => 7,
+			"OP_BITOR" => 9,
+			"OP_SHR" => 3,
+			"OP_SHL" => 3,
+
+			"OP_AND" => 10,
+			"OP_OR" => 11,
+			"OP_JMPIFNOT_NP" => 10,
+			"OP_JMPIF_NP" => 11,
+
+			_ => throw new NotImplementedException(),
+		};
+
 		public BinaryExpressionNode (Instruction instruction, Node left = null, Node right = null)
 		{
 			Operator = instruction.Opcode;
 			Left = left;
 			Right = right;
-
 			IsLogicalOperator = instruction is BranchInstruction branch && branch.IsLogicalOperator;
 		}
 
@@ -39,6 +69,9 @@ namespace DSODecompiler.AST.Nodes
 	{
 		public Opcode Operator { get; }
 		public Node Expression { get; set; } = null;
+
+		public override NodeAssociativity Associativity => NodeAssociativity.Right;
+		public override int Precedence => 0;
 
 		public UnaryExpressionNode (Opcode opcode, Node expression)
 		{
@@ -105,6 +138,9 @@ namespace DSODecompiler.AST.Nodes
 	{
 		public char? AppendChar { get; set; } = null;
 
+		public override NodeAssociativity Associativity => NodeAssociativity.Left;
+		public override int Precedence => 4;
+
 		public ConcatNode () { }
 		public ConcatNode (char appendChar) => AppendChar = appendChar;
 
@@ -149,6 +185,9 @@ namespace DSODecompiler.AST.Nodes
 		public VariableFieldNode VariableField { get; set; } = null;
 		public Opcode Operator { get; set; } = null;
 		public Node Expression { get; set; } = null;
+
+		public override NodeAssociativity Associativity => NodeAssociativity.Right;
+		public override int Precedence => 13;
 
 		public AssignmentNode (VariableFieldNode variableField, Node expression, Instruction instruction = null)
 		{
@@ -214,7 +253,7 @@ namespace DSODecompiler.AST.Nodes
 			^ Arguments.GetHashCode();
 	}
 
-	public class ObjectNode : Node
+	public class NewObjectNode : Node
 	{
 		public bool IsDataBlock { get; }
 		public Node ClassNameExpression { get; set; } = null;
@@ -243,13 +282,13 @@ namespace DSODecompiler.AST.Nodes
 		public bool HasParent => ParentObject != null && ParentObject != "";
 		public bool HasBody => Slots.Count > 0 || Subobjects.Count > 0;
 
-		public ObjectNode (CreateObjectInstruction instruction)
+		public NewObjectNode (CreateObjectInstruction instruction)
 		{
 			ParentObject = instruction.Parent;
 			IsDataBlock = instruction.IsDataBlock;
 		}
 
-		public override bool Equals (object obj) => obj is ObjectNode node
+		public override bool Equals (object obj) => obj is NewObjectNode node
 			&& Equals(node.IsDataBlock, IsDataBlock)
 			&& Equals(node.ClassNameExpression, ClassNameExpression)
 			&& Equals(node.NameExpression, NameExpression)
