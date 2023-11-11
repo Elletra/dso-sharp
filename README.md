@@ -27,9 +27,9 @@ I _agonized_ over the project until August 2023, when I thought it was _finally_
 
 I haven't touched it since August. It doesn't work properly, there's a bunch of shite debug code, it's unfinished, and it only works for Blockland v21 still. But I decided to release it as-is, because hopefully it can be helpful to the community somehow.
 
-As much as my ego would love to be The Woman Who Wrote The Decompiler™, I've always believed sharing knowledge is important and that people who horde it are a cancer to humanity.
+As much as my ego would love to be The Woman Who Wrote The Decompiler™, I've always believed sharing knowledge is important and that people who hoard it are a cancer to humanity.
 
-Reverse engineering and decompilation are inherently about sharing and democratizing knowledge. Anyone involved in a reverse engineering or decompilation project and doesn't open source their work is everything wrong with programming. They should kill their ego and open source it. It is antithetical to the very concepts of reverse engineering and decompilation. The only valid reason for not open sourcing is fear of legal issues. Anything else is just selfish.
+Reverse engineering and decompilation are inherently about sharing and democratizing knowledge. Anyone involved in a reverse engineering or decompilation project and doesn't open source their work is everything wrong with programming. They should kill their ego and open source it. It is antithetical to the very concepts of reverse engineering and decompilation. The only valid reason for not open sourcing is fear of legal issues. Anything else is just selfish, ego-stroking nonsense or corporate-style information hoarding. It's stupid.
 
 So, I am swallowing my pride and releasing this project, in all its ugly, unfinished glory. It's not finished, and its code is of varying quality (as the project went on, I just wanted it done, so code quality got ***real bad***), but maybe it can be of use to someone.
 
