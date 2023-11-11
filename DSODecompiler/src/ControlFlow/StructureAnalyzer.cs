@@ -21,13 +21,6 @@ namespace DSODecompiler.ControlFlow
 	/// "Native x86 Decompilation Using Semantics-Preserving Structural Analysis and Iterative
 	/// Control-Flow Structuring"</see> by Edward J. Schwartz, JongHyup Lee, Maverick Woo, and David Brumley.
 	/// </item>
-	///
-	/// <item>
-	/// <see href="https://www.ndss-symposium.org/wp-content/uploads/2017/09/11_4_2.pdf">
-	/// "No More Gotos: Decompilation Using Pattern-Independent Control-Flow Structuring and
-	/// Semantics-Preserving Transformations"</see> by Khaled Yakdan, Sebastian Eschweiler,
-	/// Elmar Gerhards-Padilla, Matthew Smith.
-	/// </item>
 	/// </list>
 	/// </summary>
 	public class StructureAnalyzer
