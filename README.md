@@ -18,7 +18,7 @@ Thus, in 2022, I started work on _DSO Sharp_.
 
 ## Disaster
 
-I worked on it off and on for about a year—I would work on it heavily for 1-3 months, run into a wall, get burnt out, and then take a break. I did this repeatedly.
+I worked on it off and on for about a year—I would work on it heavily for 1-3 months, hit a wall, get burnt out, and then take a break. I did this repeatedly.
 
 I _agonized_ over the project until August 2023, when I thought it was _finally_ almost ready for release. As I was working on getting it ready, I found out at basically the eleventh hour that it was producing wrong output and that I probably needed to rethink my whole approach. I had been working on it pretty nonstop for several months at this point, so I was already getting burnt out. Finding this out completely deflated any motivation I had to continue.
 
