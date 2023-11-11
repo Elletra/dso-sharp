@@ -13,7 +13,7 @@ namespace DSODecompiler.ControlFlow
 	///
 	/// <strong>Source:</strong><br/><br/>
 	///
-	/// <see href="https://www.cs.rice.edu/~keith/EMBED/dom.pdf">"A Simple, Fast Dominance Algorithm"</see>
+	/// <see href="https://www.cs.tufts.edu/comp/150FP/archive/keith-cooper/dom14.pdf">"A Simple, Fast Dominance Algorithm"</see>
 	/// by Keith Cooper, Timothy Harvey, and Ken Kennedy.
 	/// </summary>
 	public class DominanceCalculator
