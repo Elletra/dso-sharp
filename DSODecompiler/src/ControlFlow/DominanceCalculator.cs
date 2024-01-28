@@ -18,8 +18,8 @@ namespace DSODecompiler.ControlFlow
 	/// </summary>
 	public class DominanceCalculator
 	{
-		protected List<ControlFlowNode> reversePostorder;
-		protected ControlFlowGraph graph;
+		private List<ControlFlowNode> reversePostorder;
+		private ControlFlowGraph graph;
 
 		public void Calculate (ControlFlowGraph cfg)
 		{
@@ -29,7 +29,7 @@ namespace DSODecompiler.ControlFlow
 			Calculate();
 		}
 
-		protected void Calculate ()
+		private void Calculate ()
 		{
 			var entry = graph.GetEntryPoint();
 			var changed = true;
@@ -76,7 +76,7 @@ namespace DSODecompiler.ControlFlow
 			}
 		}
 
-		protected ControlFlowNode FindCommonDominator (ControlFlowNode node1, ControlFlowNode node2)
+		private ControlFlowNode FindCommonDominator (ControlFlowNode node1, ControlFlowNode node2)
 		{
 			var finger1 = node1;
 			var finger2 = node2;
@@ -99,7 +99,7 @@ namespace DSODecompiler.ControlFlow
 			return finger1;
 		}
 
-		protected void CalculateReversePostorder ()
+		private void CalculateReversePostorder ()
 		{
 			reversePostorder = new();
 

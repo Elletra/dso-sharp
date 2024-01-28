@@ -4,8 +4,8 @@ namespace DSODecompiler.Disassembly
 {
 	public class Disassembly
 	{
-		protected Dictionary<uint, Instruction> instructions = new();
-		protected HashSet<uint> branchTargets = new();
+		private Dictionary<uint, Instruction> instructions = new();
+		private HashSet<uint> branchTargets = new();
 
 		/**
 		 * Instruction methods

@@ -4,7 +4,7 @@ namespace DSODecompiler.Opcodes
 {
 	public class OpcodeFactory
 	{
-		protected List<string> opcodeStrings;
+		private List<string> opcodeStrings;
 
 		public OpcodeFactory () => Init();
 

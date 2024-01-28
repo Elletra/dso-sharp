@@ -40,9 +40,9 @@ namespace DSODecompiler.CodeGeneration
 	/// </summary>
 	public class TokenStreamGenerator
 	{
-		protected TokenStream tokens;
-		protected NodeList list;
-		protected int indent = 0;
+		private TokenStream tokens;
+		private NodeList list;
+		private int indent = 0;
 
 		public TokenStream Generate (NodeList nodeList)
 		{
@@ -54,14 +54,14 @@ namespace DSODecompiler.CodeGeneration
 			return tokens;
 		}
 
-		protected void Generate () => WriteStatementList(list);
+		private void Generate () => WriteStatementList(list);
 
 		/// <summary>
 		/// Whether a node in a statement list should have a semicolon appended to it.
 		/// </summary>
 		/// <param name="node"></param>
 		/// <returns></returns>
-		protected bool ShouldAppendSemicolon (Node node) => node switch
+		private bool ShouldAppendSemicolon (Node node) => node switch
 		{
 			PackageNode => true,
 			FunctionStatementNode => false,
@@ -78,7 +78,7 @@ namespace DSODecompiler.CodeGeneration
 			_ => true,
 		};
 
-		protected void WriteStatementList (NodeList list)
+		private void WriteStatementList (NodeList list)
 		{
 			foreach (var node in list)
 			{
@@ -94,7 +94,7 @@ namespace DSODecompiler.CodeGeneration
 			}
 		}
 
-		protected void WriteExpressionList (NodeList list, Node except = null)
+		private void WriteExpressionList (NodeList list, Node except = null)
 		{
 			foreach (var node in list)
 			{
@@ -110,9 +110,9 @@ namespace DSODecompiler.CodeGeneration
 			}
 		}
 
-		protected void Write (Node node) => Write(node, addParens: false);
+		private void Write (Node node) => Write(node, addParens: false);
 
-		protected void Write (Node node, bool addParens, bool isExpr = false)
+		private void Write (Node node, bool addParens, bool isExpr = false)
 		{
 			if (node != null)
 			{
@@ -226,7 +226,7 @@ namespace DSODecompiler.CodeGeneration
 			}
 		}
 
-		protected void Write (params Node[] nodes)
+		private void Write (params Node[] nodes)
 		{
 			foreach (var node in nodes)
 			{
@@ -234,7 +234,7 @@ namespace DSODecompiler.CodeGeneration
 			}
 		}
 
-		protected void Write (Opcode @operator, bool padLeft = true, bool padRight = true)
+		private void Write (Opcode @operator, bool padLeft = true, bool padRight = true)
 		{
 			if (@operator != null)
 			{
@@ -285,7 +285,7 @@ namespace DSODecompiler.CodeGeneration
 			}
 		}
 
-		protected bool ShouldAddParens (BinaryExpressionNode parent, Node arm, bool isLeft)
+		private bool ShouldAddParens (BinaryExpressionNode parent, Node arm, bool isLeft)
 		{
 			if (arm.Associativity == Node.NodeAssociativity.None)
 			{
@@ -300,7 +300,7 @@ namespace DSODecompiler.CodeGeneration
 			return arm.Associativity == Node.NodeAssociativity.Left || arm.Precedence < parent.Precedence;
 		}
 
-		protected bool ShouldAddParens (UnaryExpressionNode _, Node node) => node switch
+		private bool ShouldAddParens (UnaryExpressionNode _, Node node) => node switch
 		{
 			VariableFieldNode => false,
 			ConstantNode<uint> => false,
@@ -310,7 +310,7 @@ namespace DSODecompiler.CodeGeneration
 			_ => node.Associativity != Node.NodeAssociativity.Right,
 		};
 
-		protected bool ShouldAddParens (FieldNode _, Node objectExpr) => objectExpr switch
+		private bool ShouldAddParens (FieldNode _, Node objectExpr) => objectExpr switch
 		{
 			VariableFieldNode => false,
 			ConstantNode<uint> => false,
@@ -320,7 +320,7 @@ namespace DSODecompiler.CodeGeneration
 			_ => true,
 		};
 
-		protected bool ShouldAddParens (ConcatNode parent, Node arm, bool isLeft)
+		private bool ShouldAddParens (ConcatNode parent, Node arm, bool isLeft)
 		{
 			if (arm.Associativity == Node.NodeAssociativity.None)
 			{
@@ -335,7 +335,7 @@ namespace DSODecompiler.CodeGeneration
 			return arm.Associativity == Node.NodeAssociativity.Left || arm.Precedence < parent.Precedence;
 		}
 
-		protected bool ShouldAddParens (FunctionCallNode _, Node node) => node switch
+		private bool ShouldAddParens (FunctionCallNode _, Node node) => node switch
 		{
 			UnaryExpressionNode => false,
 			VariableFieldNode => false,
@@ -346,9 +346,9 @@ namespace DSODecompiler.CodeGeneration
 			_ => true,
 		};
 
-		protected bool ShouldAddParens (IfNode _, Node node, bool isThen) => isThen && node.Associativity == Node.NodeAssociativity.Right;
+		private bool ShouldAddParens (IfNode _, Node node, bool isThen) => isThen && node.Associativity == Node.NodeAssociativity.Right;
 
-		protected bool ShouldAddParens (IfNode node, bool isTernary)
+		private bool ShouldAddParens (IfNode node, bool isTernary)
 		{
 			var testExpr = node.TestExpression;
 
@@ -360,20 +360,20 @@ namespace DSODecompiler.CodeGeneration
 			return testExpr.Associativity == Node.NodeAssociativity.Right || testExpr.Precedence > node.Precedence;
 		}
 
-		protected void Write (BinaryExpressionNode node)
+		private void Write (BinaryExpressionNode node)
 		{
 			Write(node.Left, ShouldAddParens(node, node.Left, isLeft: true), isExpr: true);
 			Write(node.Operator);
 			Write(node.Right, ShouldAddParens(node, node.Right, isLeft: false), isExpr: true);
 		}
 
-		protected void Write (UnaryExpressionNode node)
+		private void Write (UnaryExpressionNode node)
 		{
 			Write(node.Operator, padLeft: false, padRight: false);
 			Write(node.Expression, ShouldAddParens(node, node.Expression), isExpr: true);
 		}
 
-		protected void Write (VariableFieldNode node)
+		private void Write (VariableFieldNode node)
 		{
 			Write(node.Name);
 
@@ -385,16 +385,16 @@ namespace DSODecompiler.CodeGeneration
 			}
 		}
 
-		protected void Write (VariableNode node) => Write(node as VariableFieldNode);
+		private void Write (VariableNode node) => Write(node as VariableFieldNode);
 
-		protected void Write (FieldNode node)
+		private void Write (FieldNode node)
 		{
 			Write(node.ObjectExpr, ShouldAddParens(node, node.ObjectExpr), isExpr: true);
 			Write(".");
 			Write(node as VariableFieldNode);
 		}
 
-		protected void Write (ConcatNode node)
+		private void Write (ConcatNode node)
 		{
 			Write(node.Left, ShouldAddParens(node, node.Left, isLeft: true), isExpr: true);
 
@@ -411,17 +411,17 @@ namespace DSODecompiler.CodeGeneration
 			Write(node.Right, ShouldAddParens(node, node.Right, isLeft: false), isExpr: true);
 		}
 
-		protected void Write (CommaCatNode node)
+		private void Write (CommaCatNode node)
 		{
 			Write(node.Left, addParens: false, isExpr: true);
 			Write(",");
 			Write(node.Right, addParens: false, isExpr: true);
 		}
 
-		protected void Write (ConstantNode<uint> node) => Write(node.Value.ToString());
-		protected void Write (ConstantNode<double> node) => Write(node.Value.ToString());
+		private void Write (ConstantNode<uint> node) => Write(node.Value.ToString());
+		private void Write (ConstantNode<double> node) => Write(node.Value.ToString());
 
-		protected void Write (StringConstantNode node)
+		private void Write (StringConstantNode node)
 		{
 			var quote = "";
 
@@ -444,7 +444,7 @@ namespace DSODecompiler.CodeGeneration
 			}
 		}
 
-		protected void Write (AssignmentNode node)
+		private void Write (AssignmentNode node)
 		{
 			Write(node.VariableField);
 			Write(" ");
@@ -458,7 +458,7 @@ namespace DSODecompiler.CodeGeneration
 			Write(node.Expression, addParens: false, isExpr: true);
 		}
 
-		protected void Write (FunctionCallNode node)
+		private void Write (FunctionCallNode node)
 		{
 			var isMethod = node.Type == FunctionCallNode.CallType.MethodCall;
 
@@ -477,7 +477,7 @@ namespace DSODecompiler.CodeGeneration
 			Write(")");
 		}
 
-		protected void Write (NewObjectNode node)
+		private void Write (NewObjectNode node)
 		{
 			Write(node.IsDataBlock ? "datablock" : "new", " ");
 			Write(node.ClassNameExpression, addParens: !node.IsDataBlock, isExpr: true);
@@ -514,7 +514,7 @@ namespace DSODecompiler.CodeGeneration
 			}
 		}
 
-		protected void Write (IfNode node, bool isTernary)
+		private void Write (IfNode node, bool isTernary)
 		{
 			if (!isTernary)
 			{
@@ -565,7 +565,7 @@ namespace DSODecompiler.CodeGeneration
 			}
 		}
 
-		protected void Write (LoopStatementNode node)
+		private void Write (LoopStatementNode node)
 		{
 			var type = node.GetLoopType();
 
@@ -621,10 +621,10 @@ namespace DSODecompiler.CodeGeneration
 			}
 		}
 
-		protected void Write (BreakStatementNode _) => Write("break");
-		protected void Write (ContinueStatementNode _) => Write("continue");
+		private void Write (BreakStatementNode _) => Write("break");
+		private void Write (ContinueStatementNode _) => Write("continue");
 
-		protected void Write (ReturnStatementNode node)
+		private void Write (ReturnStatementNode node)
 		{
 			Write("return");
 
@@ -635,7 +635,7 @@ namespace DSODecompiler.CodeGeneration
 			}
 		}
 
-		protected void Write (FunctionStatementNode node)
+		private void Write (FunctionStatementNode node)
 		{
 			Write("function", " ");
 
@@ -679,7 +679,7 @@ namespace DSODecompiler.CodeGeneration
 			WriteIndent("}");
 		}
 
-		protected void Write (PackageNode node)
+		private void Write (PackageNode node)
 		{
 			Write("package", " ", node.Name, "\n");
 			WriteIndent("{", "\n");
@@ -691,9 +691,9 @@ namespace DSODecompiler.CodeGeneration
 			WriteIndent("}");
 		}
 
-		protected void Write (string token) => tokens.Push(token);
+		private void Write (string token) => tokens.Push(token);
 
-		protected void Write (string token, bool padLeft, bool padRight)
+		private void Write (string token, bool padLeft, bool padRight)
 		{
 			if (padLeft)
 			{
@@ -708,12 +708,12 @@ namespace DSODecompiler.CodeGeneration
 			}
 		}
 
-		protected void Write (params string[] tokens) => this.tokens.Push(tokens);
+		private void Write (params string[] tokens) => this.tokens.Push(tokens);
 
-		protected void Indent () => indent++;
-		protected void Unindent () => indent--;
+		private void Indent () => indent++;
+		private void Unindent () => indent--;
 
-		protected void WriteIndent (params string[] then)
+		private void WriteIndent (params string[] then)
 		{
 			for (var i = 0; i < indent; i++)
 			{
@@ -726,9 +726,9 @@ namespace DSODecompiler.CodeGeneration
 			}
 		}
 
-		protected void WriteNewline () => tokens.Push("\n");
+		private void WriteNewline () => tokens.Push("\n");
 
-		protected string EscapeString (string str, char quoteChar)
+		private string EscapeString (string str, char quoteChar)
 		{
 			str = str.Replace("\\", "\\\\").Replace("\t", "\\\t")
 				.Replace("\r", "\\\r").Replace("\n", "\\\n")

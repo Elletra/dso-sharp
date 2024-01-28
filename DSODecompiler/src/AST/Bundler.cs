@@ -33,7 +33,7 @@ namespace DSODecompiler.AST
 			return bundle;
 		}
 
-		protected void Bundle (NodeList list)
+		private void Bundle (NodeList list)
 		{
 			foreach (var node in list)
 			{
@@ -41,7 +41,7 @@ namespace DSODecompiler.AST
 			}
 		}
 
-		protected void Bundle (Node node)
+		private void Bundle (Node node)
 		{
 			if (node is FunctionStatementNode function)
 			{

@@ -25,7 +25,7 @@ namespace DSODecompiler.AST.Nodes
 
 	public class NodeList : Node, IEnumerable<Node>
 	{
-		protected List<Node> nodes = new();
+		private List<Node> nodes = new();
 
 		public override bool IsExpression => false;
 		public int Count => nodes.Count;

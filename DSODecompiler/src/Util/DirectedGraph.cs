@@ -34,7 +34,7 @@ namespace DSODecompiler.Util
 			}
 		}
 
-		protected Dictionary<K, Node> nodes = new();
+		private Dictionary<K, Node> nodes = new();
 
 		public int Count => nodes.Count;
 

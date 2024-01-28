@@ -4,9 +4,9 @@ namespace DSODecompiler.Disassembly
 {
 	public class BytecodeReader
 	{
-		protected FileData fileData = null;
+		private FileData fileData = null;
 
-		public uint Index { get; protected set; } = 0;
+		public uint Index { get; private set; } = 0;
 
 		/**
 		 * There's probably some stupid way to nest function declarations inside each other, but that

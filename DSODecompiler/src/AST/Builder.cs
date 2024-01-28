@@ -24,8 +24,8 @@ namespace DSODecompiler.AST
 			public Exception (string message, Exception inner) : base(message, inner) { }
 		}
 
-		protected NodeList list;
-		protected NodeList parentList;
+		private NodeList list;
+		private NodeList parentList;
 
 		/// <summary>
 		/// Builds an AST tree from a tree of <seealso cref="CollapsedNode"/>s.<br/><br/>
@@ -46,7 +46,7 @@ namespace DSODecompiler.AST
 			return list;
 		}
 
-		protected void Parse (CollapsedNode root)
+		private void Parse (CollapsedNode root)
 		{
 			if (root.IsContinuePoint)
 			{
@@ -105,7 +105,7 @@ namespace DSODecompiler.AST
 			}
 		}
 
-		protected void ParseInstructions (InstructionNode node)
+		private void ParseInstructions (InstructionNode node)
 		{
 			node.Instructions.ForEach(instruction =>
 			{
@@ -451,7 +451,7 @@ namespace DSODecompiler.AST
 			});
 		}
 
-		protected void ParseSequence (SequenceNode node)
+		private void ParseSequence (SequenceNode node)
 		{
 			node.Nodes.ForEach(collapsed =>
 			{
@@ -459,7 +459,7 @@ namespace DSODecompiler.AST
 			});
 		}
 
-		protected void ParseConditional (ConditionalNode conditional)
+		private void ParseConditional (ConditionalNode conditional)
 		{
 			var testExpr = PopNode();
 
@@ -507,7 +507,7 @@ namespace DSODecompiler.AST
 			}
 		}
 
-		protected void ParseLoop (LoopNode node)
+		private void ParseLoop (LoopNode node)
 		{
 			var loop = new LoopStatementNode();
 
@@ -532,10 +532,10 @@ namespace DSODecompiler.AST
 			PushNode(loop);
 		}
 
-		protected void ParseBreak (BreakNode _) => PushNode(new BreakStatementNode());
-		protected void ParseContinue (ContinueNode _) => PushNode(new ContinueStatementNode());
+		private void ParseBreak (BreakNode _) => PushNode(new BreakStatementNode());
+		private void ParseContinue (ContinueNode _) => PushNode(new ContinueStatementNode());
 
-		protected void ParseFunction (FunctionNode node)
+		private void ParseFunction (FunctionNode node)
 		{
 			var instruction = node.Instruction;
 			var function = new FunctionStatementNode(instruction.Name, instruction.Namespace, instruction.Package)
@@ -561,7 +561,7 @@ namespace DSODecompiler.AST
 		/// <param name="node"></param>
 		/// <param name="parentNodeList"></param>
 		/// <returns></returns>
-		protected NodeList ParseChild (CollapsedNode node, NodeList parentNodeList)
+		private NodeList ParseChild (CollapsedNode node, NodeList parentNodeList)
 		{
 			return new Builder().Build(node, parentNodeList);
 		}
@@ -573,7 +573,7 @@ namespace DSODecompiler.AST
 		/// <param name="parentNodeList"></param>
 		/// <exception cref="Exception">When we got a node list with more or fewer than 1 node.</exception>
 		/// <returns></returns>
-		protected Node ParseChildExpression (CollapsedNode node, NodeList parentNodeList)
+		private Node ParseChildExpression (CollapsedNode node, NodeList parentNodeList)
 		{
 			var list = ParseChild(node, parentNodeList);
 			var count = list.Count;
@@ -586,13 +586,13 @@ namespace DSODecompiler.AST
 			return list[0];
 		}
 
-		protected Node PushNode (Node node) => list.Push(node);
+		private Node PushNode (Node node) => list.Push(node);
 
 		/// <summary>
 		/// Pops a node from the list, and if that fails, it pops a node from the parent list.
 		/// </summary>
 		/// <returns></returns>
-		protected Node PopNode ()
+		private Node PopNode ()
 		{
 			var node = list.Pop();
 
@@ -604,7 +604,7 @@ namespace DSODecompiler.AST
 			return node;
 		}
 
-		protected Node PeekNode ()
+		private Node PeekNode ()
 		{
 			var node = list.Peek();
 

@@ -10,12 +10,12 @@ namespace DSODecompiler.ControlFlow
 
 		public int Count => Body.Count;
 
-		protected List<ControlFlowNode> Body = new();
+		private List<ControlFlowNode> Body = new();
 
 		/// <summary>
 		/// For quick lookup.
 		/// </summary>
-		protected HashSet<ControlFlowNode> Nodes = new();
+		private HashSet<ControlFlowNode> Nodes = new();
 
 		public void AddNode (ControlFlowNode node)
 		{
@@ -51,7 +51,7 @@ namespace DSODecompiler.ControlFlow
 			return list;
 		}
 
-		protected Loop FindSingleLoop (ControlFlowNode header, ControlFlowNode end)
+		private Loop FindSingleLoop (ControlFlowNode header, ControlFlowNode end)
 		{
 			var loop = new Loop();
 			var visited = new HashSet<ControlFlowNode>();

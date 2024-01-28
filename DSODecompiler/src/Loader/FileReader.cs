@@ -7,7 +7,7 @@ namespace DSODecompiler.Loader
 	/// </summary>
 	public class FileReader
 	{
-		protected BinaryReader reader = null;
+		private BinaryReader reader = null;
 
 		public bool IsEOF => reader.BaseStream.Position >= reader.BaseStream.Length;
 

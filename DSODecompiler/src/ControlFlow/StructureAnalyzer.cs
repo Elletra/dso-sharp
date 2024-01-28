@@ -32,11 +32,11 @@ namespace DSODecompiler.ControlFlow
 			public Exception (string message, Exception inner) : base(message, inner) { }
 		}
 
-		protected ControlFlowGraph graph;
-		protected Dictionary<uint, CollapsedNode> collapsedNodes;
-		protected LoopFinder loopFinder;
-		protected Queue<ControlFlowNode> unreducedJumps;
-		protected HashSet<uint> continuePoints;
+		private ControlFlowGraph graph;
+		private Dictionary<uint, CollapsedNode> collapsedNodes;
+		private LoopFinder loopFinder;
+		private Queue<ControlFlowNode> unreducedJumps;
+		private HashSet<uint> continuePoints;
 
 		public CollapsedNode Analyze (ControlFlowGraph cfg)
 		{
@@ -89,7 +89,7 @@ namespace DSODecompiler.ControlFlow
 			return collapsedNodes[graph.EntryPoint];
 		}
 
-		protected bool ReduceNode (ControlFlowNode node)
+		private bool ReduceNode (ControlFlowNode node)
 		{
 			var reduced = ReduceAcyclic(node);
 
@@ -101,7 +101,7 @@ namespace DSODecompiler.ControlFlow
 			return reduced;
 		}
 
-		protected bool ReduceAcyclic (ControlFlowNode node)
+		private bool ReduceAcyclic (ControlFlowNode node)
 		{
 			if (node.LastInstruction is BranchInstruction branch && branch.IsUnconditional && !collapsedNodes.ContainsKey(node.Addr))
 			{
@@ -124,7 +124,7 @@ namespace DSODecompiler.ControlFlow
 			}
 		}
 
-		protected bool ReduceSequence (ControlFlowNode node)
+		private bool ReduceSequence (ControlFlowNode node)
 		{
 			var next = node.GetSuccessor(0);
 
@@ -143,7 +143,7 @@ namespace DSODecompiler.ControlFlow
 			return true;
 		}
 
-		protected bool ReduceConditional (ControlFlowNode node)
+		private bool ReduceConditional (ControlFlowNode node)
 		{
 			// We don't accidentally want to mistake the ends of loops as if statements.
 			if (loopFinder.IsLoopEnd(node))
@@ -219,7 +219,7 @@ namespace DSODecompiler.ControlFlow
 			return reduced;
 		}
 
-		protected bool ReduceUnconditional (ControlFlowNode node)
+		private bool ReduceUnconditional (ControlFlowNode node)
 		{
 			if (!IsUnconditional(node) || loopFinder.IsLoopEnd(node))
 			{
@@ -264,7 +264,7 @@ namespace DSODecompiler.ControlFlow
 			return false;
 		}
 
-		protected bool ReduceCyclic (ControlFlowNode node)
+		private bool ReduceCyclic (ControlFlowNode node)
 		{
 			var isSelfLoop = node.GetBranchTarget() == node;
 
@@ -303,7 +303,7 @@ namespace DSODecompiler.ControlFlow
 			return true;
 		}
 
-		protected void ReduceUnreducedJumps ()
+		private void ReduceUnreducedJumps ()
 		{
 			while (unreducedJumps.Count > 0)
 			{
@@ -358,7 +358,7 @@ namespace DSODecompiler.ControlFlow
 			}
 		}
 
-		protected CollapsedNode ExtractCollapsed (ControlFlowNode node, bool remove = true)
+		private CollapsedNode ExtractCollapsed (ControlFlowNode node, bool remove = true)
 		{
 			var collapsed = ExtractCollapsed(node.Addr);
 
@@ -390,7 +390,7 @@ namespace DSODecompiler.ControlFlow
 			return collapsed;
 		}
 
-		protected CollapsedNode ExtractCollapsed (uint key)
+		private CollapsedNode ExtractCollapsed (uint key)
 		{
 			CollapsedNode node = null;
 
@@ -403,7 +403,7 @@ namespace DSODecompiler.ControlFlow
 			return node;
 		}
 
-		protected SequenceNode ExtractSequence (ControlFlowNode node)
+		private SequenceNode ExtractSequence (ControlFlowNode node)
 		{
 			var sequence = new SequenceNode();
 
@@ -412,7 +412,7 @@ namespace DSODecompiler.ControlFlow
 			return sequence;
 		}
 
-		protected void CollapseUnconditional<T> (ControlFlowNode node, T unconditional) where T : UnconditionalNode
+		private void CollapseUnconditional<T> (ControlFlowNode node, T unconditional) where T : UnconditionalNode
 		{
 			if (unconditional is ContinueNode)
 			{
@@ -434,16 +434,16 @@ namespace DSODecompiler.ControlFlow
 			}
 		}
 
-		protected void AddCollapsed (uint addr, CollapsedNode collapsed)
+		private void AddCollapsed (uint addr, CollapsedNode collapsed)
 		{
 			collapsedNodes[addr] = collapsed;
 			collapsed.IsContinuePoint = continuePoints.Contains(addr);
 		}
 
-		protected CollapsedNode GetCollapsed (uint key) => collapsedNodes.ContainsKey(key)
+		private CollapsedNode GetCollapsed (uint key) => collapsedNodes.ContainsKey(key)
 			? collapsedNodes[key]
 			: null;
 
-		protected bool IsUnconditional (ControlFlowNode node) => node?.IsUnconditional ?? false;
+		private bool IsUnconditional (ControlFlowNode node) => node?.IsUnconditional ?? false;
 	}
 }

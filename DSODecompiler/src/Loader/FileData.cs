@@ -6,9 +6,9 @@ namespace DSODecompiler.Loader
 	{
 		public class StringTable
 		{
-			protected Dictionary<uint, string> table;
+			private Dictionary<uint, string> table;
 
-			public string RawString { get; protected set; }
+			public string RawString { get; private set; }
 
 			public int Size => RawString.Length;
 			public string this[uint index] => Get(index);
@@ -45,19 +45,19 @@ namespace DSODecompiler.Loader
 			public bool Has(uint index) => table.ContainsKey(index);
 		}
 
-		protected uint version;
+		private uint version;
 
-		protected uint[] code;
+		private uint[] code;
 
-		protected StringTable globalStrings;
-		protected StringTable functionStrings;
+		private StringTable globalStrings;
+		private StringTable functionStrings;
 
-		protected double[] globalFloats;
-		protected double[] functionFloats;
+		private double[] globalFloats;
+		private double[] functionFloats;
 
-		protected Dictionary<uint, uint> identifierTable = new();
+		private Dictionary<uint, uint> identifierTable = new();
 
-		protected List<uint> lineBreakPairs = new();
+		private List<uint> lineBreakPairs = new();
 
 		public uint Version => version;
 		public int CodeSize => code.Length;
