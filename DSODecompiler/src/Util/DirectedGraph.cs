@@ -13,12 +13,12 @@ namespace DSODecompiler.Util
 
 			public bool IsSequential => Predecessors.Count <= 1 && Successors.Count <= 1;
 
-			public Node (K key)
+			public Node(K key)
 			{
 				Key = key;
 			}
 
-			public void AddEdgeTo (Node node)
+			public void AddEdgeTo(Node node)
 			{
 				if (!Successors.Contains(node) && node != null)
 				{
@@ -27,7 +27,7 @@ namespace DSODecompiler.Util
 				}
 			}
 
-			public void RemoveEdgeTo (Node node)
+			public void RemoveEdgeTo(Node node)
 			{
 				Successors.Remove(node);
 				node.Predecessors.Remove(this);
@@ -42,14 +42,14 @@ namespace DSODecompiler.Util
 		 * Node-related methods
 		 */
 
-		public Node AddNode (Node node)
+		public Node AddNode(Node node)
 		{
 			nodes[node.Key] = node;
 
 			return node;
 		}
 
-		public void RemoveNode (Node node)
+		public void RemoveNode(Node node)
 		{
 			foreach (var successor in node.Successors.ToArray())
 			{
@@ -64,10 +64,10 @@ namespace DSODecompiler.Util
 			nodes.Remove(node.Key);
 		}
 
-		public bool HasNode (K key) => nodes.ContainsKey(key);
-		public bool HasNode (Node node) => node != null && nodes.ContainsKey(node.Key);
+		public bool HasNode(K key) => nodes.ContainsKey(key);
+		public bool HasNode(Node node) => node != null && nodes.ContainsKey(node.Key);
 
-		public T GetNode<T> (K key) where T : Node => HasNode(key) ? nodes[key] as T : null;
+		public T GetNode<T>(K key) where T : Node => HasNode(key) ? nodes[key] as T : null;
 
 		/// <summary>
 		/// Gets a list of nodes of the type specified.<br/><br/>
@@ -76,7 +76,7 @@ namespace DSODecompiler.Util
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <returns></returns>
-		protected List<T> GetNodes<T> () where T : Node
+		protected List<T> GetNodes<T>() where T : Node
 		{
 			var list = new List<T>();
 
@@ -92,7 +92,7 @@ namespace DSODecompiler.Util
 		 * Edge-related methods
 		 */
 
-		public bool AddEdge (Node from, Node to)
+		public bool AddEdge(Node from, Node to)
 		{
 			if (!HasNode(from) || !HasNode(to))
 			{
@@ -104,9 +104,9 @@ namespace DSODecompiler.Util
 			return true;
 		}
 
-		public bool AddEdge (K from, K to) => AddEdge(GetNode<Node>(from), GetNode<Node>(to));
+		public bool AddEdge(K from, K to) => AddEdge(GetNode<Node>(from), GetNode<Node>(to));
 
-		public bool RemoveEdge (Node from, Node to)
+		public bool RemoveEdge(Node from, Node to)
 		{
 			if (!HasNode(from) || !HasNode(to))
 			{
@@ -118,7 +118,7 @@ namespace DSODecompiler.Util
 			return true;
 		}
 
-		public bool RemoveEdge (K from, K to) => RemoveEdge(GetNode<Node>(from), GetNode<Node>(to));
+		public bool RemoveEdge(K from, K to) => RemoveEdge(GetNode<Node>(from), GetNode<Node>(to));
 
 		/**
 		 * Traversal methods
@@ -126,7 +126,7 @@ namespace DSODecompiler.Util
 		 * These all return `List`s instead of `IEnumerable`s so the graph can be modified during traversal.
 		 */
 
-		public List<Node> PreorderDFS (Node entry)
+		public List<Node> PreorderDFS(Node entry)
 		{
 			var nodes = new List<Node>();
 			var visited = new HashSet<Node>();
@@ -160,7 +160,7 @@ namespace DSODecompiler.Util
 			return nodes;
 		}
 
-		public List<Node> PreorderDFS (K entryKey) => PreorderDFS(GetNode<Node>(entryKey));
+		public List<Node> PreorderDFS(K entryKey) => PreorderDFS(GetNode<Node>(entryKey));
 
 		/// <summary>
 		/// Iterative postorder traversal on a cyclic graph... Good lord.<br/><br/>
@@ -170,7 +170,7 @@ namespace DSODecompiler.Util
 		/// Full credit goes to <see href="https://stackoverflow.com/a/50646181">Hans Olsson</see> on Stack Overflow.
 		/// </summary>
 		/// <returns></returns>
-		public List<Node> PostorderDFS (Node entry)
+		public List<Node> PostorderDFS(Node entry)
 		{
 			var nodes = new List<Node>();
 			var visited = new HashSet<Node>();
@@ -203,6 +203,6 @@ namespace DSODecompiler.Util
 			return nodes;
 		}
 
-		public List<Node> PostorderDFS (K entryKey) => PostorderDFS(GetNode<Node>(entryKey));
+		public List<Node> PostorderDFS(K entryKey) => PostorderDFS(GetNode<Node>(entryKey));
 	}
 }

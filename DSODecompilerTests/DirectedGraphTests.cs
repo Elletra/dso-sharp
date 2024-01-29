@@ -15,7 +15,7 @@ namespace DSODecompilerTests
 		 */
 
 		[TestMethod]
-		public void Node_AddEdgeTo_AddsEdgeProperly ()
+		public void Node_AddEdgeTo_AddsEdgeProperly()
 		{
 			var node1 = CreateNode(6);
 			var node2 = CreateNode(10);
@@ -28,7 +28,7 @@ namespace DSODecompilerTests
 		}
 
 		[TestMethod]
-		public void Node_AddEdgeTo_AddsEdgeWithNoDuplicates ()
+		public void Node_AddEdgeTo_AddsEdgeWithNoDuplicates()
 		{
 			var node1 = CreateNode(6);
 			var node2 = CreateNode(10);
@@ -53,7 +53,7 @@ namespace DSODecompilerTests
 		}
 
 		[TestMethod]
-		public void Node_RemoveEdgeTo_RemovesEdgeProperly ()
+		public void Node_RemoveEdgeTo_RemovesEdgeProperly()
 		{
 			var node1 = CreateNode(6);
 			var node2 = CreateNode(10);
@@ -70,7 +70,7 @@ namespace DSODecompilerTests
 		 */
 
 		[TestMethod]
-		public void DirectedGraph_AddEdge_AddsEdgeProperly ()
+		public void DirectedGraph_AddEdge_AddsEdgeProperly()
 		{
 			var graph = CreateGraph();
 			var node1 = graph.AddNode(CreateNode(5));
@@ -82,7 +82,7 @@ namespace DSODecompilerTests
 		}
 
 		[TestMethod]
-		public void DirectedGraph_AddEdge_FailsOnInvalidKey ()
+		public void DirectedGraph_AddEdge_FailsOnInvalidKey()
 		{
 			var graph = CreateGraph();
 
@@ -96,7 +96,7 @@ namespace DSODecompilerTests
 		}
 
 		[TestMethod]
-		public void DirectedGraph_RemoveEdge_RemovesEdgeProperly ()
+		public void DirectedGraph_RemoveEdge_RemovesEdgeProperly()
 		{
 			var graph = CreateGraph();
 			var node1 = graph.AddNode(CreateNode(5));
@@ -110,7 +110,7 @@ namespace DSODecompilerTests
 		}
 
 		[TestMethod]
-		public void DirectedGraph_PreorderDFS_VisitsInRightOrder ()
+		public void DirectedGraph_PreorderDFS_VisitsInRightOrder()
 		{
 			var graph = CreateGraph();
 
@@ -134,7 +134,7 @@ namespace DSODecompilerTests
 		}
 
 		[TestMethod]
-		public void DirectedGraph_PostorderDFS_VisitsInRightOrder ()
+		public void DirectedGraph_PostorderDFS_VisitsInRightOrder()
 		{
 			var graph = CreateGraph();
 
@@ -160,50 +160,50 @@ namespace DSODecompilerTests
 		 * Node utility methods
 		 */
 
-		private void Node_AssertHasSuccessor (TestNode node, TestNode successor, string nodeName, string successorName)
+		private void Node_AssertHasSuccessor(TestNode node, TestNode successor, string nodeName, string successorName)
 		{
 			Assert.IsTrue(node.Successors.Contains(successor), $"{successorName} not found in {nodeName}.Successors");
 		}
 
-		private void Node_AssertHasPredecessor (TestNode node, TestNode predecessor, string nodeName, string predecessorName)
+		private void Node_AssertHasPredecessor(TestNode node, TestNode predecessor, string nodeName, string predecessorName)
 		{
 			Assert.IsTrue(node.Predecessors.Contains(predecessor), $"{predecessorName} not found in {nodeName}.Predecessors");
 		}
 
-		private void Node_AssertEdge (TestNode from, TestNode to, string fromName, string toName)
+		private void Node_AssertEdge(TestNode from, TestNode to, string fromName, string toName)
 		{
 			Node_AssertHasSuccessor(from, to, fromName, toName);
 			Node_AssertHasPredecessor(to, from, toName, fromName);
 		}
 
-		private void Node_AssertNoSuccessor (TestNode node, TestNode successor, string nodeName, string successorName)
+		private void Node_AssertNoSuccessor(TestNode node, TestNode successor, string nodeName, string successorName)
 		{
 			Assert.IsFalse(node.Successors.Contains(successor), $"{successorName} was found in {nodeName}.Successors");
 		}
 
-		private void Node_AssertNoPredecessor (TestNode node, TestNode predecessor, string nodeName, string predecessorName)
+		private void Node_AssertNoPredecessor(TestNode node, TestNode predecessor, string nodeName, string predecessorName)
 		{
 			Assert.IsFalse(node.Predecessors.Contains(predecessor), $"{predecessorName} was found in {nodeName}.Predecessors");
 		}
 
-		private void Node_AssertNoEdge (TestNode from, TestNode to, string fromName, string toName)
+		private void Node_AssertNoEdge(TestNode from, TestNode to, string fromName, string toName)
 		{
 			Node_AssertNoSuccessor(from, to, fromName, toName);
 			Node_AssertNoPredecessor(to, from, toName, fromName);
 		}
 
-		private void Node_AssertSingleEdge (TestNode from, TestNode to, string fromName, string toName)
+		private void Node_AssertSingleEdge(TestNode from, TestNode to, string fromName, string toName)
 		{
 			Node_AssertEdge(from, to, fromName, toName);
 			Node_AssertNoEdge(to, from, toName, fromName);
 		}
 
-		private TestNode CreateNode (uint key) => new(key);
+		private TestNode CreateNode(uint key) => new(key);
 
 		/**
 		 * DirectedGraph utility methods
 		 */
 
-		private TestGraph CreateGraph () => new();
+		private TestGraph CreateGraph() => new();
 	}
 }

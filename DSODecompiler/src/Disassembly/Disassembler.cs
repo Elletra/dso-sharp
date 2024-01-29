@@ -10,9 +10,9 @@ namespace DSODecompiler.Disassembly
 	{
 		public class Exception : System.Exception
 		{
-			public Exception () { }
-			public Exception (string message) : base(message) { }
-			public Exception (string message, Exception inner) : base(message, inner) { }
+			public Exception() { }
+			public Exception(string message) : base(message) { }
+			public Exception(string message, Exception inner) : base(message, inner) { }
 		}
 
 		private OpcodeFactory factory;
@@ -24,12 +24,12 @@ namespace DSODecompiler.Disassembly
 		/// </summary>
 		private bool returnableValue = false;
 
-		public Disassembler (OpcodeFactory opcodeFactory)
+		public Disassembler(OpcodeFactory opcodeFactory)
 		{
 			factory = opcodeFactory;
 		}
 
-		public Disassembly Disassemble (FileData fileData)
+		public Disassembly Disassemble(FileData fileData)
 		{
 			reader = new(fileData);
 			disassembly = new();
@@ -40,7 +40,7 @@ namespace DSODecompiler.Disassembly
 			return disassembly;
 		}
 
-		private void Disassemble ()
+		private void Disassemble()
 		{
 			while (!reader.IsAtEnd)
 			{
@@ -48,7 +48,7 @@ namespace DSODecompiler.Disassembly
 			}
 		}
 
-		private void DisassembleNext ()
+		private void DisassembleNext()
 		{
 			var addr = reader.Index;
 
@@ -72,7 +72,7 @@ namespace DSODecompiler.Disassembly
 			ProcessInstruction(instruction);
 		}
 
-		private void ProcessAddress (uint addr)
+		private void ProcessAddress(uint addr)
 		{
 			if (reader.InFunction && addr >= reader.Function.EndAddr)
 			{
@@ -95,7 +95,7 @@ namespace DSODecompiler.Disassembly
 		/// <param name="op"></param>
 		/// <param name="addr"></param>
 		/// <returns></returns>
-		private Instruction DisassembleOpcode (Opcode opcode, uint addr)
+		private Instruction DisassembleOpcode(Opcode opcode, uint addr)
 		{
 			switch (opcode.StringValue)
 			{
@@ -295,14 +295,14 @@ namespace DSODecompiler.Disassembly
 			}
 		}
 
-		private void ProcessInstruction (Instruction instruction)
+		private void ProcessInstruction(Instruction instruction)
 		{
 			ValidateInstruction(instruction);
 			SetReturnableValue(instruction);
 			AddInstruction(instruction);
 		}
 
-		private void ValidateInstruction (Instruction instruction)
+		private void ValidateInstruction(Instruction instruction)
 		{
 			switch (instruction)
 			{
@@ -348,7 +348,7 @@ namespace DSODecompiler.Disassembly
 			}
 		}
 
-		private void SetReturnableValue (Instruction instruction)
+		private void SetReturnableValue(Instruction instruction)
 		{
 			switch (instruction.Opcode.ReturnValue)
 			{
@@ -370,12 +370,12 @@ namespace DSODecompiler.Disassembly
 			}
 		}
 
-		private void AddInstruction (Instruction instruction)
+		private void AddInstruction(Instruction instruction)
 		{
 			disassembly.AddInstruction(instruction);
 		}
 
-		private void MarkBranchTargets ()
+		private void MarkBranchTargets()
 		{
 			foreach (var instruction in disassembly.GetInstructions())
 			{

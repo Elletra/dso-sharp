@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Reflection.Emit;
-using System.Reflection.Metadata;
-
-namespace DSODecompiler.Opcodes
+﻿namespace DSODecompiler.Opcodes
 {
 	public enum ReturnValue : sbyte
 	{
@@ -38,7 +34,7 @@ namespace DSODecompiler.Opcodes
 		public bool HasValue => _value.HasValue;
 		public bool IsValid => HasValue && StringValue != null;
 
-		public Opcode (uint? value, string stringValue, ReturnValue returnValue, TypeReq typeReq)
+		public Opcode(uint? value, string stringValue, ReturnValue returnValue, TypeReq typeReq)
 		{
 			_value = value;
 			StringValue = stringValue;
@@ -46,13 +42,13 @@ namespace DSODecompiler.Opcodes
 			TypeReq = typeReq;
 		}
 
-		public override bool Equals (object obj) => obj is Opcode opcode
+		public override bool Equals(object obj) => obj is Opcode opcode
 			&& Equals(opcode.Value, Value)
 			&& Equals(opcode.StringValue, StringValue)
 			&& Equals(opcode.ReturnValue, ReturnValue)
 			&& Equals(opcode.TypeReq, TypeReq);
 
-		public override int GetHashCode () => Value.GetHashCode()
+		public override int GetHashCode() => Value.GetHashCode()
 			^ (StringValue?.GetHashCode() ?? 0)
 			^ ReturnValue.GetHashCode()
 			^ TypeReq.GetHashCode();

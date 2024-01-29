@@ -17,7 +17,7 @@ namespace DSODecompiler.ControlFlow
 		/// </summary>
 		private HashSet<ControlFlowNode> Nodes = new();
 
-		public void AddNode (ControlFlowNode node)
+		public void AddNode(ControlFlowNode node)
 		{
 			if (!Nodes.Contains(node))
 			{
@@ -26,14 +26,14 @@ namespace DSODecompiler.ControlFlow
 			}
 		}
 
-		public bool HasNode (ControlFlowNode node) => Nodes.Contains(node);
+		public bool HasNode(ControlFlowNode node) => Nodes.Contains(node);
 
-		public List<ControlFlowNode> GetBody () => new(Body);
+		public List<ControlFlowNode> GetBody() => new(Body);
 	}
 
 	public class LoopFinder
 	{
-		public List<Loop> Find (ControlFlowNode header)
+		public List<Loop> Find(ControlFlowNode header)
 		{
 			var list = new List<Loop>();
 
@@ -51,7 +51,7 @@ namespace DSODecompiler.ControlFlow
 			return list;
 		}
 
-		private Loop FindSingleLoop (ControlFlowNode header, ControlFlowNode end)
+		private Loop FindSingleLoop(ControlFlowNode header, ControlFlowNode end)
 		{
 			var loop = new Loop();
 			var visited = new HashSet<ControlFlowNode>();
@@ -83,7 +83,7 @@ namespace DSODecompiler.ControlFlow
 			return loop;
 		}
 
-		public bool IsLoopStart (ControlFlowNode node)
+		public bool IsLoopStart(ControlFlowNode node)
 		{
 			return node != null && node.Predecessors.Any(pred =>
 			{
@@ -93,7 +93,7 @@ namespace DSODecompiler.ControlFlow
 			});
 		}
 
-		public bool IsLoopEnd (ControlFlowNode node)
+		public bool IsLoopEnd(ControlFlowNode node)
 		{
 			return node != null && node.Successors.Any(succ =>
 			{
@@ -103,9 +103,9 @@ namespace DSODecompiler.ControlFlow
 			});
 		}
 
-		public bool IsLoopNode (ControlFlowNode node) => IsLoopStart(node) || IsLoopEnd(node);
+		public bool IsLoopNode(ControlFlowNode node) => IsLoopStart(node) || IsLoopEnd(node);
 
-		public bool IsLoop (ControlFlowNode start, ControlFlowNode end) => IsLoopStart(start) && IsLoopEnd(end)
+		public bool IsLoop(ControlFlowNode start, ControlFlowNode end) => IsLoopStart(start) && IsLoopEnd(end)
 			&& start.Predecessors.Any(pred => pred == end)
 			&& start.Dominates(end, strictly: false);
 	}

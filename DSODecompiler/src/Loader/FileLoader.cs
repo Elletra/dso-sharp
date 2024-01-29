@@ -7,9 +7,9 @@
 	{
 		public class Exception : System.Exception
 		{
-			public Exception () {}
-			public Exception (string message) : base (message) {}
-			public Exception (string message, System.Exception inner) : base (message, inner) {}
+			public Exception() { }
+			public Exception(string message) : base(message) { }
+			public Exception(string message, System.Exception inner) : base(message, inner) { }
 		}
 
 		private FileReader reader = null;
@@ -23,7 +23,7 @@
 		/// <param name="filePath"></param>
 		/// <param name="version"></param>
 		/// <returns><see cref="FileData"/> instance containing the parsed data.</returns>
-		public FileData LoadFile (string filePath, uint version)
+		public FileData LoadFile(string filePath, uint version)
 		{
 			reader = new FileReader(filePath);
 
@@ -46,7 +46,7 @@
 		/// </summary>
 		/// <exception cref="Exception">If file has the wrong version.</exception>
 		/// <param name="data"></param>
-		private void ReadHeader (FileData data)
+		private void ReadHeader(FileData data)
 		{
 			var fileVersion = reader.ReadUInt();
 
@@ -56,14 +56,14 @@
 			}
 		}
 
-		private void ReadStringTable (FileData data, bool global)
+		private void ReadStringTable(FileData data, bool global)
 		{
 			var table = reader.ReadString(reader.ReadUInt());
 
 			data.CreateStringTable(UnencryptString(table), global);
 		}
 
-		private void ReadFloatTable (FileData data, bool global)
+		private void ReadFloatTable(FileData data, bool global)
 		{
 			var size = reader.ReadUInt();
 
@@ -75,7 +75,7 @@
 			}
 		}
 
-		private void ReadCode (FileData data)
+		private void ReadCode(FileData data)
 		{
 			var size = reader.ReadUInt();
 			var lineBreaks = reader.ReadUInt();
@@ -97,7 +97,7 @@
 		/// <param name="data"></param>
 		/// <param name="codeSize"></param>
 		/// <param name="numPairs"></param>
-		private void ReadLineBreaks (FileData data, uint codeSize, uint numPairs)
+		private void ReadLineBreaks(FileData data, uint codeSize, uint numPairs)
 		{
 			var totalSize = codeSize + numPairs * 2;
 
@@ -111,7 +111,7 @@
 		/// Reads identifier table to insert proper string table indices into parts of the code.
 		/// </summary>
 		/// <param name="data"></param>
-		private void ReadIdentifierTable (FileData data)
+		private void ReadIdentifierTable(FileData data)
 		{
 			var identifiers = reader.ReadUInt();
 
@@ -135,7 +135,7 @@
 		/// </summary>
 		/// <param name="str"></param>
 		/// <returns>The unencrypted string.</returns>
-		private string UnencryptString (string str)
+		private string UnencryptString(string str)
 		{
 			var key = "cl3buotro";
 			var unencrypted = "";

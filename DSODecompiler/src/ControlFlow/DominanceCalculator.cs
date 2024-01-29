@@ -21,7 +21,7 @@ namespace DSODecompiler.ControlFlow
 		private List<ControlFlowNode> reversePostorder;
 		private ControlFlowGraph graph;
 
-		public void Calculate (ControlFlowGraph cfg)
+		public void Calculate(ControlFlowGraph cfg)
 		{
 			graph = cfg;
 
@@ -29,7 +29,7 @@ namespace DSODecompiler.ControlFlow
 			Calculate();
 		}
 
-		private void Calculate ()
+		private void Calculate()
 		{
 			var entry = graph.GetEntryPoint();
 			var changed = true;
@@ -48,7 +48,7 @@ namespace DSODecompiler.ControlFlow
 					}
 
 					ControlFlowNode newIDom = null;
-					
+
 					foreach (ControlFlowNode predecessor in node.Predecessors)
 					{
 						// Ignore predecessors that haven't been processed yet. Since we set the
@@ -76,7 +76,7 @@ namespace DSODecompiler.ControlFlow
 			}
 		}
 
-		private ControlFlowNode FindCommonDominator (ControlFlowNode node1, ControlFlowNode node2)
+		private ControlFlowNode FindCommonDominator(ControlFlowNode node1, ControlFlowNode node2)
 		{
 			var finger1 = node1;
 			var finger2 = node2;
@@ -99,7 +99,7 @@ namespace DSODecompiler.ControlFlow
 			return finger1;
 		}
 
-		private void CalculateReversePostorder ()
+		private void CalculateReversePostorder()
 		{
 			reversePostorder = new();
 

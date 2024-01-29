@@ -18,7 +18,7 @@ namespace DSODecompiler.Disassembly
 		private List<InstructionBlock> blocks;
 		private InstructionBlock currBlock;
 
-		public List<InstructionBlock> Split (Disassembly disassembly)
+		public List<InstructionBlock> Split(Disassembly disassembly)
 		{
 			blocks = new();
 			currBlock = null;
@@ -28,7 +28,7 @@ namespace DSODecompiler.Disassembly
 			return blocks;
 		}
 
-		private void Split (List<Instruction> instructions)
+		private void Split(List<Instruction> instructions)
 		{
 			foreach (var instruction in instructions)
 			{
@@ -52,7 +52,7 @@ namespace DSODecompiler.Disassembly
 		/// </summary>
 		/// <param name="instruction"></param>
 		/// <returns></returns>
-		private bool ShouldCreateBlock (Instruction instruction)
+		private bool ShouldCreateBlock(Instruction instruction)
 		{
 			return currBlock == null
 				|| instruction is FunctionInstruction

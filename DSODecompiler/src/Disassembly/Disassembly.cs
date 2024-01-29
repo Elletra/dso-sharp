@@ -11,17 +11,17 @@ namespace DSODecompiler.Disassembly
 		 * Instruction methods
 		 */
 
-		public Instruction AddInstruction (Instruction instruction)
+		public Instruction AddInstruction(Instruction instruction)
 		{
 			instructions[instruction.Addr] = instruction;
 
 			return instruction;
 		}
 
-		public Instruction GetInstruction (uint addr) => HasInstruction(addr) ? instructions[addr] : null;
-		public bool HasInstruction (uint addr) => instructions.ContainsKey(addr);
+		public Instruction GetInstruction(uint addr) => HasInstruction(addr) ? instructions[addr] : null;
+		public bool HasInstruction(uint addr) => instructions.ContainsKey(addr);
 
-		public List<Instruction> GetInstructions ()
+		public List<Instruction> GetInstructions()
 		{
 			var values = new List<Instruction>(instructions.Values);
 
@@ -35,13 +35,13 @@ namespace DSODecompiler.Disassembly
 		/// Returns the instructions split up by function/block.
 		/// </summary>
 		/// <returns></returns>
-		public List<InstructionBlock> GetSplitInstructions () => new DisassemblySplitter().Split(this);
+		public List<InstructionBlock> GetSplitInstructions() => new DisassemblySplitter().Split(this);
 
 		/**
 		 * Branch target methods
 		 */
 
-		public void AddBranchTarget (uint addr) => branchTargets.Add(addr);
-		public bool HasBranchTarget (uint addr) => branchTargets.Contains(addr);
+		public void AddBranchTarget(uint addr) => branchTargets.Add(addr);
+		public bool HasBranchTarget(uint addr) => branchTargets.Contains(addr);
 	}
 }

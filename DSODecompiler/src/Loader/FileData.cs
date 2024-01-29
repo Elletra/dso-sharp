@@ -13,7 +13,7 @@ namespace DSODecompiler.Loader
 			public int Size => RawString.Length;
 			public string this[uint index] => Get(index);
 
-			public StringTable (string rawStr)
+			public StringTable(string rawStr)
 			{
 				table = new Dictionary<uint, string>();
 				RawString = rawStr;
@@ -62,29 +62,29 @@ namespace DSODecompiler.Loader
 		public uint Version => version;
 		public int CodeSize => code.Length;
 
-		public FileData (uint version)
+		public FileData(uint version)
 		{
 			this.version = version;
 		}
 
-		public void InitCode (uint size) => code = new uint[size];
+		public void InitCode(uint size) => code = new uint[size];
 
-		public bool HasString (uint index, bool global) => (global ? globalStrings : functionStrings).Has(index);
-		public bool HasFloat (uint index, bool global) => index < (global ? globalFloats : functionFloats).Length;
-		public bool HasIdentifierAt (uint addr) => identifierTable.ContainsKey(addr);
+		public bool HasString(uint index, bool global) => (global ? globalStrings : functionStrings).Has(index);
+		public bool HasFloat(uint index, bool global) => index < (global ? globalFloats : functionFloats).Length;
+		public bool HasIdentifierAt(uint addr) => identifierTable.ContainsKey(addr);
 
-		public string GetStringTableValue (uint index, bool global) => (global ? globalStrings : functionStrings)[index];
-		public double GetFloatTableValue (uint index, bool global) => (global ? globalFloats : functionFloats)[index];
-		public string GetIdentifer (uint addr, uint index) => HasIdentifierAt(addr) ? GetStringTableValue(index, true) : null;
-		public uint GetOp (uint index) => code[index];
+		public string GetStringTableValue(uint index, bool global) => (global ? globalStrings : functionStrings)[index];
+		public double GetFloatTableValue(uint index, bool global) => (global ? globalFloats : functionFloats)[index];
+		public string GetIdentifer(uint addr, uint index) => HasIdentifierAt(addr) ? GetStringTableValue(index, true) : null;
+		public uint GetOp(uint index) => code[index];
 
-		public void SetFloat (uint index, double value, bool global) => (global ? globalFloats : functionFloats)[index] = value;
-		public void SetIdentifier (uint addr, uint index) => identifierTable[addr] = index;
-		public void SetOp (uint index, uint op) => code[index] = op;
+		public void SetFloat(uint index, double value, bool global) => (global ? globalFloats : functionFloats)[index] = value;
+		public void SetIdentifier(uint addr, uint index) => identifierTable[addr] = index;
+		public void SetOp(uint index, uint op) => code[index] = op;
 
-		public void AddLineBreakPair (uint value) => lineBreakPairs.Add(value);
+		public void AddLineBreakPair(uint value) => lineBreakPairs.Add(value);
 
-		public void CreateStringTable (string table, bool global)
+		public void CreateStringTable(string table, bool global)
 		{
 			if (global)
 			{
@@ -96,7 +96,7 @@ namespace DSODecompiler.Loader
 			}
 		}
 
-		public void CreateFloatTable (uint size, bool global)
+		public void CreateFloatTable(uint size, bool global)
 		{
 			if (global)
 			{

@@ -4,7 +4,7 @@ namespace DSODecompiler.Disassembly
 {
 	public class DisassemblyWriter
 	{
-		public void WriteToFile (Disassembly disassembly, string filePath)
+		public void WriteToFile(Disassembly disassembly, string filePath)
 		{
 			using (var writer = new StreamWriter(filePath))
 			{

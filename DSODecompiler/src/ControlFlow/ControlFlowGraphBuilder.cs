@@ -10,14 +10,14 @@ namespace DSODecompiler.ControlFlow
 	{
 		public class Exception : System.Exception
 		{
-			public Exception () {}
-			public Exception (string message) : base(message) {}
-			public Exception (string message, Exception inner) : base(message, inner) {}
+			public Exception() { }
+			public Exception(string message) : base(message) { }
+			public Exception(string message, Exception inner) : base(message, inner) { }
 		}
 
 		private Dictionary<uint, ControlFlowGraph> graphs;
 
-		public Dictionary<uint, ControlFlowGraph> Build (Disassembly.Disassembly disassembly)
+		public Dictionary<uint, ControlFlowGraph> Build(Disassembly.Disassembly disassembly)
 		{
 			graphs = new();
 
@@ -39,7 +39,7 @@ namespace DSODecompiler.ControlFlow
 		/// </summary>
 		/// <param name="disassembly"></param>
 		/// <param name="block"></param>
-		private void BuildInitialGraph (Disassembly.Disassembly disassembly, InstructionBlock block)
+		private void BuildInitialGraph(Disassembly.Disassembly disassembly, InstructionBlock block)
 		{
 			var graph = CreateGraph(block.First.Addr);
 
@@ -96,12 +96,12 @@ namespace DSODecompiler.ControlFlow
 		/// A hack for an edge case where a function declaration follows a conditional. We insert a
 		/// dummy node for the next address so they connect properly.
 		/// </summary>
-		private void CreateDummyNode (ControlFlowGraph graph, uint addr)
+		private void CreateDummyNode(ControlFlowGraph graph, uint addr)
 		{
 			graph.AddNode(addr).IsDummyNode = true;
 		}
 
-		private ControlFlowGraph CreateGraph (uint addr)
+		private ControlFlowGraph CreateGraph(uint addr)
 		{
 			var graph = new ControlFlowGraph();
 
@@ -115,7 +115,7 @@ namespace DSODecompiler.ControlFlow
 		///
 		/// It's much easier to do this in a second pass.
 		/// </summary>
-		private void ConnectBranches ()
+		private void ConnectBranches()
 		{
 			foreach (var (_, graph) in graphs)
 			{

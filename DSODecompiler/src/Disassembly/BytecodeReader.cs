@@ -20,16 +20,13 @@ namespace DSODecompiler.Disassembly
 		public int Size => fileData.CodeSize;
 		public bool IsAtEnd => Index >= fileData.CodeSize;
 
-		public BytecodeReader (FileData data)
-		{
-			fileData = data;
-		}
+		public BytecodeReader(FileData data) => fileData = data;
 
-		public uint Read () => fileData.GetOp(Index++);
-		public bool ReadBool () => Read() != 0;
-		public char ReadChar () => (char) Read();
-		public string ReadIdent () => fileData.GetIdentifer(Index, Read());
-		public string ReadString () => fileData.GetStringTableValue(Read(), global: !InFunction);
-		public double ReadDouble () => fileData.GetFloatTableValue(Read(), global: !InFunction);
+		public uint Read() => fileData.GetOp(Index++);
+		public bool ReadBool() => Read() != 0;
+		public char ReadChar() => (char) Read();
+		public string ReadIdent() => fileData.GetIdentifer(Index, Read());
+		public string ReadString() => fileData.GetStringTableValue(Read(), global: !InFunction);
+		public double ReadDouble() => fileData.GetFloatTableValue(Read(), global: !InFunction);
 	}
 }

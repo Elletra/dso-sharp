@@ -11,23 +11,23 @@ namespace DSODecompiler.Loader
 
 		public bool IsEOF => reader.BaseStream.Position >= reader.BaseStream.Length;
 
-		public FileReader (string filePath)
+		public FileReader(string filePath)
 		{
 			reader = new BinaryReader(new FileStream(filePath, FileMode.Open));
 		}
 
-		public byte ReadByte () => reader.ReadByte();
-		public uint ReadUInt () => reader.ReadUInt32();
-		public double ReadDouble () => reader.ReadDouble();
+		public byte ReadByte() => reader.ReadByte();
+		public uint ReadUInt() => reader.ReadUInt32();
+		public double ReadDouble() => reader.ReadDouble();
 
-		public uint ReadOp ()
+		public uint ReadOp()
 		{
 			var op = ReadByte();
 
 			return op == 0xFF ? ReadUInt() : op;
 		}
 
-		public string ReadString (uint numChars)
+		public string ReadString(uint numChars)
 		{
 			string str = "";
 

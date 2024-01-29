@@ -8,7 +8,7 @@ namespace DSODecompiler
 {
 	class Program
 	{
-		static void Main (string[] args)
+		static void Main()
 		{
 			var fileName = "test";
 			var loader = new FileLoader();
@@ -16,7 +16,7 @@ namespace DSODecompiler
 			Console.WriteLine($"Loading file {fileName}...");
 
 			var fileData = loader.LoadFile($"{fileName}.cs.dso", 210);
-			var disassembler = new Disassembler(new OpcodeFactory());
+			var disassembler = new Disassembler(new OpcodeFactory(Blockland.V21.Opcodes.Strings));
 
 			Console.WriteLine("Disassembling...");
 

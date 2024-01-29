@@ -37,19 +37,19 @@ namespace DSODecompiler.ControlFlow
 
 		public Instruction LastInstruction => Instructions.Count > 0 ? Instructions[^1] : null;
 
-		public ControlFlowNode (uint key) : base(key) {}
+		public ControlFlowNode(uint key) : base(key) {}
 
-		public ControlFlowNode GetSuccessor (int index) => Successors.Count > index
+		public ControlFlowNode GetSuccessor(int index) => Successors.Count > index
 			? Successors[index] as ControlFlowNode
 			: null;
 
-		public ControlFlowNode GetPredecessor (int index) => Predecessors.Count > index
+		public ControlFlowNode GetPredecessor(int index) => Predecessors.Count > index
 			? Predecessors[index] as ControlFlowNode
 			: null;
 
-		public ControlFlowNode GetBranchTarget () => Successors.Count < 2 ? GetSuccessor(0) : GetSuccessor(1);
+		public ControlFlowNode GetBranchTarget() => Successors.Count < 2 ? GetSuccessor(0) : GetSuccessor(1);
 
-		public Instruction AddInstruction (Instruction instruction)
+		public Instruction AddInstruction(Instruction instruction)
 		{
 			Instructions.Add(instruction);
 
@@ -62,7 +62,7 @@ namespace DSODecompiler.ControlFlow
 		/// <param name="target"></param>
 		/// <param name="strictly"></param>
 		/// <returns></returns>
-		public bool Dominates (ControlFlowNode target, bool strictly = false)
+		public bool Dominates(ControlFlowNode target, bool strictly = false)
 		{
 			// All nodes dominate themselves, but not strictly.
 			if (this == target)
@@ -93,10 +93,10 @@ namespace DSODecompiler.ControlFlow
 		public FunctionInstruction FunctionInstruction { get; set; } = null;
 		public bool IsFunction => FunctionInstruction != null;
 
-		public ControlFlowNode AddNode (uint addr) => AddNode(new ControlFlowNode(addr)) as ControlFlowNode;
-		public ControlFlowNode GetNode (uint key) => GetNode<ControlFlowNode>(key);
+		public ControlFlowNode AddNode(uint addr) => AddNode(new ControlFlowNode(addr)) as ControlFlowNode;
+		public ControlFlowNode GetNode(uint key) => GetNode<ControlFlowNode>(key);
 
-		public List<ControlFlowNode> GetNodes ()
+		public List<ControlFlowNode> GetNodes()
 		{
 			var list = GetNodes<ControlFlowNode>();
 
@@ -106,9 +106,9 @@ namespace DSODecompiler.ControlFlow
 			return list;
 		}
 
-		public ControlFlowNode GetEntryPoint () => GetNode(EntryPoint);
+		public ControlFlowNode GetEntryPoint() => GetNode(EntryPoint);
 
-		public List<Node> PreorderDFS () => PreorderDFS(EntryPoint);
-		public List<Node> PostorderDFS () => PostorderDFS(EntryPoint);
+		public List<Node> PreorderDFS() => PreorderDFS(EntryPoint);
+		public List<Node> PostorderDFS() => PostorderDFS(EntryPoint);
 	}
 }
