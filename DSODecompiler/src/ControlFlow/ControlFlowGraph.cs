@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using DSODecompiler.Disassembly;
 using DSODecompiler.Util;
@@ -34,10 +35,9 @@ namespace DSODecompiler.ControlFlow
 		public bool IsUnconditional => LastInstruction is BranchInstruction branch && branch.IsUnconditional;
 
 		public Instruction FirstInstruction => Instructions.Count > 0 ? Instructions[0] : null;
-
 		public Instruction LastInstruction => Instructions.Count > 0 ? Instructions[^1] : null;
 
-		public ControlFlowNode(uint key) : base(key) {}
+		public ControlFlowNode(uint key) : base(key) { }
 
 		public ControlFlowNode GetSuccessor(int index) => Successors.Count > index
 			? Successors[index] as ControlFlowNode
@@ -81,7 +81,7 @@ namespace DSODecompiler.ControlFlow
 		}
 	}
 
-	public class ControlFlowGraph : DirectedGraph<uint>
+	public class ControlFlowGraph : DirectedGraph<uint>, IComparable
 	{
 		/// <summary>
 		/// There must be a better way than to make this a public, settable value...<br/><br/>
@@ -110,5 +110,20 @@ namespace DSODecompiler.ControlFlow
 
 		public List<Node> PreorderDFS() => PreorderDFS(EntryPoint);
 		public List<Node> PostorderDFS() => PostorderDFS(EntryPoint);
+
+		int IComparable.CompareTo(object obj)
+		{
+			if (obj == null)
+			{
+				return -1;
+			}
+
+			if (obj is not ControlFlowGraph cfg)
+			{
+				throw new ArgumentException($"{obj} is not a ControlFlowGraph");
+			}
+
+			return cfg.EntryPoint > EntryPoint ? -1 : Convert.ToInt32(cfg.EntryPoint < EntryPoint);
+		}
 	}
 }
