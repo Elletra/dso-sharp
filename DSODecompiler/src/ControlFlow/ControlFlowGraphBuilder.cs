@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using DSODecompiler.Disassembly;
 
 namespace DSODecompiler.ControlFlow
@@ -15,9 +16,9 @@ namespace DSODecompiler.ControlFlow
 			public Exception(string message, Exception inner) : base(message, inner) { }
 		}
 
-		private Dictionary<uint, ControlFlowGraph> graphs;
+		private List<ControlFlowGraph> graphs;
 
-		public Dictionary<uint, ControlFlowGraph> Build(Disassembly.Disassembly disassembly)
+		public List<ControlFlowGraph> Build(Disassembly.Disassembly disassembly)
 		{
 			graphs = new();
 
@@ -27,6 +28,8 @@ namespace DSODecompiler.ControlFlow
 			}
 
 			ConnectBranches();
+
+			graphs.Sort();
 
 			return graphs;
 		}
@@ -41,7 +44,7 @@ namespace DSODecompiler.ControlFlow
 		/// <param name="block"></param>
 		private void BuildInitialGraph(Disassembly.Disassembly disassembly, InstructionBlock block)
 		{
-			var graph = CreateGraph(block.First.Addr);
+			var graph = CreateGraph();
 
 			ControlFlowNode currNode = null;
 
@@ -101,11 +104,11 @@ namespace DSODecompiler.ControlFlow
 			graph.AddNode(addr).IsDummyNode = true;
 		}
 
-		private ControlFlowGraph CreateGraph(uint addr)
+		private ControlFlowGraph CreateGraph()
 		{
 			var graph = new ControlFlowGraph();
 
-			graphs[addr] = graph;
+			graphs.Add(graph);
 
 			return graph;
 		}
@@ -117,7 +120,7 @@ namespace DSODecompiler.ControlFlow
 		/// </summary>
 		private void ConnectBranches()
 		{
-			foreach (var (_, graph) in graphs)
+			foreach (var graph in graphs)
 			{
 				foreach (ControlFlowNode node in graph.GetNodes())
 				{
