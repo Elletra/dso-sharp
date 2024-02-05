@@ -1,18 +1,36 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
+
+using DSODecompiler.ControlFlow;
 
 namespace DSODecompiler.Disassembly
 {
 	public class DisassemblyWriter
 	{
-		public void WriteToFile(Disassembly disassembly, string filePath)
+		public void WriteToFile(Disassembly disassembly, string filePath, List<ControlFlowGraph> cfgs = null)
 		{
-			using (var writer = new StreamWriter(filePath))
+			var cfgIndex = 0;
+
+            using var writer = new StreamWriter(filePath);
+
+			foreach (var instruction in disassembly.GetInstructions())
 			{
-				foreach (var instruction in disassembly.GetInstructions())
+				if (cfgs != null)
 				{
-					writer.WriteLine(string.Format("{0, -8}  {1}", instruction.Addr, instruction));
-					writer.Flush();
+					if (cfgIndex + 1 < cfgs.Count && cfgs[cfgIndex + 1].EntryPoint == instruction.Addr)
+					{
+						writer.WriteLine($"###### Graph {instruction.Addr}:");
+						cfgIndex++;
+					}
+
+					if (cfgs[cfgIndex].HasNode(instruction.Addr))
+					{
+						writer.WriteLine($"    ### Node {instruction.Addr}:");
+					}
 				}
+
+				writer.WriteLine(string.Format("        {0, -8}  {1}", instruction.Addr, instruction));
+				writer.Flush();
 			}
 		}
 	}
