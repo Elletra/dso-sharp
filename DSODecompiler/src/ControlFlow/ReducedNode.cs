@@ -66,7 +66,7 @@ namespace DSODecompiler.ControlFlow
 
 	public class LoopNode : ReducedNode
 	{
-		public SequenceNode Body = new();
+		public ReducedNode Body = null;
 
 		public override uint Addr => Body.Addr;
 	}

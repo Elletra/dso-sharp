@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DSODecompiler.ControlFlow
 {
@@ -11,11 +12,14 @@ namespace DSODecompiler.ControlFlow
 		{
 			graph = cfg;
 
+			new DominanceCalculator().Calculate(cfg);
+
 			while (graph.Count > 1)
 			{
 				foreach (ControlFlowNode node in cfg.PostorderDFS())
 				{
 					// TODO: Handle functions
+					// TODO: Handle breaks and continues
 
 					var reduced = true;
 
@@ -31,11 +35,62 @@ namespace DSODecompiler.ControlFlow
 
 		private bool Reduce(ControlFlowNode node)
 		{
+			var reduced = !IsLoopEnd(node) && ReduceAcyclic(node);
+
+			if (!reduced && IsLoopStart(node))
+			{
+				reduced = ReduceCyclic(node);
+			}
+
+			return reduced;
+		}
+
+		private bool ReduceCyclic(ControlFlowNode start)
+		{
+			ControlFlowNode end;
+
+			if (IsLoop(start, start))
+			{
+				end = start;
+			}
+			else if (IsLoop(start, start.GetSuccessor(0)))
+			{
+				end = start.GetSuccessor(0);
+			}
+			else
+			{
+				return false;
+			}
+
+			start.ReducedNode = new LoopNode()
+			{
+				Body = start == end
+					? (start.ReducedNode ?? new InstructionsNode(start))
+					: new SequenceNode(
+						start.ReducedNode ?? new InstructionsNode(start),
+						end.ReducedNode ?? new InstructionsNode(end)
+					),
+			};
+
+			start.AddEdgeTo(end.GetSuccessor(0));
+			start.RemoveEdgeTo(end);
+
+			if (start != end)
+			{
+				graph.RemoveNode(end);
+			}
+
+			return true;
+		}
+
+		private bool ReduceAcyclic(ControlFlowNode node)
+		{
 			var reduced = false;
 
 			switch(node.Successors.Count)
 			{
 				case 0:
+					reduced = ReduceEnd(node);
 					break;
 
 				case 1:
@@ -53,12 +108,24 @@ namespace DSODecompiler.ControlFlow
 			return reduced;
 		}
 
+		private bool ReduceEnd(ControlFlowNode node)
+		{
+			var reduced = false;
+
+			if (node.ReducedNode == null)
+			{
+				node.ReducedNode = new InstructionsNode(node);
+				reduced = true;
+			}
+
+			return reduced;
+		}
+
 		private bool ReduceSequence(ControlFlowNode node)
 		{
 			var successor = node.GetSuccessor(0);
 
-			// TODO: Check for loops
-			if (successor.Successors.Count > 1 || successor.Predecessors.Count > 1)
+			if (successor.Successors.Count > 1 || successor.Predecessors.Count > 1 || IsLoopNode(successor))
 			{
 				return false;
 			}
@@ -116,7 +183,7 @@ namespace DSODecompiler.ControlFlow
 
 					graph.RemoveNode(then);
 
-					// We want to make sure the target stays the same... It's a bit of sloppy way of
+					// We want to make sure the target stays the same... A bit of sloppy way of
 					// doing this but that's okay.
 					node.RemoveEdgeTo(target);
 					node.AddEdgeTo(thenSucc);
@@ -163,6 +230,23 @@ namespace DSODecompiler.ControlFlow
 			}
 
 			return reduced;
+		}
+
+		bool IsLoopStart(ControlFlowNode node)
+		{
+			return node.Predecessors.Any(predecessor => node.Dominates((ControlFlowNode) predecessor, strictly: false));
+		}
+
+		bool IsLoopEnd(ControlFlowNode node)
+		{
+			return node.Successors.Any(successor => (successor as ControlFlowNode).Dominates(node, strictly: false));
+		}
+
+		bool IsLoopNode(ControlFlowNode node) => IsLoopStart(node) || IsLoopEnd(node);
+
+		bool IsLoop(ControlFlowNode start, ControlFlowNode end)
+		{
+			return start.Dominates(end, strictly: false) && start.Predecessors.Any(predecessor => predecessor == end);
 		}
 	}
 }
