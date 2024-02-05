@@ -10,12 +10,12 @@ namespace DSODecompiler.ControlFlow
 
 		public int Count => Body.Count;
 
-		private List<ControlFlowNode> Body = new();
+		private readonly List<ControlFlowNode> Body = new();
 
 		/// <summary>
 		/// For quick lookup.
 		/// </summary>
-		private HashSet<ControlFlowNode> Nodes = new();
+		private readonly HashSet<ControlFlowNode> Nodes = new();
 
 		public void AddNode(ControlFlowNode node)
 		{

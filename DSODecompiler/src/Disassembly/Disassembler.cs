@@ -15,7 +15,7 @@ namespace DSODecompiler.Disassembly
 			public Exception(string message, Exception inner) : base(message, inner) { }
 		}
 
-		private OpcodeFactory factory;
+		private readonly OpcodeFactory factory;
 		private BytecodeReader reader;
 		private Disassembly disassembly;
 
@@ -62,12 +62,8 @@ namespace DSODecompiler.Disassembly
 				throw new Exception($"Invalid opcode {value} at {addr}");
 			}
 
-			var instruction = DisassembleOpcode(opcode, addr);
-
-			if (instruction == null)
-			{
-				throw new Exception($"Failed to disassemble opcode {opcode.Value} at {addr}");
-			}
+			var instruction = DisassembleOpcode(opcode, addr)
+				?? throw new Exception($"Failed to disassemble opcode {opcode.Value} at {addr}");
 
 			ProcessInstruction(instruction);
 		}

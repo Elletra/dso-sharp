@@ -4,7 +4,7 @@ namespace DSODecompiler.Disassembly
 {
 	public class BytecodeReader
 	{
-		private FileData fileData = null;
+		private readonly FileData fileData = null;
 
 		public uint Index { get; private set; } = 0;
 
