@@ -32,6 +32,9 @@ namespace DSODecompiler.Util
 				Successors.Remove(node);
 				node.Predecessors.Remove(this);
 			}
+
+			public bool HasPredecessor(Node node) => Predecessors.Contains(node);
+			public bool HasSuccessor(Node node) => Successors.Contains(node);
 		}
 
 		private Dictionary<K, Node> nodes = new();
