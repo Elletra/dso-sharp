@@ -1,5 +1,6 @@
 ﻿using System;
-
+using System.Linq;
+using DSODecompiler.ControlFlow;
 using DSODecompiler.Disassembly;
 using DSODecompiler.Loader;
 using DSODecompiler.Opcodes;
@@ -23,7 +24,18 @@ namespace DSODecompiler
 			var disassembly = disassembler.Disassemble(fileData);
 			var disasmWriter = new DisassemblyWriter();
 
-			disasmWriter.WriteToFile(disassembly, $"./{fileName}.txt");
+			var cfgs = new ControlFlowGraphBuilder().Build(disassembly);
+
+			disasmWriter.WriteToFile(disassembly, $"./{fileName}.txt", cfgs);
+
+			foreach (var cfg in cfgs.ToArray())
+			{
+				Console.WriteLine($"======== [{cfg.EntryPoint}] ========");
+
+				var output = new StructureAnalyzer().Analyze(cfg);
+
+				{ }
+			}
 		}
 	}
 }

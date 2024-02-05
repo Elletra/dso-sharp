@@ -29,6 +29,8 @@ namespace DSODecompiler.ControlFlow
 		/// </summary>
 		public bool IsDummyNode { get; set; } = false;
 
+		public ReducedNode ReducedNode { get; set; } = null;
+
 		public uint Addr => Key;
 
 		public bool IsBranch => LastInstruction is BranchInstruction;
@@ -47,7 +49,7 @@ namespace DSODecompiler.ControlFlow
 			? Predecessors[index] as ControlFlowNode
 			: null;
 
-		public ControlFlowNode GetBranchTarget() => Successors.Count < 2 ? GetSuccessor(0) : GetSuccessor(1);
+		public ControlFlowNode BranchTarget => Successors.Count == 2 ? GetSuccessor(1) : null;
 
 		public Instruction AddInstruction(Instruction instruction)
 		{
