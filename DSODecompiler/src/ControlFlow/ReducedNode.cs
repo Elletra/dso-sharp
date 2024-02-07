@@ -70,4 +70,9 @@ namespace DSODecompiler.ControlFlow
 
 		public override uint Addr => Body.Addr;
 	}
+
+	public class BreakNode : InstructionsNode
+	{
+		public BreakNode(ControlFlowNode node) : base(node) {}
+	}
 }

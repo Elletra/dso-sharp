@@ -19,7 +19,7 @@ namespace DSODecompiler.ControlFlow
 				foreach (ControlFlowNode node in cfg.PostorderDFS())
 				{
 					// TODO: Handle functions
-					// TODO: Handle breaks and continues
+					// TODO: Handle continues
 
 					var reduced = true;
 
@@ -157,7 +157,7 @@ namespace DSODecompiler.ControlFlow
 
 			if (node.IsUnconditional)
 			{
-				return false;
+				return ReduceUnconditional(node);
 			}
 
 			var reduced = false;
@@ -225,6 +225,23 @@ namespace DSODecompiler.ControlFlow
 				node.AddEdgeTo(@else.GetSuccessor(0));
 				graph.RemoveNode(then);
 				graph.RemoveNode(@else);
+
+				reduced = true;
+			}
+
+			return reduced;
+		}
+
+		private bool ReduceUnconditional(ControlFlowNode node)
+		{
+			var reduced = false;
+			var target = node.BranchTarget;
+
+			// TODO: Might want to check if the loop end we're jumping to is actually a loop we're in.
+			if (IsLoopEnd(target.GetPredecessor(0)))
+			{
+				node.ReducedNode = new BreakNode(node);
+				node.RemoveEdgeTo(target);
 
 				reduced = true;
 			}
