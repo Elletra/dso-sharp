@@ -75,4 +75,9 @@ namespace DSODecompiler.ControlFlow
 	{
 		public BreakNode(ControlFlowNode node) : base(node) {}
 	}
+
+	public class ContinueNode : InstructionsNode
+	{
+		public ContinueNode(ControlFlowNode node) : base(node) {}
+	}
 }
