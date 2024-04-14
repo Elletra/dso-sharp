@@ -9,7 +9,7 @@ This is a ***work-in-progress*** DSO decompiler for the Torque Game Engine. It c
 
 ## Background
 
-Years ago, I made [dso.js](https://github.com/Electrk/dso.js), a DSO decompiler for Blockland v21. It was very bad and used absolutely no computer science concepts whatsoever. However, it (mostly) worked, and was the only (mostly) working, publicly-available DSO decompiler for Blockland, so it was okay for the time.
+Years ago, I made [dso.js](https://github.com/Elletra/dso.js), a DSO decompiler for Blockland v21. It was very bad and used absolutely no computer science concepts whatsoever. However, it (mostly) worked, and was the only (mostly) working, publicly-available DSO decompiler for Blockland, so it was okay for the time.
 
 I was not satisfied with its quality, and the fact that it was hardcoded to only work for Blockland v21. I sought to write it better, use actual computer science concepts, and make it so that it could work with other games/engine versions.
 
