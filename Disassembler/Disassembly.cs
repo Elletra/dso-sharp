@@ -35,6 +35,7 @@ namespace DSO.Disassembler
 
 		public bool HasInstruction(uint address) => _dictionary.ContainsKey(address);
 		public Instruction? GetInstruction(uint address) => HasInstruction(address) ? _dictionary[address] : null;
+		public List<Instruction> GetInstructions() => [.._list];
 
 		public IEnumerator<Instruction> GetEnumerator()
 		{

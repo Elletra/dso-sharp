@@ -1,4 +1,5 @@
-﻿using DSO.Opcodes;
+﻿using DSO.Disassembler;
+using DSO.Opcodes;
 
 namespace DSO.AST
 {
@@ -7,6 +8,7 @@ namespace DSO.AST
 		Statement,
 		Expression,
 		ExpressionStatement,
+		Utility,
 	}
 
 	public abstract class Node(NodeType type)
@@ -77,6 +79,7 @@ namespace DSO.AST
 	public class ConstantNode<T>(T value) : Node(NodeType.Expression)
 	{
 		public readonly T Value = value;
+		public ConstantNode(ImmediateInstruction<T> instruction) : this(instruction.Value) { }
 	}
 
 	public class AssignmentNode(Node left, Node right, Opcode? op) : Node(NodeType.ExpressionStatement)
@@ -97,18 +100,19 @@ namespace DSO.AST
 		public readonly List<Node> Children = [];
 	}
 
-	public class FunctionCallNode(string name, string? ns) : Node(NodeType.ExpressionStatement)
+	public class FunctionCallNode(CallInstruction instruction) : Node(NodeType.ExpressionStatement)
 	{
-		public readonly string Name = name;
-		public readonly string? Namespace = ns;
-		public readonly List<string> Arguments = [];
+		public readonly string Name = instruction.Name;
+		public readonly string? Namespace = instruction.Namespace;
+		public readonly List<Node> Arguments = [];
 	}
 
-	public class FunctionDeclarationNode(string name, string? ns) : Node(NodeType.Statement)
+	public class FunctionDeclarationNode(FunctionInstruction instruction) : Node(NodeType.Statement)
 	{
-		public readonly string Name = name;
-		public readonly string? Namespace = ns;
-		public readonly List<string> Arguments = [];
+		public readonly string Name = instruction.Name;
+		public readonly string? Namespace = instruction.Namespace;
+		public readonly uint EndAddress = instruction.EndAddress;
+		public readonly List<string> Arguments = [..instruction.Arguments];
 		public readonly List<Node> Body = [];
 	}
 
