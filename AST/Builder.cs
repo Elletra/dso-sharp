@@ -112,13 +112,38 @@ namespace DSO.AST
 				case FieldArrayInstruction: return null;
 				case SaveFieldInstruction: return null;
 
-				case AdvanceStringInstruction: return null;
-				case AdvanceAppendInstruction: return null;
-				case AdvanceCommaInstruction: return null;
-				case RewindStringInstruction: return null;
+				case AdvanceStringInstruction str: return new ConcatNode(Pop());
+				case AdvanceAppendInstruction str: return new ConcatNode(Pop(), str.Char);
+				case AdvanceCommaInstruction str: return new CommaConcatNode(Pop());
+
+				case RewindStringInstruction:
+				case TerminateRewindInstruction:
+				{
+					var right = Pop();
+					var node = Pop();
+
+					if (node is not ConcatNode concat)
+					{
+						throw new BuilderException($"Node is not a ConcatNode");
+					}
+
+					Node? returnNode = instruction is TerminateRewindInstruction ? null : concat;
+
+					if (returnNode == null)
+					{
+						Push(right);
+						Push(concat.Left);
+					}
+					else
+					{
+						concat.Right = right;
+					}
+
+					return returnNode;
+				}
 
 				case LoadVariableInstruction or LoadFieldInstruction or ConvertToTypeInstruction or
-					AdvanceNullInstruction or TerminateRewindInstruction or DebugBreakInstruction or UnusedInstruction:
+					AdvanceNullInstruction or DebugBreakInstruction or UnusedInstruction:
 					return null;
 
 				default:

@@ -8,7 +8,7 @@ namespace DSO.AST
 		Statement,
 		Expression,
 		ExpressionStatement,
-		Utility,
+		CommaConcat,
 	}
 
 	public abstract class Node(NodeType type)
@@ -62,12 +62,27 @@ namespace DSO.AST
 		public readonly bool Not = not;
 	}
 
-	public class ConcatNode(Node left, Node right, Opcode op, char? ch) : Node(NodeType.Expression)
+	public class ConcatNode(Node left, char? ch = null) : Node(NodeType.Expression)
 	{
 		public readonly Node Left = left;
-		public readonly Node Right = right;
-		public readonly Opcode Op = op;
+
+		private Node _right = null;
+
+		public Node Right
+		{
+			get => _right;
+			set => _right ??= value;
+		}
+
 		public readonly char? Char = ch;
+	}
+
+	public class CommaConcatNode : ConcatNode
+	{
+		public CommaConcatNode(Node left) : base(left)
+		{
+			Type = NodeType.CommaConcat;
+		}
 	}
 
 	public class VariableOrFieldNode(string name, Node? index) : Node(NodeType.Expression)
