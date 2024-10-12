@@ -2,7 +2,7 @@
   "profiles": {
     "DSO": {
       "commandName": "Project",
-      "workingDirectory": "$(SolutionDir)\\DSO\\bin"
+      "workingDirectory": "bin"
     }
   }
 }
