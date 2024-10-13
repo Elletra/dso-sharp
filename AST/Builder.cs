@@ -115,20 +115,7 @@ namespace DSO.AST
 			switch (instruction)
 			{
 				case ImmediateInstruction<string> immediate:
-				{
-					var quote = "";
-
-					if (immediate.IsTaggedString)
-					{
-						quote = "'";
-					}
-					else if (!immediate.IsIdentifier)
-					{
-						quote = "\"";
-					}
-
-					return new ConstantNode<string>($"{quote}{immediate.Value}{quote}");
-				}
+					return new ConstantNode<string>(immediate);
 
 				case ImmediateInstruction<double> immediate:
 					return new ConstantNode<double>(immediate);

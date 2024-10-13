@@ -1,4 +1,5 @@
 ﻿using DSO.AST;
+using DSO.CodeGenerator;
 using DSO.ControlFlow;
 using DSO.Decompiler.Loader;
 using DSO.Disassembler;
@@ -36,5 +37,9 @@ Console.WriteLine($"Continues: {continues}");
 Console.WriteLine($"Breaks: {breaks}");
 
 var nodes = new Builder().Build(data, disassembly);
+var generator = new CodeGenerator();
+var stream = generator.Generate(nodes);
+
+File.WriteAllLines("./out.cs", stream);
 
 { }

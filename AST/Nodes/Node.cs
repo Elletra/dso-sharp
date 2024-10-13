@@ -1,4 +1,6 @@
-﻿namespace DSO.AST.Nodes
+﻿using DSO.CodeGenerator;
+
+namespace DSO.AST.Nodes
 {
 	public enum NodeType
     {
@@ -14,5 +16,7 @@
 
         public override bool Equals(object? obj) => obj is Node node && node.Type.Equals(Type);
         public override int GetHashCode() => Type.GetHashCode();
-    }
+
+        public virtual void Visit(TokenStream stream) { }
+	}
 }
