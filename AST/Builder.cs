@@ -376,7 +376,8 @@ namespace DSO.AST
 					return obj;
 				}
 
-				case LoadVariableInstruction or LoadFieldInstruction or AdvanceNullInstruction or ConvertToTypeInstruction or
+				case LoadVariableInstruction or LoadFieldInstruction or
+					AdvanceNullInstruction or ConvertToTypeInstruction or
 					UnusedInstruction or DebugBreakInstruction:
 					return null;
 
