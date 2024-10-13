@@ -3,20 +3,20 @@
 namespace DSO.AST.Nodes
 {
 	public enum NodeType
-    {
-        Statement,
-        Expression,
-        ExpressionStatement,
-        CommaConcat, // Special case because the CommaConcatNode is only viable under one circumstance.
-    }
+	{
+		Statement,
+		Expression,
+		ExpressionStatement,
+		CommaConcat, // Special case because the CommaConcatNode is only viable under one circumstance.
+	}
 
-    public abstract class Node(NodeType type)
-    {
-        public NodeType Type { get; protected set; } = type;
+	public abstract class Node(NodeType type)
+	{
+		public NodeType Type { get; protected set; } = type;
 
-        public override bool Equals(object? obj) => obj is Node node && node.Type.Equals(Type);
-        public override int GetHashCode() => Type.GetHashCode();
+		public override bool Equals(object? obj) => obj is Node node && node.Type.Equals(Type);
+		public override int GetHashCode() => Type.GetHashCode();
 
-        public virtual void Visit(TokenStream stream) { }
+		public virtual void Visit(TokenStream stream, bool isExpression) { }
 	}
 }

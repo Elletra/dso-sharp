@@ -19,7 +19,7 @@ namespace DSO.CodeGenerator
 
 			foreach (var node in nodes)
 			{
-				node.Visit(_stream);
+				node.Visit(_stream, isExpression: false);
 			}
 
 			return _stream.Stream;

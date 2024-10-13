@@ -12,8 +12,8 @@ namespace DSO.AST.Nodes
 	}
 
 	public class ConstantNode<T> : Node
-    {
-        public readonly T Value;
+	{
+		public readonly T Value;
 		public readonly StringType StringType;
 
 		public ConstantNode(ImmediateInstruction<T> instruction) : base(NodeType.Expression)
@@ -38,8 +38,10 @@ namespace DSO.AST.Nodes
 			}
 		}
 
-		public override bool Equals(object? obj) => base.Equals(obj) && obj is ConstantNode<T> node && Equals(node.Value, Value);
-        public override int GetHashCode() => base.GetHashCode() ^ (Value?.GetHashCode() ?? 0);
+		public override bool Equals(object? obj) => base.Equals(obj) && obj is ConstantNode<T> node
+			&& Equals(node.Value, Value) && node.StringType.Equals(StringType);
+
+		public override int GetHashCode() => base.GetHashCode() ^ (Value?.GetHashCode() ?? 0) ^ StringType.GetHashCode();
 
 		/// <summary>
 		/// For escaping special characters.
@@ -83,7 +85,7 @@ namespace DSO.AST.Nodes
 			{ "\xA0", "\\xA0" },
 		};
 
-		public override void Visit(TokenStream stream)
+		public override void Visit(TokenStream stream, bool isExpression)
 		{
 			if (Value == null)
 			{
