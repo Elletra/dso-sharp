@@ -97,7 +97,8 @@ namespace DSO.AST
 
 					case ControlFlowBlockType.Loop:
 					{
-						var node = new LoopNode(body.Last())
+						var last = body.Last();
+						var node = new LoopNode(last is IfNode ifNode ? ifNode.ConvertToTernary() : last)
 						{
 							Body = body,
 						};
@@ -385,7 +386,7 @@ namespace DSO.AST
 			{
 				var peek = Peek();
 
-				if (loop.Body.Count > 0 && (peek.Type == NodeType.Expression || peek.Type == NodeType.ExpressionStatement))
+				if (loop.Body.Count > 0 && peek.IsExpression)
 				{
 					return new ForLoopNode(Pop(), loop.Test, loop.Body[^1])
 					{
@@ -413,7 +414,19 @@ namespace DSO.AST
 		}
 
 		private void Push(Node node) => _nodeStack.Push(node);
-		private Node Pop() => _nodeStack.Pop();
+
+		private Node Pop()
+		{
+			var node = _nodeStack.Pop();
+
+			if (node is IfNode ifNode)
+			{
+				node = ifNode.ConvertToTernary();
+			}
+
+			return node;
+		}
+
 		private Node Peek() => _nodeStack.Peek();
 
 		private Instruction? Read()
