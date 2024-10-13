@@ -172,7 +172,10 @@ namespace DSO.Disassembler
 	/// </summary>
 	public class BinaryStringInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr) { }
 
-	public class UnaryInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr) { }
+	public class UnaryInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr)
+	{
+		public bool IsNot => Opcode.Value == Ops.OP_NOT || Opcode.Value == Ops.OP_NOTF;
+	}
 
 	/// <summary>
 	/// Variable instruction for regular variables only.<br/><br/>

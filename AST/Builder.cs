@@ -154,10 +154,24 @@ namespace DSO.AST
 				}
 
 				case UnaryInstruction unary:
-					return new UnaryNode(Pop(), unary.Opcode);
+				{
+					var node = Pop();
+
+					return node is BinaryStringNode binary && unary.IsNot
+						? new BinaryStringNode(binary.Left, binary.Right, binary.Op, not: true)
+						: new UnaryNode(node, unary.Opcode);
+				}
 
 				case BinaryInstruction binary:
 					return new BinaryNode(Pop(), Pop(), binary.Opcode);
+
+				case BinaryStringInstruction binary:
+				{
+					var right = Pop();
+					var left = Pop();
+
+					return new BinaryStringNode(left, right, binary.Opcode);
+				}
 
 				case VariableInstruction variable:
 					return new VariableNode(variable.Name);
@@ -259,7 +273,8 @@ namespace DSO.AST
 					return null;
 				}
 
-				case LoadVariableInstruction or LoadFieldInstruction or ConvertToTypeInstruction or UnusedInstruction or DebugBreakInstruction:
+				case LoadVariableInstruction or LoadFieldInstruction or AdvanceNullInstruction or ConvertToTypeInstruction or
+					UnusedInstruction or DebugBreakInstruction:
 					return null;
 
 				default:
