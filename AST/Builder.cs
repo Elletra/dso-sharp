@@ -153,6 +153,12 @@ namespace DSO.AST
 					return concat;
 				}
 
+				case UnaryInstruction unary:
+					return new UnaryNode(Pop(), unary.Opcode);
+
+				case BinaryInstruction binary:
+					return new BinaryNode(Pop(), Pop(), binary.Opcode);
+
 				case VariableInstruction variable:
 					return new VariableNode(variable.Name);
 
@@ -230,7 +236,7 @@ namespace DSO.AST
 					return null;
 				}
 
-				case LoadVariableInstruction or LoadFieldInstruction or UnusedInstruction or DebugBreakInstruction:
+				case LoadVariableInstruction or LoadFieldInstruction or ConvertToTypeInstruction or UnusedInstruction or DebugBreakInstruction:
 					return null;
 
 				default:
