@@ -13,10 +13,12 @@ namespace DSO.AST
 	public class Builder
 	{
 		private Disassembly _disassembly = new();
+		private ControlFlowData _data = new();
 		private Instruction? _currentInstruction = null;
 		private uint _endAddress = 0;
 		private bool _running = false;
-		private ControlFlowData _data = new();
+		private int _objectDepth = 0;
+		private Stack<List<Node>> _frameStack = [];
 		private Stack<Node> _nodeStack = [];
 
 		private bool IsAtEnd => !_running || _currentInstruction == null || _currentInstruction.Address > _endAddress;
@@ -29,6 +31,8 @@ namespace DSO.AST
 			_data = data;
 			_currentInstruction = disassembly.GetInstruction(startAddress);
 			_endAddress = endAddress;
+			_objectDepth = 0;
+			_frameStack = [];
 			_nodeStack = [];
 
 			Build();
@@ -110,7 +114,20 @@ namespace DSO.AST
 			switch (instruction)
 			{
 				case ImmediateInstruction<string> immediate:
-					return new ConstantNode<string>(immediate);
+				{
+					var quote = "";
+
+					if (immediate.IsTaggedString)
+					{
+						quote = "'";
+					}
+					else if (!immediate.IsIdentifier)
+					{
+						quote = "\"";
+					}
+
+					return new ConstantNode<string>($"{quote}{immediate.Value}{quote}");
+				}
 
 				case ImmediateInstruction<double> immediate:
 					return new ConstantNode<double>(immediate);
@@ -120,6 +137,14 @@ namespace DSO.AST
 
 				case ReturnInstruction ret:
 					return new ReturnNode(ret.ReturnsValue ? Pop() : null);
+
+				case PushInstruction:
+					_frameStack.Peek().Add(Pop());
+					return null;
+
+				case PushFrameInstruction:
+					_frameStack.Push([]);
+					return null;
 
 				case AdvanceStringInstruction:
 					return new ConcatNode(Pop());
@@ -271,6 +296,75 @@ namespace DSO.AST
 					}
 
 					return null;
+				}
+
+				case CreateObjectInstruction create:
+				{
+					var frame = _frameStack.Pop();
+					var node = new ObjectDeclarationNode(create, frame[0], frame.Count > 1 ? frame[1] : null, _objectDepth++);
+
+					for (var i = 2; i < frame.Count; i++)
+					{
+						node.Arguments.Add(frame[i]);
+					}
+
+					return node;
+				}
+
+				case AddObjectInstruction add:
+				{
+					var fields = new Stack<AssignmentNode>();
+
+					while (Peek() is AssignmentNode)
+					{
+						fields.Push((AssignmentNode) Pop());
+					}
+
+					var node = Pop();
+
+					if (node is not ObjectDeclarationNode obj)
+					{
+						throw new BuilderException($"Expected object declaration before {add.Opcode.Value} at {add.Address}");
+					}
+
+					if (add.PlaceAtRoot)
+					{
+						// Get rid of 0 uint immediate that gets placed before root objects.
+						Pop();
+					}
+
+					while (fields.Count > 0)
+					{
+						obj.Fields.Add(fields.Pop());
+					}
+
+					return obj;
+				}
+
+				case EndObjectInstruction end:
+				{
+					var children = new Stack<ObjectDeclarationNode>();
+
+					while (Peek() is ObjectDeclarationNode child && child.Depth == _objectDepth)
+					{
+						children.Push((ObjectDeclarationNode) Pop());
+					}
+
+					var node = Pop();
+
+					if (node is not ObjectDeclarationNode obj)
+					{
+						throw new BuilderException($"Expected object declaration before {end.Opcode.Value} at {end.Address}");
+					}
+
+					while (children.Count > 0)
+					{
+						obj.Children.Add(children.Pop());
+					}
+
+					_objectDepth--;
+
+					return obj;
 				}
 
 				case LoadVariableInstruction or LoadFieldInstruction or AdvanceNullInstruction or ConvertToTypeInstruction or
