@@ -19,7 +19,7 @@ namespace DSO.AST
 	public class BreakNode() : Node(NodeType.Statement) { }
 	public class ContinueNode() : Node(NodeType.Statement) { }
 
-	public class ReturnNode(Node? value) : Node(NodeType.Statement)
+	public class ReturnNode(Node? value = null) : Node(NodeType.Statement)
 	{
 		public Node? Value = value;
 	}
@@ -85,10 +85,19 @@ namespace DSO.AST
 		}
 	}
 
-	public class VariableOrFieldNode(string name, Node? index) : Node(NodeType.Expression)
+	public class VariableNode(string name) : Node(NodeType.Expression)
 	{
 		public readonly string Name = name;
-		public readonly Node? Index = index;
+
+		public Node? Index { get; set; } = null;
+	}
+
+	public class FieldNode(string name) : Node(NodeType.Expression)
+	{
+		public readonly string Name = name;
+
+		public Node? Object { get; set; } = null;
+		public Node? Index { get; set; } = null;
 	}
 
 	public class ConstantNode<T>(T value) : Node(NodeType.Expression)
@@ -97,22 +106,23 @@ namespace DSO.AST
 		public ConstantNode(ImmediateInstruction<T> instruction) : this(instruction.Value) { }
 	}
 
-	public class AssignmentNode(Node left, Node right, Opcode? op) : Node(NodeType.ExpressionStatement)
+	public class AssignmentNode(Node left, Node right, Opcode? op = null) : Node(NodeType.ExpressionStatement)
 	{
 		public readonly Node Left = left;
 		public readonly Node Right = right;
 		public readonly Opcode? Operator = op;
 	}
 
-	public class ObjectNode(bool isDataBlock, Node className, Node? objectName, string? parent) : Node(NodeType.ExpressionStatement)
+	public class ObjectDeclarationNode(CreateObjectInstruction instruction, Node className, Node? objectName, int depth) : Node(NodeType.ExpressionStatement)
 	{
-		public readonly bool IsDataBlock = isDataBlock;
+		public readonly bool IsDataBlock = instruction.IsDataBlock;
 		public readonly Node Class = className;
 		public readonly Node? Name = objectName;
-		public readonly string? Parent = parent;
+		public readonly string? Parent = instruction.Parent;
+		public readonly int Depth = depth;
 		public readonly List<Node> Arguments = [];
-		public readonly List<Node> Fields = [];
-		public readonly List<Node> Children = [];
+		public readonly List<AssignmentNode> Fields = [];
+		public readonly List<ObjectDeclarationNode> Children = [];
 	}
 
 	public class FunctionCallNode(CallInstruction instruction) : Node(NodeType.ExpressionStatement)

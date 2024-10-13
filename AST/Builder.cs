@@ -1,5 +1,6 @@
 ﻿using DSO.ControlFlow;
 using DSO.Disassembler;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace DSO.AST
 {
@@ -21,6 +22,8 @@ namespace DSO.AST
 		// TODO: Possibly handle nested functions later?
 		private FunctionDeclarationNode? _function = null;
 
+		private int _objectDepth = 0;
+
 		private bool IsAtEnd => _index >= _instructions.Count;
 
 		public List<Node> Build(ControlFlowBlock root, Disassembly disassembly)
@@ -31,6 +34,7 @@ namespace DSO.AST
 			_frameStack = [];
 			_blockStack = [];
 			_function = null;
+			_objectDepth = 0;
 
 			_blockStack.Push(root);
 
@@ -96,9 +100,75 @@ namespace DSO.AST
 				case FunctionInstruction function:
 					return _function = new(function);
 
-				case CreateObjectInstruction: return null;
-				case AddObjectInstruction: return null;
-				case EndObjectInstruction: return null;
+				case CreateObjectInstruction create:
+				{
+					var frame = _frameStack.Pop();
+					var node = new ObjectDeclarationNode(create, frame[0], frame.Count > 1 ? frame[1] : null, _objectDepth++);
+
+					for (var i = 2; i < frame.Count; i++)
+					{
+						node.Arguments.Add(frame[i]);
+					}
+
+					return node;
+				}
+
+				case AddObjectInstruction add:
+				{
+					var fields = new Stack<AssignmentNode>();
+
+					while (Peek() is AssignmentNode)
+					{
+						fields.Push((AssignmentNode) Pop());
+					}
+
+					var node = Pop();
+
+					if (node is not ObjectDeclarationNode obj)
+					{
+						throw new BuilderException($"Expected ObjectDeclarationNode before {add.Opcode.Value} at {add.Address}");
+					}
+
+					if (add.PlaceAtRoot)
+					{
+						// Get rid of 0 uint immediate that gets placed before root objects.
+						Pop();
+					}
+
+					while (fields.Count > 0)
+					{
+						obj.Fields.Add(fields.Pop());
+					}
+
+					return obj;
+				}
+
+				case EndObjectInstruction end:
+				{
+					var children = new Stack<ObjectDeclarationNode>();
+
+					while (Peek() is ObjectDeclarationNode child && child.Depth == _objectDepth)
+					{
+						children.Push((ObjectDeclarationNode) Pop());
+					}
+
+					var node = Pop();
+
+					if (node is not ObjectDeclarationNode obj)
+					{
+						throw new BuilderException($"Expected ObjectDeclarationNode before {end.Opcode.Value} at {end.Address}");
+					}
+
+					while (children.Count > 0)
+					{
+						obj.Children.Add(children.Pop());
+					}
+
+					_objectDepth--;
+
+					return obj;
+				}
+
 				case BranchInstruction: return null;
 				case BinaryInstruction: return null;
 				case BinaryStringInstruction: return null;
@@ -106,18 +176,68 @@ namespace DSO.AST
 				case VariableInstruction: return null;
 				case VariableArrayInstruction: return null;
 				case SaveVariableInstruction: return null;
-				case ObjectInstruction: return null;
-				case ObjectNewInstruction: return null;
-				case FieldInstruction: return null;
-				case FieldArrayInstruction: return null;
-				case SaveFieldInstruction: return null;
+
+				case FieldInstruction field:
+					return new FieldNode(field.Name);
+
+				case ObjectInstruction or ObjectNewInstruction:
+				{
+					var next = Parse(Read());
+
+					if (next is not FieldNode field)
+					{
+						throw new BuilderException($"Expected FieldInstruction after {instruction.Opcode.Value} at {instruction.Address}");
+					}
+
+					if (instruction is not ObjectNewInstruction)
+					{
+						field.Object = Pop();
+					}
+
+					return field;
+				}
+
+				case FieldArrayInstruction:
+				{
+					var node = Pop();
+
+					if (node is not FieldNode field)
+					{
+						throw new BuilderException($"Expected FieldNode before {instruction.Opcode.Value} at {instruction.Address}");
+					}
+
+					field.Index = Pop();
+
+					return field;
+				}
+
+				case SaveFieldInstruction:
+				{
+					AssignmentNode node;
+
+					var prev = Pop();
+
+					if (prev is FieldNode)
+					{
+						node = new(prev, Pop());
+					}
+					else if (prev is BinaryNode binary)
+					{
+						node = new(binary.Left, binary.Right, binary.Op);
+					}
+					else
+					{
+						throw new BuilderException($"Expected FieldNode or BinaryNode before {instruction.Opcode.Value} at {instruction.Address}");
+					}
+
+					return node;
+				}
 
 				case AdvanceStringInstruction str: return new ConcatNode(Pop());
 				case AdvanceAppendInstruction str: return new ConcatNode(Pop(), str.Char);
 				case AdvanceCommaInstruction str: return new CommaConcatNode(Pop());
 
-				case RewindStringInstruction:
-				case TerminateRewindInstruction:
+				case RewindStringInstruction or TerminateRewindInstruction:
 				{
 					var right = Pop();
 					var node = Pop();
@@ -131,8 +251,8 @@ namespace DSO.AST
 
 					if (returnNode == null)
 					{
-						Push(right);
 						Push(concat.Left);
+						Push(right);
 					}
 					else
 					{
@@ -176,6 +296,8 @@ namespace DSO.AST
 
 			return last;
 		}
+
+		private Node Peek() => _function == null ? _nodeStack.Peek() : _function.Body.Last();
 
 		private Instruction? Read() => !IsAtEnd ? _instructions[_index++] : null;
 	}
