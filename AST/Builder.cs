@@ -271,6 +271,15 @@ namespace DSO.AST
 					};
 				}
 
+				case CallInstruction call:
+				{
+					var node = new FunctionCallNode(call);
+
+					_frameStack.Pop().ForEach(node.Arguments.Add);
+
+					return node;
+				}
+
 				case BranchInstruction branch:
 				{
 					if (branch.IsUnconditional)

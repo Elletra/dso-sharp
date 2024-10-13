@@ -133,10 +133,19 @@ namespace DSO.AST
 		public readonly List<ObjectDeclarationNode> Children = [];
 	}
 
+	public enum CallType : uint
+	{
+		FunctionCall,
+		MethodCall,
+		ParentCall,
+		Invalid,
+	}
+
 	public class FunctionCallNode(CallInstruction instruction) : Node(NodeType.ExpressionStatement)
 	{
 		public readonly string Name = instruction.Name;
 		public readonly string? Namespace = instruction.Namespace;
+		public readonly CallType CallType = Enum.IsDefined(typeof(CallType), instruction.CallType) ? (CallType) instruction.CallType : CallType.Invalid;
 		public readonly List<Node> Arguments = [];
 	}
 
