@@ -1,6 +1,5 @@
 ﻿using DSO.ControlFlow;
 using DSO.Disassembler;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace DSO.AST
 {
@@ -15,6 +14,7 @@ namespace DSO.AST
 	{
 		private List<Instruction> _instructions = [];
 		private int _index = 0;
+		private ControlFlowData _data = new();
 		private Stack<Node> _nodeStack = [];
 		private Stack<List<Node>> _frameStack = [];
 		private Stack<ControlFlowBlock> _blockStack = [];
@@ -26,17 +26,16 @@ namespace DSO.AST
 
 		private bool IsAtEnd => _index >= _instructions.Count;
 
-		public List<Node> Build(ControlFlowBlock root, Disassembly disassembly)
+		public List<Node> Build(ControlFlowData data, Disassembly disassembly)
 		{
 			_instructions = disassembly.GetInstructions();
+			_data = data;
 			_index = 0;
 			_nodeStack = [];
 			_frameStack = [];
 			_blockStack = [];
 			_function = null;
 			_objectDepth = 0;
-
-			_blockStack.Push(root);
 
 			Build();
 

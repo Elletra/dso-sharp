@@ -9,15 +9,42 @@ namespace DSO.ControlFlow
 		public ControlFlowAnalyzerException(string message, Exception inner) : base(message, inner) { }
 	}
 
+	public class ControlFlowData
+	{
+		public readonly Dictionary<uint, List<ControlFlowBlock>> Blocks = [];
+		public readonly Dictionary<uint, ControlFlowBranch> Branches = [];
+
+		public void AddBlock(ControlFlowBlock block)
+		{
+			if (!Blocks.ContainsKey(block.Start.Address))
+			{
+				Blocks[block.Start.Address] = [];
+			}
+
+			Blocks[block.Start.Address].Add(block);
+		}
+
+		public void AddBranch(ControlFlowBranch branch) => Branches[branch.StartAddress] = branch;
+	}
+
 	public class ControlFlowAnalyzer
 	{
-		public ControlFlowBlock Analyze(Disassembly disassembly)
+		public ControlFlowData Analyze(Disassembly disassembly)
 		{
 			var root = BuildControlFlowBlocks(disassembly);
 
 			AnalyzeBranches(root);
 
-			return root;
+			return FlattenBlocks(root);
+		}
+
+		public ControlFlowData FlattenBlocks(ControlFlowBlock root)
+		{
+			var data = new ControlFlowData();
+
+			FlattenBlocks(root, data);
+
+			return data;
 		}
 
 		private ControlFlowBlock BuildControlFlowBlocks(Disassembly disassembly)
@@ -136,6 +163,18 @@ namespace DSO.ControlFlow
 			}
 
 			block.Children.ForEach(AnalyzeBranches);
+		}
+
+		private void FlattenBlocks(ControlFlowBlock block, ControlFlowData data)
+		{
+			data.AddBlock(block);
+
+			foreach (var branch in block.Branches.Values)
+			{
+				data.AddBranch(branch);
+			}
+
+			block.Children.ForEach(child => FlattenBlocks(child, data));
 		}
 	}
 }
