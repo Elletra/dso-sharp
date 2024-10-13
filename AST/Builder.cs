@@ -254,10 +254,35 @@ namespace DSO.AST
 
 				case FunctionInstruction function:
 				{
-					return new FunctionDeclarationNode(function)
+					var body = ParseRange(_currentInstruction.Address, function.EndAddress - 1);
+					var node = new FunctionDeclarationNode(function)
 					{
-						Body = function.HasBody ? ParseRange(_currentInstruction.Address, function.EndAddress - 1) : [],
+						Body = body,
 					};
+
+					// An empty return statement is automatically put at the ends of functions. It's redundant, so we remove it.
+					if (body.Count > 0 && body.Last() is ReturnNode ret && ret.Value == null)
+					{
+						body.RemoveAt(body.Count - 1);
+					}
+
+					if (function.Package == null)
+					{
+						return node;
+					}
+
+					if (Peek() is PackageNode package && package.Name == function.Package)
+					{
+						Pop();
+					}
+					else
+					{
+						package = new(function.Package);
+					}
+
+					package.Functions.Add(node);
+
+					return package;
 				}
 
 				case CallInstruction call:
@@ -382,17 +407,14 @@ namespace DSO.AST
 				return node;
 			}
 
-			if (_nodeStack.Count > 0)
-			{
-				var peek = Peek();
+			var peek = Peek();
 
-				if (loop.Body.Count > 0 && peek.IsExpression)
+			if (peek != null && loop.Body.Count > 0 && peek.IsExpression)
+			{
+				return new ForLoopNode(Pop(), loop.Test, loop.Body[^1])
 				{
-					return new ForLoopNode(Pop(), loop.Test, loop.Body[^1])
-					{
-						Body = loop.Body[..^1],
-					};
-				}
+					Body = loop.Body[..^1],
+				};
 			}
 
 			return new WhileLoopNode(loop.Test)
@@ -427,7 +449,7 @@ namespace DSO.AST
 			return node;
 		}
 
-		private Node Peek() => _nodeStack.Peek();
+		private Node? Peek() => _nodeStack.Count > 0 ? _nodeStack.Peek() : null;
 
 		private Instruction? Read()
 		{
