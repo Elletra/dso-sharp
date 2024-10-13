@@ -63,7 +63,7 @@
 		public ReturnValue ReturnValue { get; } = returnValue;
 		public TypeReq TypeReq { get; } = typeReq;
 
-		public override bool Equals(object obj) => obj is Opcode opcode
+		public override bool Equals(object? obj) => obj is Opcode opcode
 			&& Equals(opcode.Value, Value)
 			&& Equals(opcode.ReturnValue, ReturnValue)
 			&& Equals(opcode.TypeReq, TypeReq);
