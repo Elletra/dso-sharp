@@ -121,6 +121,53 @@ namespace DSO.AST
 				case ReturnInstruction ret:
 					return new ReturnNode(ret.ReturnsValue ? Pop() : null);
 
+				case AdvanceStringInstruction:
+					return new ConcatNode(Pop());
+
+				case AdvanceAppendInstruction append:
+					return new ConcatNode(Pop(), append.Char);
+
+				case AdvanceCommaInstruction:
+					return new CommaConcatNode(Pop());
+
+				case RewindStringInstruction or TerminateRewindInstruction:
+				{
+					var right = Pop();
+					var node = Pop();
+
+					if (node is not ConcatNode concat)
+					{
+						throw new BuilderException($"Unmatched string rewind at {instruction.Address}");
+					}
+
+					if (instruction is TerminateRewindInstruction)
+					{
+						Push(concat.Left);
+						Push(right);
+
+						return null;
+					}
+
+					concat.Right = right;
+
+					return concat;
+				}
+
+				case VariableInstruction variable:
+					return new VariableNode(variable.Name);
+
+				case VariableArrayInstruction array:
+				{
+					var node = Pop();
+
+					if (node is not ConcatNode concat || concat.Left is not ConstantNode<string> left)
+					{
+						throw new BuilderException($"Expected valid ConcatNode before variable array at {array.Address}");
+					}
+
+					return new VariableNode(left.Value, concat.Right);
+				}
+
 				case FunctionInstruction function:
 				{
 					return new FunctionDeclarationNode(function)
@@ -148,6 +195,9 @@ namespace DSO.AST
 
 					return null;
 				}
+
+				case LoadVariableInstruction or UnusedInstruction or DebugBreakInstruction:
+					return null;
 
 				default:
 					throw new BuilderException($"Unknown or unhandled instruction class: {instruction.GetType().Name}");
