@@ -235,12 +235,12 @@ namespace DSO.Disassembler
 		private bool ReadBool() => Read() != 0;
 		private char ReadChar() => (char) Read();
 
-		private string ReadIdentifier()
+		private string? ReadIdentifier()
 		{
 			var identifierIndex = _index;
 			var stringIndex = Read();
 
-			return _data.IdentifierTable.ContainsKey(identifierIndex) ? _data.GlobalStringTable[stringIndex] : "";
+			return _data.IdentifierTable.ContainsKey(identifierIndex) ? _data.GlobalStringTable[stringIndex] : null;
 		}
 
 		private string ReadString() => (InFunction ? _data.FunctionStringTable : _data.GlobalStringTable).Get(Read());

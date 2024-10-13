@@ -39,7 +39,7 @@
 			}
 		}
 
-		public string Get(uint index) => Has(index) ? table[index] : "";
+		public string? Get(uint index) => Has(index) ? table[index] : null;
 		public bool Has(uint index) => table.ContainsKey(index);
 	}
 
