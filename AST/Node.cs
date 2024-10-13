@@ -45,9 +45,10 @@ namespace DSO.AST
 		public readonly List<Node> Body = [];
 	}
 
-	public class UnaryNode(Node node) : Node(NodeType.Expression)
+	public class UnaryNode(Node node, Opcode op) : Node(NodeType.Expression)
 	{
 		public readonly Node Node = node;
+		public readonly Opcode Op = op;
 	}
 
 	public class BinaryNode(Node left, Node right, Opcode op) : Node(NodeType.Expression)
@@ -57,7 +58,7 @@ namespace DSO.AST
 		public readonly Opcode Op = op;
 	}
 
-	public class StringBinaryNode(Node left, Node right, Opcode op, bool not) : BinaryNode(left, right, op)
+	public class BinaryStringNode(Node left, Node right, Opcode op, bool not = false) : BinaryNode(left, right, op)
 	{
 		public readonly bool Not = not;
 	}

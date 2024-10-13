@@ -170,9 +170,30 @@ namespace DSO.AST
 				}
 
 				case BranchInstruction: return null;
-				case BinaryInstruction: return null;
-				case BinaryStringInstruction: return null;
-				case UnaryInstruction: return null;
+
+				case BinaryInstruction binary:
+					return new BinaryNode(Pop(), Pop(), binary.Opcode);
+
+				case BinaryStringInstruction binary:
+				{
+					var right = Pop();
+					var left = Pop();
+
+					return new BinaryStringNode(left, right, binary.Opcode);
+				}
+
+				case UnaryInstruction unary:
+				{
+					var popped = Pop();
+					var opcode = unary.Opcode;
+
+					if (popped is BinaryStringNode binary && (opcode.Value == Opcodes.Ops.OP_NOT || opcode.Value == Opcodes.Ops.OP_NOTF))
+					{
+						return new BinaryStringNode(binary.Left, binary.Right, opcode, not: true);
+					}
+
+					return new UnaryNode(popped, opcode);
+				}
 
 				case FieldInstruction field: return new FieldNode(field.Name);
 				case VariableInstruction variable: return new VariableNode(variable.Name);
