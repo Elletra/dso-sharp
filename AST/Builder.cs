@@ -174,6 +174,14 @@ namespace DSO.AST
 					return new VariableNode(left.Value, concat.Right);
 				}
 
+				case SaveVariableInstruction:
+					return Pop() switch
+					{
+						VariableNode variable => new AssignmentNode(variable, Pop()),
+						BinaryNode binary => new AssignmentNode(binary.Left, binary.Right, binary.Op),
+						_ => throw new BuilderException($"Expected variable or binary expression before assignemnt at {instruction.Address}"),
+					};
+
 				case FieldInstruction field:
 					return new FieldNode(field.Name);
 
@@ -207,6 +215,14 @@ namespace DSO.AST
 
 					return field;
 				}
+
+				case SaveFieldInstruction:
+					return Pop() switch
+					{
+						FieldNode field => new AssignmentNode(field, Pop()),
+						BinaryNode binary => new AssignmentNode(binary.Left, binary.Right, binary.Op),
+						_ => throw new BuilderException($"Expected field or binary expression before assignemnt at {instruction.Address}"),
+					};
 
 				case FunctionInstruction function:
 				{
