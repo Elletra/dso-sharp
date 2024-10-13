@@ -91,7 +91,7 @@ namespace DSO.AST
 							node.False = ParseRange(branch.Next, _disassembly.GetInstruction(branch.TargetAddress).Prev);
 						}
 
-						return node;
+						return CollapseIfLoop(node);
 					}
 
 					case ControlFlowBlockType.Loop:
@@ -383,6 +383,32 @@ namespace DSO.AST
 
 				default:
 					throw new BuilderException($"Unknown or unhandled instruction class: {instruction.GetType().Name}");
+			};
+		}
+
+		private Node CollapseIfLoop(IfNode node)
+		{
+			if (node.True.Count != 1 || node.False.Count > 0 || node.True[0] is not LoopNode loop || loop is WhileLoopNode or ForLoopNode || !Equals(node.Test, loop.Test))
+			{
+				return node;
+			}
+
+			if (_nodeStack.Count > 0)
+			{
+				var peek = Peek();
+
+				if (loop.Body.Count > 0 && (peek.Type == NodeType.Expression || peek.Type == NodeType.ExpressionStatement))
+				{
+					return new ForLoopNode(Pop(), loop.Test, loop.Body[^1])
+					{
+						Body = loop.Body[..^1],
+					};
+				}
+			}
+
+			return new WhileLoopNode(loop.Test)
+			{
+				Body = loop.Body,
 			};
 		}
 
