@@ -168,6 +168,40 @@ namespace DSO.AST
 					return new VariableNode(left.Value, concat.Right);
 				}
 
+				case FieldInstruction field:
+					return new FieldNode(field.Name);
+
+				case ObjectInstruction or ObjectNewInstruction:
+				{
+					var next = Parse(Read());
+
+					if (next is not FieldNode field)
+					{
+						throw new BuilderException($"Expected FieldNode after {instruction.Opcode.Value} at {instruction.Address}");
+					}
+
+					if (instruction is not ObjectNewInstruction)
+					{
+						field.Object = Pop();
+					}
+
+					return field;
+				}
+
+				case FieldArrayInstruction array:
+				{
+					var node = Pop();
+
+					if (node is not FieldNode field)
+					{
+						throw new BuilderException($"Expected valid FieldNode before field array at {array.Address}");
+					}
+
+					field.Index = Pop();
+
+					return field;
+				}
+
 				case FunctionInstruction function:
 				{
 					return new FunctionDeclarationNode(function)
@@ -196,7 +230,7 @@ namespace DSO.AST
 					return null;
 				}
 
-				case LoadVariableInstruction or UnusedInstruction or DebugBreakInstruction:
+				case LoadVariableInstruction or LoadFieldInstruction or UnusedInstruction or DebugBreakInstruction:
 					return null;
 
 				default:
