@@ -234,11 +234,6 @@ namespace DSO.AST
 
 				case BranchInstruction branch:
 				{
-					if (branch.IsLogicalOperator)
-					{
-						throw new NotImplementedException("Logical AND/OR parsing not implemented.");
-					}
-
 					if (branch.IsUnconditional)
 					{
 						return _data.Branches[branch.Address].Type switch
@@ -247,6 +242,18 @@ namespace DSO.AST
 							ControlFlowBranchType.Continue => new ContinueNode(),
 							_ => null,
 						};
+					}
+
+					if (branch.IsLogicalOperator)
+					{
+						var right = ParseRange(branch.Next, _disassembly.GetInstruction(branch.TargetAddress).Prev);
+
+						if (right.Count != 1)
+						{
+							throw new BuilderException($"Could not parse logical operator right hand operand at {branch.Address}");
+						}
+
+						return new BinaryNode(Pop(), right[0], branch.Opcode);
 					}
 
 					return null;
