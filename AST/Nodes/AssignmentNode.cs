@@ -16,12 +16,12 @@ namespace DSO.AST.Nodes
 
 		public override void Visit(TokenStream stream, bool isExpression)
 		{
-			Left.Visit(stream, isExpression: true);
+			stream.Write(Left, this);
 
 			if (Operator == null)
 			{
 				stream.Write("=");
-				Right.Visit(stream, isExpression: true);
+				stream.Write(Right, this);
 			}
 			else
 			{
@@ -58,7 +58,7 @@ namespace DSO.AST.Nodes
 						Ops.OP_SHR => ">>",
 					}}=");
 
-					Right.Visit(stream, isExpression: true);
+					stream.Write(Right, this);
 				}
 			}
 
