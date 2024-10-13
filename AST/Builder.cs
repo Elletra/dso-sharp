@@ -1,9 +1,10 @@
-﻿using DSO.ControlFlow;
+﻿using DSO.AST.Nodes;
+using DSO.ControlFlow;
 using DSO.Disassembler;
 
 namespace DSO.AST
 {
-	public class BuilderException : Exception
+    public class BuilderException : Exception
 	{
 		public BuilderException() { }
 		public BuilderException(string message) : base(message) { }
@@ -382,7 +383,7 @@ namespace DSO.AST
 					return null;
 
 				default:
-					throw new BuilderException($"Unknown or unhandled instruction class: {instruction.GetType().Name}");
+					throw new BuilderException($"Unknown or unhandled instruction class: {instruction?.GetType().Name}");
 			};
 		}
 
