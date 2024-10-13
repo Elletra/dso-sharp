@@ -11,17 +11,20 @@ namespace DSO.ControlFlow
 
 	public class ControlFlowData
 	{
-		public readonly Dictionary<uint, List<ControlFlowBlock>> Blocks = [];
+		public readonly Dictionary<uint, Queue<ControlFlowBlock>> Blocks = [];
 		public readonly Dictionary<uint, ControlFlowBranch> Branches = [];
 
 		public void AddBlock(ControlFlowBlock block)
 		{
-			if (!Blocks.ContainsKey(block.Start.Address))
+			if (block.Type != ControlFlowBlockType.Root)
 			{
-				Blocks[block.Start.Address] = [];
-			}
+				if (!Blocks.ContainsKey(block.Start.Address))
+				{
+					Blocks[block.Start.Address] = [];
+				}
 
-			Blocks[block.Start.Address].Add(block);
+				Blocks[block.Start.Address].Enqueue(block);
+			}
 		}
 
 		public void AddBranch(ControlFlowBranch branch) => Branches[branch.StartAddress] = branch;
@@ -54,13 +57,9 @@ namespace DSO.ControlFlow
 				new(ControlFlowBlockType.Root, disassembly.First, disassembly.Last),
 			};
 
-			foreach (var instruction in disassembly.GetInstructions())
+			foreach (var branch in disassembly.Branches)
 			{
-				if (instruction is FunctionInstruction function)
-				{
-					blocks.Add(new(ControlFlowBlockType.Function, function, disassembly.GetInstruction(function.EndAddress).Prev));
-				}
-				else if (instruction is BranchInstruction branch && branch.IsConditional && !branch.IsLogicalOperator)
+				if (branch.IsConditional && !branch.IsLogicalOperator)
 				{
 					var type = branch.IsLoopEnd ? ControlFlowBlockType.Loop : ControlFlowBlockType.Conditional;
 					var start = branch.IsLoopEnd ? disassembly.GetInstruction(branch.TargetAddress) : branch;

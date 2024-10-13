@@ -16,6 +16,11 @@ namespace DSO.AST
 		public NodeType Type { get; protected set; } = type;
 	}
 
+	public class RootNode() : Node(NodeType.Statement)
+	{
+		public readonly List<Node> Body = [];
+	}
+
 	public class BreakNode() : Node(NodeType.Statement) { }
 	public class ContinueNode() : Node(NodeType.Statement) { }
 
@@ -24,25 +29,28 @@ namespace DSO.AST
 		public Node? Value = value;
 	}
 
-	public class IfNode(Node test) : Node(NodeType.Statement)
+	public class IfNode(Node? test = null) : Node(NodeType.Statement)
 	{
-		public readonly Node Test = test;
-		public readonly List<Node> Body = [];
-		public readonly List<Node> Else = [];
+		public Node? Test { get; set; } = test;
+		public List<Node> True { get; set; } = [];
+		public List<Node> False { get; set; } = [];
 	}
 
-	public class WhileNode(Node test) : Node(NodeType.Statement)
+	public class LoopNode(Node test) : Node(NodeType.Statement)
 	{
 		public readonly Node Test = test;
-		public readonly List<Node> Body = [];
+		public List<Node> Body { get; set; } = [];
 	}
 
-	public class ForLoopNode(Node init, Node test, Node end) : Node(NodeType.Statement)
+	public class WhileLoopNode(Node test) : LoopNode(test)
+	{
+		public bool DoWhile { get; set; } = false;
+	}
+
+	public class ForLoopNode(Node init, Node test, Node end) : LoopNode(test)
 	{
 		public readonly Node Init = init;
-		public readonly Node Test = test;
 		public readonly Node End = end;
-		public readonly List<Node> Body = [];
 	}
 
 	public class UnaryNode(Node node, Opcode op) : Node(NodeType.Expression)
@@ -138,7 +146,7 @@ namespace DSO.AST
 		public readonly string? Namespace = instruction.Namespace;
 		public readonly uint EndAddress = instruction.EndAddress;
 		public readonly List<string> Arguments = [..instruction.Arguments];
-		public readonly List<Node> Body = [];
+		public List<Node> Body { get; set; } = [];
 	}
 
 	public class PackageNode(string name) : Node(NodeType.Statement)

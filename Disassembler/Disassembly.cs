@@ -37,6 +37,18 @@ namespace DSO.Disassembler
 		public Instruction? GetInstruction(uint address) => HasInstruction(address) ? _dictionary[address] : null;
 		public List<Instruction> GetInstructions() => [.._list];
 
+		public List<Instruction> SliceInstructions(uint fromAddress, uint toAddress)
+		{
+			var slice = new List<Instruction>();
+
+			for (var instruction = _dictionary[fromAddress]; instruction != null && instruction.Address <= toAddress; instruction = instruction.Next)
+			{
+				slice.Add(instruction);
+			}
+
+			return slice;
+		}
+
 		public IEnumerator<Instruction> GetEnumerator()
 		{
 			for (var instruction = First; instruction != null; instruction = instruction.Next)

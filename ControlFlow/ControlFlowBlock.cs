@@ -5,7 +5,6 @@ namespace DSO.ControlFlow
 	public enum ControlFlowBlockType
 	{
 		Root,
-		Function,
 		Conditional,
 		Loop,
 	}

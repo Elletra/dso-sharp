@@ -8,7 +8,6 @@ var disassembler = new Disassembler();
 var disassembly = disassembler.Disassemble(loader.LoadFile("./test.cs.dso", 210));
 var analyzer = new ControlFlowAnalyzer();
 var data = analyzer.Analyze(disassembly);
-var builder = new Builder();
 
 var elses = 0;
 var continues = 0;
@@ -36,6 +35,6 @@ Console.WriteLine($"Elses: {elses}");
 Console.WriteLine($"Continues: {continues}");
 Console.WriteLine($"Breaks: {breaks}");
 
-var nodes = builder.Build(data, disassembly);
+var nodes = new Builder().Build(data, disassembly);
 
 { }
