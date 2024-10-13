@@ -85,11 +85,10 @@ namespace DSO.AST
 		}
 	}
 
-	public class VariableNode(string name) : Node(NodeType.Expression)
+	public class VariableNode(string name, Node? index = null) : Node(NodeType.Expression)
 	{
 		public readonly string Name = name;
-
-		public Node? Index { get; set; } = null;
+		public Node? Index { get; set; } = index;
 	}
 
 	public class FieldNode(string name) : Node(NodeType.Expression)

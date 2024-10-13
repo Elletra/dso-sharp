@@ -173,12 +173,9 @@ namespace DSO.AST
 				case BinaryInstruction: return null;
 				case BinaryStringInstruction: return null;
 				case UnaryInstruction: return null;
-				case VariableInstruction: return null;
-				case VariableArrayInstruction: return null;
-				case SaveVariableInstruction: return null;
 
-				case FieldInstruction field:
-					return new FieldNode(field.Name);
+				case FieldInstruction field: return new FieldNode(field.Name);
+				case VariableInstruction variable: return new VariableNode(variable.Name);
 
 				case ObjectInstruction or ObjectNewInstruction:
 				{
@@ -197,27 +194,37 @@ namespace DSO.AST
 					return field;
 				}
 
-				case FieldArrayInstruction:
+				case FieldArrayInstruction or VariableArrayInstruction:
 				{
 					var node = Pop();
 
-					if (node is not FieldNode field)
+					if (node is FieldNode field)
 					{
-						throw new BuilderException($"Expected FieldNode before {instruction.Opcode.Value} at {instruction.Address}");
+						field.Index = Pop();
+					}
+					else if (node is VariableNode variable)
+					{
+						variable.Index = Pop();
+					}
+					else if (instruction is VariableArrayInstruction && node is ConcatNode concat && concat.Left is ConstantNode<string> identifier)
+					{
+						node = new VariableNode(identifier.Value, concat.Right);
+					}
+					else
+					{
+						throw new BuilderException($"Expected variable or field before array instruction at {instruction.Address}");
 					}
 
-					field.Index = Pop();
-
-					return field;
+					return node;
 				}
 
-				case SaveFieldInstruction:
+				case SaveFieldInstruction or SaveVariableInstruction:
 				{
 					AssignmentNode node;
 
 					var prev = Pop();
 
-					if (prev is FieldNode)
+					if (prev is FieldNode or VariableNode)
 					{
 						node = new(prev, Pop());
 					}
@@ -227,7 +234,7 @@ namespace DSO.AST
 					}
 					else
 					{
-						throw new BuilderException($"Expected FieldNode or BinaryNode before {instruction.Opcode.Value} at {instruction.Address}");
+						throw new BuilderException($"Expected field, variable, or binary expression before {instruction.Opcode.Value} at {instruction.Address}");
 					}
 
 					return node;
