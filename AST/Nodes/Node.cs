@@ -18,5 +18,6 @@ namespace DSO.AST.Nodes
 		public override int GetHashCode() => Type.GetHashCode();
 
 		public virtual void Visit(TokenStream stream, bool isExpression) { }
+		public virtual bool ShouldAddParentheses(Node parent) => false;
 	}
 }
