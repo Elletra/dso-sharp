@@ -54,9 +54,13 @@ namespace DSO.ControlFlow
 				new(ControlFlowBlockType.Root, disassembly.First, disassembly.Last),
 			};
 
-			foreach (var branch in disassembly.Branches)
+			foreach (var instruction in disassembly.GetInstructions())
 			{
-				if (branch.IsConditional && !branch.IsLogicalOperator)
+				if (instruction is FunctionInstruction function)
+				{
+					blocks.Add(new(ControlFlowBlockType.Function, function, disassembly.GetInstruction(function.EndAddress).Prev));
+				}
+				else if (instruction is BranchInstruction branch && branch.IsConditional && !branch.IsLogicalOperator)
 				{
 					var type = branch.IsLoopEnd ? ControlFlowBlockType.Loop : ControlFlowBlockType.Conditional;
 					var start = branch.IsLoopEnd ? disassembly.GetInstruction(branch.TargetAddress) : branch;
@@ -129,7 +133,7 @@ namespace DSO.ControlFlow
 					// If the OP_JMP is just directly in a loop, it's a continue.
 					branch.Type = branch.TargetAddress <= block.End.Address ? ControlFlowBranchType.Continue : ControlFlowBranchType.Break;
 				}
-				else if (outerLoop != null)
+				else if (block.Type == ControlFlowBlockType.Conditional && outerLoop != null)
 				{
 					if (branch.TargetAddress == outerLoop.End.Next?.Address)
 					{
