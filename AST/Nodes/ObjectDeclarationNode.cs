@@ -43,11 +43,26 @@ namespace DSO.AST.Nodes
 				stream.Write(":", " ", Parent);
 			}
 
-			foreach (var arg in Arguments)
+			if (Arguments.Count > 0)
 			{
+				stream.Write(",", " ");
+			}
+
+			foreach (var argument in Arguments)
+			{
+				Node? arg = null;
+
+				if (argument is ConstantStringNode str)
+				{
+					arg ??= str.ConvertToDoubleNode();
+					arg ??= str.ConvertToUIntNode();
+				}
+
+				arg ??= argument;
+
 				stream.Write(arg, this);
 
-				if (arg != Arguments.Last())
+				if (argument != Arguments.Last())
 				{
 					stream.Write(",", " ");
 				}
