@@ -13,6 +13,35 @@ namespace DSO.AST.Nodes
 
 		public override int GetHashCode() => base.GetHashCode() ^ (Test?.GetHashCode() ?? 0) ^ True.GetHashCode() ^ False.GetHashCode();
 
+		public override void Visit(TokenStream stream, bool isExpression)
+		{
+			stream.Write("if", "(");
+			stream.Write(Test, this);
+			stream.Write(")", "{");
+
+			True.ForEach(node => stream.Write(node, isExpression: false));
+
+			stream.Write("}");
+
+			if (False.Count <= 0)
+			{
+				return;
+			}
+
+			stream.Write("else");
+
+			if (False.Count == 1 && False[0] is IfNode)
+			{
+				stream.Write(False[0], isExpression: false);
+			}
+			else
+			{
+				stream.Write("{");
+				False.ForEach(node => stream.Write(node, isExpression: false));
+				stream.Write("}");
+			}
+		}
+
 		public TernaryIfNode ConvertToTernary()
 		{
 			if (Test == null || True.Count != 1 || False.Count != 1 || !True[0].IsExpression || !False[0].IsExpression)
