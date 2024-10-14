@@ -27,11 +27,9 @@ namespace DSO.AST.Nodes
 				index ??= Index;
 
 				stream.Write("[");
-				stream.Write(index, this);
+				stream.Write(index, isExpression: true);
 				stream.Write("]");
 			}
 		}
-
-		public override bool ShouldAddParentheses(Node parent) => parent is ObjectDeclarationNode;
 	}
 }

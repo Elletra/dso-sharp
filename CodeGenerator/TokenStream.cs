@@ -2,6 +2,8 @@
 
 namespace DSO.CodeGenerator
 {
+	public delegate bool ShouldAddParentheses(Node node);
+
 	public class TokenStream
 	{
 		private string _prevToken = "";
@@ -39,9 +41,9 @@ namespace DSO.CodeGenerator
 
 		public void Write(Node node, bool isExpression) => node.Visit(this, isExpression);
 
-		public void Write(Node node, Node parent)
+		public void Write(Node node, ShouldAddParentheses test)
 		{
-			var addParentheses = node.ShouldAddParentheses(parent);
+			var addParentheses = test(node);
 
 			if (addParentheses)
 			{

@@ -18,7 +18,7 @@ namespace DSO.AST.Nodes
 		public override void Visit(TokenStream stream, bool isExpression)
 		{
 			stream.Write("if", " ", "(");
-			stream.Write(Test, this);
+			stream.Write(Test, isExpression: true);
 			stream.Write(")", "\n", "{", "\n");
 
 			True.ForEach(node => stream.Write(node, isExpression: false));
@@ -69,11 +69,11 @@ namespace DSO.AST.Nodes
 
 		public override void Visit(TokenStream stream, bool isExpression)
 		{
-			stream.Write(Test, this);
+			stream.Write(Test, isExpression: true);
 			stream.Write(" ", "?", " ");
-			stream.Write(True, this);
+			stream.Write(True, isExpression: true);
 			stream.Write(" ", ":", " ");
-			stream.Write(False, this);
+			stream.Write(False, isExpression: true);
 		}
 	}
 }

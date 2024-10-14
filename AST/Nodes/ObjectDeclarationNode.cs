@@ -25,12 +25,12 @@ namespace DSO.AST.Nodes
 		public override void Visit(TokenStream stream, bool isExpression)
 		{
 			stream.Write(IsDataBlock ? "datablock" : "new", " ");
-			stream.Write(Class, this);
+			stream.Write(Class, node => !(node is ConstantStringNode str && str.StringType == StringType.Identifier));
 			stream.Write("(");
 
 			if (Name != null && (Name is not ConstantStringNode || (Name is ConstantStringNode constant && constant.Value != "")))
 			{
-				stream.Write(Name, this);
+				stream.Write(Name, isExpression: true);
 			}
 
 			if (Parent != null && Parent != "")
@@ -60,7 +60,7 @@ namespace DSO.AST.Nodes
 
 				arg ??= argument;
 
-				stream.Write(arg, this);
+				stream.Write(arg, isExpression: true);
 
 				if (argument != Arguments.Last())
 				{

@@ -16,7 +16,7 @@ namespace DSO.AST.Nodes
 
 		public override void Visit(TokenStream stream, bool isExpression)
 		{
-			stream.Write(Left, this);
+			stream.Write(Left, isExpression: true);
 
 			if (Operator == null)
 			{
@@ -32,7 +32,7 @@ namespace DSO.AST.Nodes
 
 				right ??= Right;
 
-				stream.Write(right, this);
+				stream.Write(right, isExpression: true);
 			}
 			else
 			{
@@ -69,7 +69,7 @@ namespace DSO.AST.Nodes
 						Ops.OP_SHR => ">>",
 					}}=", " ");
 
-					stream.Write(Right, this);
+					stream.Write(Right, isExpression: true);
 				}
 			}
 
@@ -78,10 +78,5 @@ namespace DSO.AST.Nodes
 				stream.Write(";", "\n");
 			}
 		}
-
-		public override bool ShouldAddParentheses(Node parent) => parent.IsStatement
-			&& parent is not LoopNode
-			&& parent is not IfNode
-			&& parent is not AssignmentNode;
 	}
 }

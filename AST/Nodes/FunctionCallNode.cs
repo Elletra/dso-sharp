@@ -31,7 +31,16 @@ namespace DSO.AST.Nodes
 
 			if (methodCall)
 			{
-				stream.Write(Arguments[0], this);
+				stream.Write(Arguments[0], node =>
+				{
+					if (node is ConstantStringNode str && str.StringType == StringType.Identifier)
+					{
+						return false;
+					}
+
+					return node is not ConstantUIntNode && node is not VariableNode;
+				});
+
 				stream.Write(".");
 			}
 			else if (Namespace != null)
@@ -53,7 +62,7 @@ namespace DSO.AST.Nodes
 
 				arg ??= Arguments[i];
 
-				stream.Write(arg, this);
+				stream.Write(arg, isExpression: true);
 
 				if (i < Arguments.Count - 1)
 				{

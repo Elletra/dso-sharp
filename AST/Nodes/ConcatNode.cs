@@ -23,7 +23,7 @@ namespace DSO.AST.Nodes
 
 		public override void Visit(TokenStream stream, bool isExpression)
 		{
-			stream.Write(Left, this);
+			stream.Write(Left, isExpression: true);
 
 			stream.Write(" ", Char switch
 			{
@@ -33,7 +33,7 @@ namespace DSO.AST.Nodes
 				null => "@",
 			}, " ");
 
-			stream.Write(Right, this);
+			stream.Write(Right, isExpression: true);
 		}
 	}
 
@@ -49,9 +49,9 @@ namespace DSO.AST.Nodes
 
 		public override void Visit(TokenStream stream, bool isExpression)
 		{
-			stream.Write(Left, this);
+			stream.Write(Left, isExpression: true);
 			stream.Write(",", " ");
-			stream.Write(Right, this);
+			stream.Write(Right, isExpression: true);
 		}
 	}
 }

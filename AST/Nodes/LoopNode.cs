@@ -17,7 +17,7 @@ namespace DSO.AST.Nodes
 			Body.ForEach(node => stream.Write(node, isExpression: false));
 
 			stream.Write("}", "\n", "while", " ", "(");
-			stream.Write(Test, this);
+			stream.Write(Test, isExpression: true);
 			stream.Write(")", "\n");
 		}
 	}
@@ -30,7 +30,7 @@ namespace DSO.AST.Nodes
 		public override void Visit(TokenStream stream, bool isExpression)
 		{
 			stream.Write("while", " ", "(");
-			stream.Write(Test, this);
+			stream.Write(Test, isExpression: true);
 			stream.Write(")", "\n", "{", "\n");
 
 			Body.ForEach(node => stream.Write(node, isExpression: false));
@@ -52,11 +52,11 @@ namespace DSO.AST.Nodes
 		public override void Visit(TokenStream stream, bool isExpression)
 		{
 			stream.Write("for", " ", "(");
-			stream.Write(Init, this);
+			stream.Write(Init, isExpression: true);
 			stream.Write(";", " ");
-			stream.Write(Test, this);
+			stream.Write(Test, isExpression: true);
 			stream.Write(";", " ");
-			stream.Write(End, this);
+			stream.Write(End, isExpression: true);
 			stream.Write(")", "\n", "{", "\n");
 
 			Body.ForEach(node => stream.Write(node, isExpression: false));

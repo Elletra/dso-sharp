@@ -20,7 +20,7 @@ namespace DSO.AST.Nodes
 				Ops.OP_NOT or Ops.OP_NOTF => "!",
 			});
 
-			stream.Write(Node, this);
+			stream.Write(Node, isExpression: true);
 		}
 	}
 }

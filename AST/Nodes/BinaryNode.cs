@@ -16,7 +16,7 @@ namespace DSO.AST.Nodes
 
 		public override void Visit(TokenStream stream, bool isExpression)
 		{
-			stream.Write(Left, this);
+			stream.Write(Left, isExpression: true);
 
 			stream.Write(" ", Op.Value switch
 			{
@@ -40,13 +40,8 @@ namespace DSO.AST.Nodes
 				Ops.OP_JMPIFNOT_NP => "&&",
 			}, " ");
 
-			stream.Write(Right, this);
+			stream.Write(Right, isExpression: true);
 		}
-
-		public override bool ShouldAddParentheses(Node parent) => parent.IsStatement
-			&& parent is not LoopNode
-			&& parent is not IfNode
-			&& parent is not AssignmentNode;
 	}
 
 	public class BinaryStringNode(Node left, Node right, Opcode op, bool not = false) : BinaryNode(left, right, op)
@@ -58,9 +53,9 @@ namespace DSO.AST.Nodes
 
 		public override void Visit(TokenStream stream, bool isExpression)
 		{
-			stream.Write(Left, this);
+			stream.Write(Left, isExpression: true);
 			stream.Write(" ", Not ? "!$=" : "$=", " ");
-			stream.Write(Right, this);
+			stream.Write(Right, isExpression: true);
 		}
 	}
 }

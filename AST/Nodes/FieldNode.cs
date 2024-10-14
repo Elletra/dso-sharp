@@ -18,7 +18,16 @@ namespace DSO.AST.Nodes
 		{
 			if (Object != null)
 			{
-				stream.Write(Object, this);
+				stream.Write(Object, node =>
+				{
+					if (node is ConstantStringNode str && str.StringType == StringType.Identifier)
+					{
+						return false;
+					}
+
+					return node is not ConstantUIntNode && node is not VariableNode;
+				});
+
 				stream.Write(".");
 			}
 
@@ -37,7 +46,7 @@ namespace DSO.AST.Nodes
 				index ??= Index;
 
 				stream.Write("[");
-				stream.Write(index, this);
+				stream.Write(index, isExpression: true);
 				stream.Write("]");
 			}
 		}

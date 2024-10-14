@@ -16,7 +16,7 @@ namespace DSO.AST.Nodes
 			if (Value != null)
 			{
 				stream.Write(" ");
-				stream.Write(Value, this);
+				stream.Write(Value, isExpression: true);
 			}
 
 			stream.Write(";", "\n");
