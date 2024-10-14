@@ -40,6 +40,6 @@ var nodes = new Builder().Build(data, disassembly);
 var generator = new CodeGenerator();
 var stream = generator.Generate(nodes);
 
-File.WriteAllLines("./out.cs", stream);
+File.WriteAllText("./out.cs", string.Join("", stream));
 
 { }
