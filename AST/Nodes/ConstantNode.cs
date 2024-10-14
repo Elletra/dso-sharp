@@ -123,5 +123,25 @@ namespace DSO.AST.Nodes
 
 			stream.Write(str);
 		}
+
+		public ConstantUIntNode? ConvertToUIntNode()
+		{
+			if (!uint.TryParse(Value, out uint number))
+			{
+				return null;
+			}
+
+			return new(number);
+		}
+
+		public ConstantDoubleNode? ConvertToDoubleNode()
+		{
+			if (!double.TryParse(Value, out double number))
+			{
+				return null;
+			}
+
+			return new(number);
+		}
 	}
 }

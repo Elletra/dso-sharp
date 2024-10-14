@@ -22,19 +22,15 @@ namespace DSO.AST.Nodes
 			{
 				stream.Write(" ", "=", " ");
 
-				Node right = Right;
+				Node? right = null;
 
-				if (right is ConstantStringNode constant)
+				if (Right is ConstantStringNode constant)
 				{
-					if (double.TryParse(constant.Value, out double doubleValue))
-					{
-						right = new ConstantDoubleNode(doubleValue);
-					}
-					else if (uint.TryParse(constant.Value, out uint uintValue))
-					{
-						right = new ConstantUIntNode(uintValue);
-					}
+					right ??= constant.ConvertToDoubleNode();
+					right ??= constant.ConvertToUIntNode();
 				}
+
+				right ??= Right;
 
 				stream.Write(right, this);
 			}
