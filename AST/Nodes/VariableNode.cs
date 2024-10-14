@@ -21,5 +21,7 @@ namespace DSO.AST.Nodes
 				stream.Write("]");
 			}
 		}
+
+		public override bool ShouldAddParentheses(Node parent) => parent is ObjectDeclarationNode;
 	}
 }

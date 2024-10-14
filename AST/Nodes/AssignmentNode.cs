@@ -68,9 +68,6 @@ namespace DSO.AST.Nodes
 			}
 		}
 
-		public override bool ShouldAddParentheses(Node parent)
-		{
-			return parent.IsStatement && parent is not LoopNode or IfNode;
-		}
+		public override bool ShouldAddParentheses(Node parent) => parent.IsStatement && parent is not LoopNode or IfNode;
 	}
 }
