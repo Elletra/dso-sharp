@@ -58,6 +58,12 @@ namespace DSO.AST
 					Push(node);
 				}
 			}
+
+			// Like with function declarations, a return statement automatically gets put at the ends of files, so we remove it.
+			if (Peek() is ReturnNode ret && ret.Value == null)
+			{
+				Pop();
+			}
 		}
 
 		private Node? Parse(Instruction? instruction)
