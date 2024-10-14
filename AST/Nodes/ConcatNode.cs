@@ -25,15 +25,13 @@ namespace DSO.AST.Nodes
 		{
 			stream.Write(Left, this);
 
-			if (Char != null)
+			stream.Write(Char switch
 			{
-				stream.Write(Char switch
-				{
-					' ' => "SPC",
-					'\t' => "TAB",
-					'\n' => "NL",
-				});
-			}
+				' ' => "SPC",
+				'\t' => "TAB",
+				'\n' => "NL",
+				null => "@",
+			});
 
 			stream.Write(Right, this);
 		}
