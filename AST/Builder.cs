@@ -408,7 +408,7 @@ namespace DSO.AST
 
 		private Node CollapseIfLoop(IfNode node)
 		{
-			if (node.True.Count != 1 || node.False.Count > 0 || node.True[0] is not LoopNode loop || loop is WhileLoopNode or ForLoopNode || !Equals(node.Test, loop.Test))
+			if (node.True.Count != 1 || node.False.Count > 0 || node.True[0] is not LoopNode loop || loop is WhileLoopNode || loop is ForLoopNode || !Equals(node.Test, loop.Test))
 			{
 				return node;
 			}
