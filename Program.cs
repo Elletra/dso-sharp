@@ -1,7 +1,7 @@
 ﻿using DSO.AST;
 using DSO.CodeGenerator;
 using DSO.ControlFlow;
-using DSO.Decompiler.Loader;
+using DSO.Loader;
 using DSO.Disassembler;
 
 var loader = new FileLoader();

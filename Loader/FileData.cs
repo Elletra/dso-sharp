@@ -1,4 +1,4 @@
-﻿namespace DSO.Decompiler.Loader
+﻿namespace DSO.Loader
 {
 	public class StringTable
 	{

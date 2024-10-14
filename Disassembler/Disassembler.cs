@@ -1,7 +1,5 @@
-﻿using DSO.Decompiler.Loader;
+﻿using DSO.Loader;
 using DSO.Opcodes;
-using System.Reflection.PortableExecutable;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DSO.Disassembler
 {

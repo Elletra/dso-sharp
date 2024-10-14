@@ -1,4 +1,4 @@
-﻿namespace DSO.Decompiler.Loader
+﻿namespace DSO.Loader
 {
 	/// <summary>
 	/// Mostly a wrapper for BinaryReader, but with some added methods specifically for DSO file reading.
