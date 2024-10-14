@@ -41,12 +41,7 @@ namespace DSO.AST.Nodes
 			}
 
 			stream.Write(")", "{");
-
-			foreach (var node in Body)
-			{
-				stream.Write(node, isExpression: false);
-			}
-
+			Body.ForEach(node => stream.Write(node, isExpression: false));
 			stream.Write("}");
 		}
 	}
@@ -64,12 +59,7 @@ namespace DSO.AST.Nodes
 		public override void Visit(TokenStream stream, bool isExpression)
 		{
 			stream.Write("package", Name, "{");
-
-			foreach (var function in Functions)
-			{
-				stream.Write(function, isExpression: false);
-			}
-
+			Functions.ForEach(function => stream.Write(function, isExpression: false));
 			stream.Write("}", ";");
 		}
 	}
