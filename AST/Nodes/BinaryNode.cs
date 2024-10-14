@@ -27,6 +27,8 @@ namespace DSO.AST.Nodes
 			Ops.OP_BITAND => 8,
 			Ops.OP_XOR => 9,
 			Ops.OP_BITOR => 10,
+			Ops.OP_JMPIFNOT_NP => 11,
+			Ops.OP_JMPIF_NP => 12,
 		};
 
 		public override bool Equals(object? obj) => base.Equals(obj) && obj is BinaryNode node
