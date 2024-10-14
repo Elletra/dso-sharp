@@ -13,7 +13,7 @@ namespace DSO.AST.Nodes
 		{
 			stream.Write("return");
 			Value?.Visit(stream, isExpression: true);
-			stream.Write(";", "\n");
+			stream.Write(";");
 		}
 	}
 }

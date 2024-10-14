@@ -64,7 +64,7 @@ namespace DSO.AST.Nodes
 
 			if (!isExpression)
 			{
-				stream.Write(";", "\n");
+				stream.Write(";");
 			}
 		}
 	}
