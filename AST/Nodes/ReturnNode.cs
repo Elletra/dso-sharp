@@ -15,8 +15,18 @@ namespace DSO.AST.Nodes
 
 			if (Value != null)
 			{
+				Node? value = null;
+
+				if (Value is ConstantStringNode constant)
+				{
+					value ??= constant.ConvertToDoubleNode();
+					value ??= constant.ConvertToUIntNode();
+				}
+
+				value ??= Value;
+
 				stream.Write(" ");
-				stream.Write(Value, isExpression: true);
+				stream.Write(value, isExpression: true);
 			}
 
 			stream.Write(";", "\n");

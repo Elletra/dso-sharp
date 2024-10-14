@@ -23,6 +23,8 @@ namespace DSO.AST.Nodes
 
 		public override int GetHashCode() => base.GetHashCode() ^ Left.GetHashCode() ^ (_right?.GetHashCode() ?? 0) ^ (Char?.GetHashCode() ?? 0);
 
+		public override bool IsAssociativeWith(Node compare) => compare is ConcatNode;
+
 		public override void Visit(TokenStream stream, bool isExpression)
 		{
 			stream.Write(Left, CheckPrecedenceAndAssociativity);
@@ -51,9 +53,9 @@ namespace DSO.AST.Nodes
 
 		public override void Visit(TokenStream stream, bool isExpression)
 		{
-			stream.Write(Left, CheckPrecedenceAndAssociativity);
+			stream.Write(Left, isExpression: true);
 			stream.Write(",", " ");
-			stream.Write(Right, CheckPrecedenceAndAssociativity);
+			stream.Write(Right, isExpression: true);
 		}
 	}
 }

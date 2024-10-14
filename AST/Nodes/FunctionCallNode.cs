@@ -18,8 +18,6 @@ namespace DSO.AST.Nodes
 		public readonly CallType CallType = Enum.IsDefined(typeof(CallType), instruction.CallType) ? (CallType) instruction.CallType : CallType.Invalid;
 		public readonly List<Node> Arguments = [];
 
-		public override int Precedence => 0;
-
 		public override bool Equals(object? obj) => base.Equals(obj) && obj is FunctionCallNode node
 			&& node.Name.Equals(Name) && Equals(node.Namespace, Namespace)
 			&& node.CallType.Equals(CallType) && node.Arguments.SequenceEqual(Arguments);
@@ -33,16 +31,7 @@ namespace DSO.AST.Nodes
 
 			if (methodCall)
 			{
-				stream.Write(Arguments[0], node =>
-				{
-					if (node is ConstantStringNode str && str.StringType == StringType.Identifier)
-					{
-						return false;
-					}
-
-					return node is not ConstantUIntNode && node is not VariableNode;
-				});
-
+				stream.Write(Arguments[0], node => node.Precedence > Precedence);
 				stream.Write(".");
 			}
 			else if (Namespace != null)

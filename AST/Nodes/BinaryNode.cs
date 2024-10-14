@@ -31,6 +31,8 @@ namespace DSO.AST.Nodes
 			Ops.OP_JMPIF_NP => 12,
 		};
 
+		public override bool IsAssociativeWith(Node compare) => compare is BinaryNode binary && binary.Op.Equals(Op) && IsOpAssociative;
+
 		public override bool Equals(object? obj) => base.Equals(obj) && obj is BinaryNode node
 			&& node.Left.Equals(Left) && node.Right.Equals(Right) && node.Op.Equals(Op);
 

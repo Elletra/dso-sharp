@@ -9,6 +9,8 @@ namespace DSO.AST.Nodes
 		public Node? Object { get; set; } = null;
 		public Node? Index { get; set; } = null;
 
+		public override bool IsAssociativeWith(Node compare) => compare is FieldNode;
+
 		public override bool Equals(object? obj) => base.Equals(obj) && obj is FieldNode node
 			&& node.Name.Equals(Name) && Equals(node.Object, Object) && Equals(node.Index, Index);
 
@@ -18,16 +20,17 @@ namespace DSO.AST.Nodes
 		{
 			if (Object != null)
 			{
-				stream.Write(Object, node =>
+				Node? obj = null;
+
+				if (Object is ConstantStringNode constant)
 				{
-					if (node is ConstantStringNode str && str.StringType == StringType.Identifier)
-					{
-						return false;
-					}
+					obj ??= constant.ConvertToDoubleNode();
+					obj ??= constant.ConvertToUIntNode();
+				}
 
-					return node is not ConstantUIntNode && node is not VariableNode;
-				});
+				obj ??= Object;
 
+				stream.Write(obj, node => node.Precedence > Precedence);
 				stream.Write(".");
 			}
 
