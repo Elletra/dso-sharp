@@ -16,8 +16,18 @@ namespace DSO.AST.Nodes
 
 			if (Index != null)
 			{
+				Node? index = null;
+
+				if (Index is ConstantStringNode constant)
+				{
+					index ??= constant.ConvertToDoubleNode();
+					index ??= constant.ConvertToUIntNode();
+				}
+
+				index ??= Index;
+
 				stream.Write("[");
-				Index.Visit(stream, isExpression: true);
+				stream.Write(index, this);
 				stream.Write("]");
 			}
 		}
