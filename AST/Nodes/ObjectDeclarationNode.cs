@@ -28,7 +28,7 @@ namespace DSO.AST.Nodes
 			stream.Write(Class, this);
 			stream.Write("(");
 
-			if (Name != null && (Name is not ConstantNode<string> || (Name is ConstantNode<string> constant && constant.Value != "")))
+			if (Name != null && (Name is not ConstantStringNode || (Name is ConstantStringNode constant && constant.Value != "")))
 			{
 				stream.Write(Name, this);
 			}

@@ -43,7 +43,10 @@ namespace DSO.AST.Nodes
 			stream.Write(Right, this);
 		}
 
-		public override bool ShouldAddParentheses(Node parent) => parent.IsStatement && parent is not LoopNode && parent is not IfNode;
+		public override bool ShouldAddParentheses(Node parent) => parent.IsStatement
+			&& parent is not LoopNode
+			&& parent is not IfNode
+			&& parent is not AssignmentNode;
 	}
 
 	public class BinaryStringNode(Node left, Node right, Opcode op, bool not = false) : BinaryNode(left, right, op)

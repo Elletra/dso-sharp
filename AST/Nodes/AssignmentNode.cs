@@ -24,15 +24,15 @@ namespace DSO.AST.Nodes
 
 				Node right = Right;
 
-				if (right is ConstantNode<string> constant)
+				if (right is ConstantStringNode constant)
 				{
 					if (double.TryParse(constant.Value, out double doubleValue))
 					{
-						right = new ConstantNode<double>(doubleValue);
+						right = new ConstantDoubleNode(doubleValue);
 					}
 					else if (uint.TryParse(constant.Value, out uint uintValue))
 					{
-						right = new ConstantNode<uint>(uintValue);
+						right = new ConstantUIntNode(uintValue);
 					}
 				}
 
@@ -43,7 +43,7 @@ namespace DSO.AST.Nodes
 				var op = Operator.Value;
 				var incDec = false;
 
-				if (Right is ConstantNode<double> constant && constant.Value == 1.0f)
+				if (Right is ConstantDoubleNode constant && constant.Value == 1.0f)
 				{
 					if (op == Ops.OP_ADD)
 					{
@@ -83,6 +83,9 @@ namespace DSO.AST.Nodes
 			}
 		}
 
-		public override bool ShouldAddParentheses(Node parent) => parent.IsStatement && parent is not LoopNode && parent is not IfNode;
+		public override bool ShouldAddParentheses(Node parent) => parent.IsStatement
+			&& parent is not LoopNode
+			&& parent is not IfNode
+			&& parent is not AssignmentNode;
 	}
 }

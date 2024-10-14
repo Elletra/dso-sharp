@@ -45,15 +45,15 @@ namespace DSO.AST.Nodes
 			{
 				Node arg = Arguments[i];
 
-				if (arg is ConstantNode<string> constant)
+				if (arg is ConstantStringNode constant)
 				{
 					if (double.TryParse(constant.Value, out double doubleValue))
 					{
-						arg = new ConstantNode<double>(doubleValue);
+						arg = new ConstantDoubleNode(doubleValue);
 					}
 					else if (uint.TryParse(constant.Value, out uint uintValue))
 					{
-						arg = new ConstantNode<uint>(uintValue);
+						arg = new ConstantUIntNode(uintValue);
 					}
 				}
 

@@ -122,13 +122,13 @@ namespace DSO.AST
 			switch (instruction)
 			{
 				case ImmediateInstruction<string> immediate:
-					return new ConstantNode<string>(immediate);
+					return new ConstantStringNode(immediate);
 
 				case ImmediateInstruction<double> immediate:
-					return new ConstantNode<double>(immediate);
+					return new ConstantDoubleNode(immediate);
 
 				case ImmediateInstruction<uint> immediate:
-					return new ConstantNode<uint>(immediate);
+					return new ConstantUIntNode(immediate);
 
 				case ReturnInstruction ret:
 					return new ReturnNode(ret.ReturnsValue ? Pop() : null);
@@ -200,7 +200,7 @@ namespace DSO.AST
 				{
 					var node = Pop();
 
-					if (node is not ConcatNode concat || concat.Left is not ConstantNode<string> left)
+					if (node is not ConcatNode concat || concat.Left is not ConstantStringNode left)
 					{
 						throw new BuilderException($"Expected valid ConcatNode before variable array at {array.Address}");
 					}
