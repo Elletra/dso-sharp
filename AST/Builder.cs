@@ -22,9 +22,21 @@ namespace DSO.AST
 		private Stack<List<Node>> _frameStack = [];
 		private Stack<Node> _nodeStack = [];
 
+		public uint CurrentAddress => _currentInstruction?.Address ?? 0;
 		private bool IsAtEnd => !_running || _currentInstruction == null || _currentInstruction.Address > _endAddress;
 
-		public List<Node> Build(ControlFlowData data, Disassembly disassembly) => Build(data, disassembly, disassembly.First.Address, disassembly.Last.Address);
+		public List<Node> Build(ControlFlowData data, Disassembly disassembly)
+		{
+			var list = Build(data, disassembly, disassembly.First.Address, disassembly.Last.Address);
+
+			// Like with function declarations, a return statement automatically gets put at the ends of files, so we remove it.
+			if (list.Count > 0 && list.Last() is ReturnNode ret && ret.Value == null)
+			{
+				list.RemoveAt(list.Count - 1);
+			}
+
+			return list;
+		}
 
 		public List<Node> Build(ControlFlowData data, Disassembly disassembly, uint startAddress, uint endAddress)
 		{
@@ -57,12 +69,6 @@ namespace DSO.AST
 				{
 					Push(node);
 				}
-			}
-
-			// Like with function declarations, a return statement automatically gets put at the ends of files, so we remove it.
-			if (Peek() is ReturnNode ret && ret.Value == null)
-			{
-				Pop();
 			}
 		}
 
@@ -446,7 +452,7 @@ namespace DSO.AST
 			var builder = new Builder();
 			var list = builder.Build(_data, _disassembly, fromAddress, toAddress);
 
-			_currentInstruction = _disassembly.GetInstruction(toAddress)?.Next;
+			_currentInstruction = _disassembly.GetInstruction(builder.CurrentAddress);
 
 			return list;
 		}
