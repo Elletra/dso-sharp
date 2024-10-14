@@ -11,9 +11,9 @@ namespace DSO.AST.Nodes
 
 		public override void Visit(TokenStream stream, bool isExpression)
 		{
-			stream.Write("return");
+			stream.Write("return", " ");
 			Value?.Visit(stream, isExpression: true);
-			stream.Write(";");
+			stream.Write(";", "\n");
 		}
 	}
 }

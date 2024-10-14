@@ -47,11 +47,16 @@ namespace DSO.AST.Nodes
 
 				if (i < Arguments.Count - 1)
 				{
-					stream.Write(",");
+					stream.Write(",", " ");
 				}
 			}
 
 			stream.Write(")");
+
+			if (!isExpression)
+			{
+				stream.Write(";", "\n");
+			}
 		}
 	}
 }

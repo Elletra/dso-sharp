@@ -25,13 +25,13 @@ namespace DSO.AST.Nodes
 		{
 			stream.Write(Left, this);
 
-			stream.Write(Char switch
+			stream.Write(" ", Char switch
 			{
 				' ' => "SPC",
 				'\t' => "TAB",
 				'\n' => "NL",
 				null => "@",
-			});
+			}, " ");
 
 			stream.Write(Right, this);
 		}
@@ -50,7 +50,7 @@ namespace DSO.AST.Nodes
 		public override void Visit(TokenStream stream, bool isExpression)
 		{
 			stream.Write(Left, this);
-			stream.Write(",");
+			stream.Write(",", " ");
 			stream.Write(Right, this);
 		}
 	}

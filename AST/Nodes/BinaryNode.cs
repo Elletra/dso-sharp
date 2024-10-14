@@ -18,7 +18,7 @@ namespace DSO.AST.Nodes
 		{
 			stream.Write(Left, this);
 
-			stream.Write(Op.Value switch
+			stream.Write(" ", Op.Value switch
 			{
 				Ops.OP_ADD => "+",
 				Ops.OP_SUB => "-",
@@ -38,7 +38,7 @@ namespace DSO.AST.Nodes
 				Ops.OP_SHR => ">>",
 				Ops.OP_JMPIF_NP => "||",
 				Ops.OP_JMPIFNOT_NP => "&&",
-			});
+			}, " ");
 
 			stream.Write(Right, this);
 		}
@@ -54,7 +54,7 @@ namespace DSO.AST.Nodes
 		public override void Visit(TokenStream stream, bool isExpression)
 		{
 			stream.Write(Left, this);
-			stream.Write(Not ? "!$=" : "$=");
+			stream.Write(" ", Not ? "!$=" : "$=", " ");
 			stream.Write(Right, this);
 		}
 	}

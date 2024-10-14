@@ -15,13 +15,13 @@ namespace DSO.AST.Nodes
 
 		public override void Visit(TokenStream stream, bool isExpression)
 		{
-			stream.Write("if", "(");
+			stream.Write("if", " ", "(");
 			stream.Write(Test, this);
-			stream.Write(")", "{");
+			stream.Write(")", "\n", "{", "\n");
 
 			True.ForEach(node => stream.Write(node, isExpression: false));
 
-			stream.Write("}");
+			stream.Write("}", "\n");
 
 			if (False.Count <= 0)
 			{
@@ -32,13 +32,14 @@ namespace DSO.AST.Nodes
 
 			if (False.Count == 1 && False[0] is IfNode)
 			{
+				stream.Write(" ");
 				stream.Write(False[0], isExpression: false);
 			}
 			else
 			{
-				stream.Write("{");
+				stream.Write("\n", "{", "\n");
 				False.ForEach(node => stream.Write(node, isExpression: false));
-				stream.Write("}");
+				stream.Write("}", "\n");
 			}
 		}
 
@@ -67,9 +68,9 @@ namespace DSO.AST.Nodes
 		public override void Visit(TokenStream stream, bool isExpression)
 		{
 			stream.Write(Test, this);
-			stream.Write("?");
+			stream.Write(" ", "?", " ");
 			stream.Write(True, this);
-			stream.Write(":");
+			stream.Write(" ", ":", " ");
 			stream.Write(False, this);
 		}
 	}

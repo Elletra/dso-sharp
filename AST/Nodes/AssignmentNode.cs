@@ -20,7 +20,7 @@ namespace DSO.AST.Nodes
 
 			if (Operator == null)
 			{
-				stream.Write("=");
+				stream.Write(" ", "=", " ");
 				stream.Write(Right, this);
 			}
 			else
@@ -44,7 +44,7 @@ namespace DSO.AST.Nodes
 
 				if (!incDec)
 				{
-					stream.Write($"{op switch
+					stream.Write(" ", $"{op switch
 					{
 						Ops.OP_ADD => "+",
 						Ops.OP_SUB => "-",
@@ -56,7 +56,7 @@ namespace DSO.AST.Nodes
 						Ops.OP_XOR => "^",
 						Ops.OP_SHL => "<<",
 						Ops.OP_SHR => ">>",
-					}}=");
+					}}=", " ");
 
 					stream.Write(Right, this);
 				}
@@ -64,8 +64,13 @@ namespace DSO.AST.Nodes
 
 			if (!isExpression)
 			{
-				stream.Write(";");
+				stream.Write(";", "\n");
 			}
+		}
+
+		public override bool ShouldAddParentheses(Node parent)
+		{
+			return parent.IsStatement && parent is not LoopNode or IfNode;
 		}
 	}
 }

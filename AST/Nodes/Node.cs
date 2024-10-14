@@ -16,7 +16,8 @@ namespace DSO.AST.Nodes
 
 		public bool IsExpression => Type == NodeType.Expression || Type == NodeType.ExpressionStatement;
 		public bool IsExpressionOnly => Type == NodeType.Expression;
-		public bool IsStatement => Type == NodeType.Statement;
+		public bool IsStatement => Type == NodeType.Statement || Type == NodeType.ExpressionStatement;
+		public bool IsStatementOnly => Type == NodeType.Statement;
 
 		public override bool Equals(object? obj) => obj is Node node && node.Type.Equals(Type);
 		public override int GetHashCode() => Type.GetHashCode();
