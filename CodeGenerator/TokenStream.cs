@@ -4,9 +4,39 @@ namespace DSO.CodeGenerator
 {
 	public class TokenStream
 	{
+		private string _prevToken = "";
 		public readonly List<string> Stream = [];
 
-		public void Write(params string[] tokens) => Stream.AddRange(tokens);
+		public int Indent { get; private set; } = 0;
+
+		public void Write(params string[] tokens)
+		{
+			foreach (var token in tokens)
+			{
+				if (token == "}")
+				{
+					Indent--;
+				}
+
+				if (_prevToken == "\n" && token != "\n")
+				{
+					for (var i = 0; i < Indent; i++)
+					{
+						Stream.Add("\t");
+					}
+				}
+
+				if (token == "{")
+				{
+					Indent++;
+				}
+
+				_prevToken = token;
+
+				Stream.Add(token);
+			}
+		}
+
 		public void Write(Node node, bool isExpression) => node.Visit(this, isExpression);
 
 		public void Write(Node node, Node parent)
