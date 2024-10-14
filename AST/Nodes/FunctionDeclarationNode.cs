@@ -60,7 +60,7 @@ namespace DSO.AST.Nodes
 		{
 			stream.Write("package", " ", Name, "\n", "{", "\n");
 			Functions.ForEach(function => stream.Write(function, isExpression: false));
-			stream.Write("}", ";");
+			stream.Write("}", ";", "\n");
 		}
 	}
 }
