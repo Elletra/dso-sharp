@@ -62,6 +62,8 @@ namespace DSO.AST.Nodes
 		public readonly Node True = @true;
 		public readonly Node False = @false;
 
+		public override int Precedence => 13;
+
 		public override bool Equals(object? obj) => base.Equals(obj) && obj is TernaryIfNode node
 			&& node.Test.Equals(Test) && node.True.Equals(True) && node.False.Equals(False);
 

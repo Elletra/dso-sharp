@@ -18,6 +18,8 @@ namespace DSO.AST.Nodes
 		public readonly CallType CallType = Enum.IsDefined(typeof(CallType), instruction.CallType) ? (CallType) instruction.CallType : CallType.Invalid;
 		public readonly List<Node> Arguments = [];
 
+		public override int Precedence => 0;
+
 		public override bool Equals(object? obj) => base.Equals(obj) && obj is FunctionCallNode node
 			&& node.Name.Equals(Name) && Equals(node.Namespace, Namespace)
 			&& node.CallType.Equals(CallType) && node.Arguments.SequenceEqual(Arguments);
