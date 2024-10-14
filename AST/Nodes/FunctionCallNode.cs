@@ -43,7 +43,21 @@ namespace DSO.AST.Nodes
 
 			for (var i = methodCall ? 1 : 0; i < Arguments.Count; i++)
 			{
-				stream.Write(Arguments[i], this);
+				Node arg = Arguments[i];
+
+				if (arg is ConstantNode<string> constant)
+				{
+					if (double.TryParse(constant.Value, out double doubleValue))
+					{
+						arg = new ConstantNode<double>(doubleValue);
+					}
+					else if (uint.TryParse(constant.Value, out uint uintValue))
+					{
+						arg = new ConstantNode<uint>(uintValue);
+					}
+				}
+
+				stream.Write(arg, this);
 
 				if (i < Arguments.Count - 1)
 				{

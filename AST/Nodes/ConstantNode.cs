@@ -16,6 +16,33 @@ namespace DSO.AST.Nodes
 		public readonly T Value;
 		public readonly StringType StringType;
 
+		public ConstantNode(T value) : base(NodeType.Expression)
+		{
+			Value = value;
+
+			if (typeof(T) != typeof(string))
+			{
+				StringType = StringType.None;
+			}
+			else
+			{
+				var str = value.ToString();
+
+				if (str.StartsWith('"'))
+				{
+					StringType = StringType.String;
+				}
+				else if (str.StartsWith('\''))
+				{
+					StringType = StringType.Tagged;
+				}
+				else
+				{
+					StringType = StringType.Identifier;
+				}
+			}
+		}
+
 		public ConstantNode(ImmediateInstruction<T> instruction) : base(NodeType.Expression)
 		{
 			Value = instruction.Value;

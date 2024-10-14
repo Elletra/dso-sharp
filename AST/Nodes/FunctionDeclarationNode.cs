@@ -42,7 +42,7 @@ namespace DSO.AST.Nodes
 
 			stream.Write(")", "\n", "{", "\n");
 			Body.ForEach(node => stream.Write(node, isExpression: false));
-			stream.Write("}", "\n");
+			stream.Write("}", "\n", "\n");
 		}
 	}
 
