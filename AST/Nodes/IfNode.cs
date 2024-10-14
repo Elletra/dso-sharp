@@ -11,7 +11,7 @@ namespace DSO.AST.Nodes
 		public bool CanConvertToTernary => Test != null && True.Count == 1 && False.Count == 1 && True[0].IsExpression && False[0].IsExpression;
 
 		public override bool Equals(object? obj) => base.Equals(obj) && obj is IfNode node
-			&& Equals(node.Test, Test) && node.True.Equals(True) && node.False.Equals(False);
+			&& Equals(node.Test, Test) && node.True.SequenceEqual(True) && node.False.SequenceEqual(False);
 
 		public override int GetHashCode() => base.GetHashCode() ^ (Test?.GetHashCode() ?? 0) ^ True.GetHashCode() ^ False.GetHashCode();
 

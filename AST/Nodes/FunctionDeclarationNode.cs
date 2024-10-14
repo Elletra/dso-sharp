@@ -12,7 +12,7 @@ namespace DSO.AST.Nodes
 
 		public override bool Equals(object? obj) => base.Equals(obj) && obj is FunctionDeclarationNode node
 			&& node.Name.Equals(Name) && Equals(node.Namespace, Namespace)
-			&& node.Arguments.Equals(Arguments) && node.Body.Equals(Body);
+			&& node.Arguments.SequenceEqual(Arguments) && node.Body.SequenceEqual(Body);
 
 		public override int GetHashCode() => base.GetHashCode() ^ Name.GetHashCode() ^ (Namespace?.GetHashCode() ?? 0)
 			^ Arguments.GetHashCode() ^ Body.GetHashCode();
@@ -52,7 +52,7 @@ namespace DSO.AST.Nodes
 		public readonly List<FunctionDeclarationNode> Functions = [];
 
 		public override bool Equals(object? obj) => base.Equals(obj) && obj is PackageNode node
-			&& node.Name.Equals(Name) && node.Functions.Equals(Functions);
+			&& node.Name.Equals(Name) && node.Functions.SequenceEqual(Functions);
 
 		public override int GetHashCode() => base.GetHashCode() ^ Name.GetHashCode() ^ Functions.GetHashCode();
 

@@ -20,7 +20,7 @@ namespace DSO.AST.Nodes
 
 		public override bool Equals(object? obj) => base.Equals(obj) && obj is FunctionCallNode node
 			&& node.Name.Equals(Name) && Equals(node.Namespace, Namespace)
-			&& node.CallType.Equals(CallType) && node.Arguments.Equals(Arguments);
+			&& node.CallType.Equals(CallType) && node.Arguments.SequenceEqual(Arguments);
 
 		public override int GetHashCode() => base.GetHashCode() ^ Name.GetHashCode() ^ (Namespace?.GetHashCode() ?? 0)
 			^ CallType.GetHashCode() ^ Arguments.GetHashCode();

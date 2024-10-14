@@ -16,7 +16,7 @@ namespace DSO.AST.Nodes
 
 		public override bool Equals(object? obj) => base.Equals(obj) && obj is ObjectDeclarationNode node
 			&& node.IsDataBlock.Equals(IsDataBlock) && node.Class.Equals(Class) && Equals(node.Name, Name) && Equals(node.Parent, Parent)
-			&& node.Depth.Equals(Depth) && node.Arguments.Equals(Arguments) && node.Fields.Equals(Fields) && node.Children.Equals(Children);
+			&& node.Depth.Equals(Depth) && node.Arguments.SequenceEqual(Arguments) && node.Fields.SequenceEqual(Fields) && node.Children.SequenceEqual(Children);
 
 		public override int GetHashCode() => base.GetHashCode() ^ IsDataBlock.GetHashCode()
 			^ Class.GetHashCode() ^ (Name?.GetHashCode() ?? 0) ^ (Parent?.GetHashCode() ?? 0)

@@ -7,7 +7,7 @@ namespace DSO.AST.Nodes
 		public readonly Node Test = test;
 		public List<Node> Body { get; set; } = [];
 
-		public override bool Equals(object? obj) => base.Equals(obj) && obj is LoopNode node && node.Test.Equals(Test) && node.Body.Equals(Body);
+		public override bool Equals(object? obj) => base.Equals(obj) && obj is LoopNode node && node.Test.Equals(Test) && node.Body.SequenceEqual(Body);
 		public override int GetHashCode() => base.GetHashCode() ^ Test.GetHashCode() ^ Body.GetHashCode();
 
 		public override void Visit(TokenStream stream, bool isExpression)
