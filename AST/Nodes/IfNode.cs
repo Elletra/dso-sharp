@@ -8,6 +8,8 @@ namespace DSO.AST.Nodes
 		public List<Node> True { get; set; } = [];
 		public List<Node> False { get; set; } = [];
 
+		public bool CanConvertToTernary => Test != null && True.Count == 1 && False.Count == 1 && True[0].IsExpression && False[0].IsExpression;
+
 		public override bool Equals(object? obj) => base.Equals(obj) && obj is IfNode node
 			&& Equals(node.Test, Test) && node.True.Equals(True) && node.False.Equals(False);
 
@@ -45,7 +47,7 @@ namespace DSO.AST.Nodes
 
 		public TernaryIfNode ConvertToTernary()
 		{
-			if (Test == null || True.Count != 1 || False.Count != 1 || !True[0].IsExpression || !False[0].IsExpression)
+			if (!CanConvertToTernary)
 			{
 				throw new InvalidCastException("Could not convert if statement to ternary expression");
 			}

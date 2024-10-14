@@ -417,10 +417,20 @@ namespace DSO.AST
 
 			if (peek != null && loop.Body.Count > 0 && peek.IsExpression)
 			{
-				return new ForLoopNode(Pop(), loop.Test, loop.Body[^1])
+				Node end = loop.Body[^1];
+
+				if (end.IsExpression)
 				{
-					Body = loop.Body[..^1],
-				};
+					if (end is IfNode ifNode && ifNode.CanConvertToTernary)
+					{
+						end = ifNode.ConvertToTernary();
+					}
+
+					return new ForLoopNode(Pop(), loop.Test, end)
+					{
+						Body = loop.Body[..^1],
+					};
+				}
 			}
 
 			return new WhileLoopNode(loop.Test)
