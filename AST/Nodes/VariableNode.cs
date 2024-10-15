@@ -5,7 +5,7 @@ namespace DSO.AST.Nodes
 	public class VariableNode(string name, Node? index = null) : Node(NodeType.Expression)
 	{
 		public readonly string Name = name;
-		public Node? Index { get; set; } = index;
+		public readonly Node? Index = index is ConstantStringNode node ? node.ConvertToUIntNode() ?? node.ConvertToDoubleNode() ?? index : index;
 
 		public override bool Equals(object? obj) => base.Equals(obj) && obj is VariableNode node && node.Name.Equals(Name) && Equals(node.Index, Index);
 		public override int GetHashCode() => base.GetHashCode() ^ Name.GetHashCode() ^ (Index?.GetHashCode() ?? 0);
@@ -16,18 +16,8 @@ namespace DSO.AST.Nodes
 
 			if (Index != null)
 			{
-				Node? index = null;
-
-				if (Index is ConstantStringNode constant)
-				{
-					index ??= constant.ConvertToDoubleNode();
-					index ??= constant.ConvertToUIntNode();
-				}
-
-				index ??= Index;
-
 				stream.Write("[");
-				stream.Write(index, isExpression: true);
+				stream.Write(Index, isExpression: true);
 				stream.Write("]");
 			}
 		}

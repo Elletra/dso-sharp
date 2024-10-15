@@ -6,8 +6,12 @@ namespace DSO.AST.Nodes
 	{
 		public readonly string Name = name;
 
-		public Node? Object { get; set; } = null;
-		public Node? Index { get; set; } = null;
+		private Node? _object = null;
+		private Node? _index = null;
+
+		/* I realize these are abominations and I deeply apologize. */
+		public Node? Object { get => _object; set => _object = value is ConstantStringNode node ? node.ConvertToUIntNode() ?? node.ConvertToDoubleNode() ?? value : value; }
+		public Node? Index { get => _index; set => _index = value is ConstantStringNode node ? node.ConvertToUIntNode() ?? node.ConvertToDoubleNode() ?? value : value; }
 
 		public override bool IsAssociativeWith(Node compare) => compare is FieldNode;
 
@@ -20,17 +24,7 @@ namespace DSO.AST.Nodes
 		{
 			if (Object != null)
 			{
-				Node? obj = null;
-
-				if (Object is ConstantStringNode constant)
-				{
-					obj ??= constant.ConvertToDoubleNode();
-					obj ??= constant.ConvertToUIntNode();
-				}
-
-				obj ??= Object;
-
-				stream.Write(obj, node => node.Precedence > Precedence);
+				stream.Write(Object, node => node.Precedence > Precedence);
 				stream.Write(".");
 			}
 
@@ -38,18 +32,8 @@ namespace DSO.AST.Nodes
 
 			if (Index != null)
 			{
-				Node? index = null;
-
-				if (Index is ConstantStringNode constant)
-				{
-					index ??= constant.ConvertToDoubleNode();
-					index ??= constant.ConvertToUIntNode();
-				}
-
-				index ??= Index;
-
 				stream.Write("[");
-				stream.Write(index, isExpression: true);
+				stream.Write(Index, isExpression: true);
 				stream.Write("]");
 			}
 		}

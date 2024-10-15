@@ -301,7 +301,7 @@ namespace DSO.AST
 				{
 					var node = new FunctionCallNode(call);
 
-					_frameStack.Pop().ForEach(node.Arguments.Add);
+					_frameStack.Pop().ForEach(node.AddArgument);
 
 					return node;
 				}
@@ -340,7 +340,7 @@ namespace DSO.AST
 
 					for (var i = 2; i < frame.Count; i++)
 					{
-						node.Arguments.Add(frame[i]);
+						node.AddArgument(frame[i]);
 					}
 
 					return node;

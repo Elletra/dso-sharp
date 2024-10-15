@@ -6,12 +6,12 @@ namespace DSO.AST.Nodes
 	public class AssignmentNode(Node left, Node right, Opcode? op = null) : Node(NodeType.ExpressionStatement)
 	{
 		public readonly Node Left = left;
-		public readonly Node Right = right;
+		public readonly Node Right = right is ConstantStringNode node ? node.ConvertToUIntNode() ?? node.ConvertToDoubleNode() ?? right : right;
 		public readonly Opcode? Operator = op;
 
 		public override int Precedence => IsIncrementDecrement ? 1 : 14;
 
-		public bool IsIncrementDecrement => Right is ConstantDoubleNode constant && constant.Value == 1.0f && (op?.Value == Ops.OP_ADD || op?.Value == Ops.OP_SUB);
+		public bool IsIncrementDecrement => Right is ConstantDoubleNode constant && constant.Value == 1.0f && (Operator?.Value == Ops.OP_ADD || Operator?.Value == Ops.OP_SUB);
 
 		public override bool Equals(object? obj) => base.Equals(obj) && obj is AssignmentNode node
 			&& node.Left.Equals(Left) && node.Right.Equals(Right) && Equals(node.Operator, Operator);
@@ -25,18 +25,7 @@ namespace DSO.AST.Nodes
 			if (Operator == null)
 			{
 				stream.Write(" ", "=", " ");
-
-				Node? right = null;
-
-				if (Right is ConstantStringNode constant)
-				{
-					right ??= constant.ConvertToDoubleNode();
-					right ??= constant.ConvertToUIntNode();
-				}
-
-				right ??= Right;
-
-				stream.Write(right, isExpression: true);
+				stream.Write(Right, isExpression: true);
 			}
 			else
 			{

@@ -13,17 +13,20 @@ namespace DSO.AST.Nodes
 
 	public class FunctionCallNode(CallInstruction instruction) : Node(NodeType.ExpressionStatement)
 	{
+		private readonly List<Node> _arguments = [];
+
 		public readonly string Name = instruction.Name;
 		public readonly string? Namespace = instruction.Namespace;
 		public readonly CallType CallType = Enum.IsDefined(typeof(CallType), instruction.CallType) ? (CallType) instruction.CallType : CallType.Invalid;
-		public readonly List<Node> Arguments = [];
+
+		public void AddArgument(Node arg) => _arguments.Add(arg is ConstantStringNode node ? node.ConvertToUIntNode() ?? node.ConvertToDoubleNode() ?? arg : arg);
 
 		public override bool Equals(object? obj) => base.Equals(obj) && obj is FunctionCallNode node
 			&& node.Name.Equals(Name) && Equals(node.Namespace, Namespace)
-			&& node.CallType.Equals(CallType) && node.Arguments.SequenceEqual(Arguments);
+			&& node.CallType.Equals(CallType) && node._arguments.SequenceEqual(_arguments);
 
 		public override int GetHashCode() => base.GetHashCode() ^ Name.GetHashCode() ^ (Namespace?.GetHashCode() ?? 0)
-			^ CallType.GetHashCode() ^ Arguments.GetHashCode();
+			^ CallType.GetHashCode() ^ _arguments.GetHashCode();
 
 		public override void Visit(TokenStream stream, bool isExpression)
 		{
@@ -31,7 +34,7 @@ namespace DSO.AST.Nodes
 
 			if (methodCall)
 			{
-				stream.Write(Arguments[0], node => node.Precedence > Precedence);
+				stream.Write(_arguments[0], node => node.Precedence > Precedence);
 				stream.Write(".");
 			}
 			else if (Namespace != null)
@@ -41,21 +44,11 @@ namespace DSO.AST.Nodes
 
 			stream.Write(Name, "(");
 
-			for (var i = methodCall ? 1 : 0; i < Arguments.Count; i++)
+			for (var i = methodCall ? 1 : 0; i < _arguments.Count; i++)
 			{
-				Node? arg = null;
+				stream.Write(_arguments[i], isExpression: true);
 
-				if (Arguments[i] is ConstantStringNode constant)
-				{
-					arg ??= constant.ConvertToDoubleNode();
-					arg ??= constant.ConvertToUIntNode();
-				}
-
-				arg ??= Arguments[i];
-
-				stream.Write(arg, isExpression: true);
-
-				if (i < Arguments.Count - 1)
+				if (i < _arguments.Count - 1)
 				{
 					stream.Write(",", " ");
 				}
