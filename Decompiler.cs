@@ -4,7 +4,6 @@ using DSO.Loader;
 using DSO.Util;
 
 using static DSO.Util.Constants.Decompiler;
-using static DSO.Util.Constants.Decompiler.Blockland.V21;
 
 namespace DSO
 {
@@ -16,16 +15,16 @@ namespace DSO
 		private readonly Builder _builder = new();
 		private readonly CodeGenerator.CodeGenerator _generator = new();
 
-		public void Decompile(params string[] paths)
+		public void Decompile(CommandLineOptions options)
 		{
-			if (paths.Length <= 0)
+			if (options.Paths.Count <= 0)
 			{
 				return;
 			}
 
 			var startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
-			foreach (var path in paths)
+			foreach (var path in options.Paths)
 			{
 				if (Path.HasExtension(path))
 				{
@@ -51,13 +50,13 @@ namespace DSO
 			var files = 0;
 			var failures = 0;
 
-			foreach (var path in paths)
+			foreach (var path in options.Paths)
 			{
 				if (Path.HasExtension(path))
 				{
 					files++;
 
-					if (!DecompileFile(path, DSO_VERSION))
+					if (!DecompileFile(path, options.GameVersion))
 					{
 						failures++;
 					}
@@ -69,7 +68,7 @@ namespace DSO
 						Logger.LogMessage("");
 					}
 
-					var result = DecompileDirectory(path, DSO_VERSION);
+					var result = DecompileDirectory(path, options.GameVersion);
 
 					files += result.Item1;
 					failures += result.Item2;
@@ -97,7 +96,7 @@ namespace DSO
 			}
 		}
 
-		private Tuple<int, int> DecompileDirectory(string path, uint version)
+		private Tuple<int, int> DecompileDirectory(string path, GameVersionData game)
 		{
 			Logger.LogMessage($"Decompiling all files in directory: \"{path}\"");
 
@@ -106,7 +105,7 @@ namespace DSO
 
 			foreach (var file in files)
 			{
-				if (!DecompileFile(file, version))
+				if (!DecompileFile(file, game))
 				{
 					failures++;
 				}
@@ -115,7 +114,7 @@ namespace DSO
 			return new(files.Length, failures);
 		}
 
-		private bool DecompileFile(string path, uint version)
+		private bool DecompileFile(string path, GameVersionData game)
 		{
 			string outputPath;
 			List<string> stream;
@@ -124,7 +123,7 @@ namespace DSO
 
 			try
 			{
-				var disassembly = _disassembler.Disassemble(_loader.LoadFile(path, version));
+				var disassembly = _disassembler.Disassemble(_loader.LoadFile(path, game.Version));
 				var data = _analyzer.Analyze(disassembly);
 				var nodes = _builder.Build(data, disassembly);
 
