@@ -101,7 +101,7 @@ namespace DSO
 		{
 			Logger.LogMessage($"Decompiling all files in directory: \"{path}\"");
 
-			var files = Directory.GetFiles(path, $"*{EXTENSION}");
+			var files = Directory.GetFiles(path, $"*{EXTENSION}", SearchOption.AllDirectories);
 			var failures = 0;
 
 			foreach (var file in files)
