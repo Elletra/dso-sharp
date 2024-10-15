@@ -1,90 +1,404 @@
-﻿namespace DSO.Opcodes
+﻿using DSO.Versions.Blockland.V21;
+using System.Reflection;
+
+namespace DSO.Opcodes
 {
-    public enum Ops : uint
-    {
-        OP_UINT_TO_FLT,              /*  0x00  */
-        OP_ADVANCE_STR_NUL,          /*  0x01  */
-        OP_UINT_TO_STR,              /*  0x02  */
-        OP_UINT_TO_NONE,             /*  0x03  */
-        OP_UNUSED1,                  /*  0x04  */
-        OP_ADD_OBJECT,               /*  0x05  */
-        OP_UNUSED2,                  /*  0x06  */
-        OP_CALLFUNC_RESOLVE,         /*  0x07  */
-        OP_FLT_TO_UINT,              /*  0x08  */
-        OP_FLT_TO_STR,               /*  0x09  */
-        OP_UNUSED3,                  /*  0x0A  */
-        OP_LOADVAR_UINT,             /*  0x0B  */
-        OP_SAVEVAR_STR,              /*  0x0C  */
-        OP_JMPIFNOT,                 /*  0x0D  */
-        OP_SAVEVAR_FLT,              /*  0x0E  */
-        OP_LOADIMMED_UINT,           /*  0x0F  */
-        OP_LOADIMMED_FLT,            /*  0x10  */
-        OP_LOADIMMED_IDENT,          /*  0x11  */
-        OP_TAG_TO_STR,               /*  0x12  */
-        OP_LOADIMMED_STR,            /*  0x13  */
-        OP_ADVANCE_STR_APPENDCHAR,   /*  0x14  */
-        OP_TERMINATE_REWIND_STR,     /*  0x15  */
-        OP_ADVANCE_STR,              /*  0x16  */
-        OP_CMPLE,                    /*  0x17  */
-        OP_SETCURFIELD,              /*  0x18  */
-        OP_SETCURFIELD_ARRAY,        /*  0x19  */
-        OP_JMPIF_NP,                 /*  0x1A  */
-        OP_JMPIFF,                   /*  0x1B  */
-        OP_JMP,                      /*  0x1C  */
-        OP_BITOR,                    /*  0x1D  */
-        OP_SHL,                      /*  0x1E  */
-        OP_SHR,                      /*  0x1F  */
-        OP_STR_TO_NONE,              /*  0x20  */
-        OP_COMPARE_STR,              /*  0x21  */
-        OP_CMPEQ,                    /*  0x22  */
-        OP_CMPGR,                    /*  0x23  */
-        OP_CMPNE,                    /*  0x24  */
-        OP_OR,                       /*  0x25  */
-        OP_STR_TO_UINT,              /*  0x26  */
-        OP_SETCUROBJECT,             /*  0x27  */
-        OP_PUSH_FRAME,               /*  0x28  */
-        OP_REWIND_STR,               /*  0x29  */
-        OP_SAVEFIELD_UINT,           /*  0x2A  */
-        OP_CALLFUNC,                 /*  0x2B  */
-        OP_LOADVAR_STR,              /*  0x2C  */
-        OP_LOADVAR_FLT,              /*  0x2D  */
-        OP_SAVEFIELD_FLT,            /*  0x2E  */
-        OP_LOADFIELD_FLT,            /*  0x2F  */
-        OP_MOD,                      /*  0x30  */
-        OP_LOADFIELD_UINT,           /*  0x31  */
-        OP_JMPIFFNOT,                /*  0x32  */
-        OP_JMPIF,                    /*  0x33  */
-        OP_SAVEVAR_UINT,             /*  0x34  */
-        OP_SUB,                      /*  0x35  */
-        OP_MUL,                      /*  0x36  */
-        OP_DIV,                      /*  0x37  */
-        OP_NEG,                      /*  0x38  */
-        OP_INVALID,                  /*  0x39  */
-        OP_STR_TO_FLT,               /*  0x3A  */
-        OP_END_OBJECT,               /*  0x3B  */
-        OP_CMPLT,                    /*  0x3C  */
-        OP_BREAK,                    /*  0x3D  */
-        OP_SETCURVAR_CREATE,         /*  0x3E  */
-        OP_SETCUROBJECT_NEW,         /*  0x3F  */
-        OP_NOT,                      /*  0x40  */
-        OP_NOTF,                     /*  0x41  */
-        OP_SETCURVAR,                /*  0x42  */
-        OP_SETCURVAR_ARRAY,          /*  0x43  */
-        OP_ADD,                      /*  0x44  */
-        OP_SETCURVAR_ARRAY_CREATE,   /*  0x45  */
-        OP_JMPIFNOT_NP,              /*  0x46  */
-        OP_AND,                      /*  0x47  */
-        OP_RETURN,                   /*  0x48  */
-        OP_XOR,                      /*  0x49  */
-        OP_CMPGE,                    /*  0x4A  */
-        OP_LOADFIELD_STR,            /*  0x4B  */
-        OP_SAVEFIELD_STR,            /*  0x4C  */
-        OP_BITAND,                   /*  0x4D  */
-        OP_ONESCOMPLEMENT,           /*  0x4E  */
-        OP_ADVANCE_STR_COMMA,        /*  0x4F  */
-        OP_PUSH,                     /*  0x50  */
-        OP_FLT_TO_NONE,              /*  0x51  */
-        OP_CREATE_OBJECT,            /*  0x52  */
-        OP_FUNC_DECL,                /*  0x53  */
-    }
+	public enum ReturnValue : byte
+	{
+		ToFalse,
+		ToTrue,
+		NoChange,
+	}
+
+	public enum TypeReq : byte
+	{
+		None,
+		UInt,
+		Float,
+		String,
+		Invalid,
+	}
+
+	// We have to have some sort of identifier beyond the actual value.
+	public enum OpcodeTag : uint
+	{
+		OP_FUNC_DECL,
+
+		OP_CREATE_OBJECT,
+		OP_ADD_OBJECT,
+		OP_END_OBJECT,
+
+		OP_JMPIFFNOT,
+		OP_JMPIFNOT,
+		OP_JMPIFF,
+		OP_JMPIF,
+		OP_JMPIFNOT_NP,
+		OP_JMPIF_NP,
+		OP_JMP,
+
+		OP_RETURN,
+
+		OP_CMPEQ,
+		OP_CMPGR,
+		OP_CMPGE,
+		OP_CMPLT,
+		OP_CMPLE,
+		OP_CMPNE,
+
+		OP_XOR,
+		OP_MOD,
+		OP_BITAND,
+		OP_BITOR,
+		OP_NOT,
+		OP_NOTF,
+		OP_ONESCOMPLEMENT,
+
+		OP_SHR,
+		OP_SHL,
+		OP_AND,
+		OP_OR,
+
+		OP_ADD,
+		OP_SUB,
+		OP_MUL,
+		OP_DIV,
+		OP_NEG,
+
+		OP_SETCURVAR,
+		OP_SETCURVAR_CREATE,
+		OP_SETCURVAR_ARRAY,
+		OP_SETCURVAR_ARRAY_CREATE,
+
+		OP_LOADVAR_UINT,
+		OP_LOADVAR_FLT,
+		OP_LOADVAR_STR,
+
+		OP_SAVEVAR_UINT,
+		OP_SAVEVAR_FLT,
+		OP_SAVEVAR_STR,
+
+		OP_SETCUROBJECT,
+		OP_SETCUROBJECT_NEW,
+
+		OP_SETCURFIELD,
+		OP_SETCURFIELD_ARRAY,
+
+		OP_LOADFIELD_UINT,
+		OP_LOADFIELD_FLT,
+		OP_LOADFIELD_STR,
+
+		OP_SAVEFIELD_UINT,
+		OP_SAVEFIELD_FLT,
+		OP_SAVEFIELD_STR,
+
+		OP_STR_TO_UINT,
+		OP_STR_TO_FLT,
+		OP_STR_TO_NONE,
+		OP_FLT_TO_UINT,
+		OP_FLT_TO_STR,
+		OP_FLT_TO_NONE,
+		OP_UINT_TO_FLT,
+		OP_UINT_TO_STR,
+		OP_UINT_TO_NONE,
+
+		OP_LOADIMMED_UINT,
+		OP_LOADIMMED_FLT,
+		OP_TAG_TO_STR,
+		OP_LOADIMMED_STR,
+		OP_LOADIMMED_IDENT,
+
+		OP_CALLFUNC_RESOLVE,
+		OP_CALLFUNC,
+
+		OP_ADVANCE_STR,
+		OP_ADVANCE_STR_APPENDCHAR,
+		OP_ADVANCE_STR_COMMA,
+		OP_ADVANCE_STR_NUL,
+		OP_REWIND_STR,
+		OP_TERMINATE_REWIND_STR,
+		OP_COMPARE_STR,
+
+		OP_PUSH,
+		OP_PUSH_FRAME,
+
+		OP_BREAK,
+
+		OP_UNUSED1,
+		OP_UNUSED2,
+		OP_UNUSED3,
+
+		OP_INVALID,
+	}
+
+	/// <summary>
+	/// Base `Ops` class uses TGE 1.4's opcodes.
+	/// </summary>
+	public class Ops
+	{
+		public virtual uint OP_FUNC_DECL => 0x00;
+
+		public virtual uint OP_CREATE_OBJECT => 0x01;
+		public virtual uint OP_ADD_OBJECT => 0x02;
+		public virtual uint OP_END_OBJECT => 0x03;
+
+		public virtual uint OP_JMPIFFNOT => 0x04;
+		public virtual uint OP_JMPIFNOT => 0x05;
+		public virtual uint OP_JMPIFF => 0x06;
+		public virtual uint OP_JMPIF => 0x07;
+		public virtual uint OP_JMPIFNOT_NP => 0x08;
+		public virtual uint OP_JMPIF_NP => 0x09;
+		public virtual uint OP_JMP => 0x0A;
+
+		public virtual uint OP_RETURN => 0x0B;
+
+		public virtual uint OP_CMPEQ => 0x0C;
+		public virtual uint OP_CMPGR => 0x0D;
+		public virtual uint OP_CMPGE => 0x0E;
+		public virtual uint OP_CMPLT => 0x0F;
+		public virtual uint OP_CMPLE => 0x10;
+		public virtual uint OP_CMPNE => 0x11;
+
+		public virtual uint OP_XOR => 0x12;
+		public virtual uint OP_MOD => 0x13;
+		public virtual uint OP_BITAND => 0x14;
+		public virtual uint OP_BITOR => 0x15;
+		public virtual uint OP_NOT => 0x16;
+		public virtual uint OP_NOTF => 0x17;
+		public virtual uint OP_ONESCOMPLEMENT => 0x18;
+
+		public virtual uint OP_SHR => 0x19;
+		public virtual uint OP_SHL => 0x1A;
+		public virtual uint OP_AND => 0x1B;
+		public virtual uint OP_OR => 0x1C;
+
+		public virtual uint OP_ADD => 0x1D;
+		public virtual uint OP_SUB => 0x1E;
+		public virtual uint OP_MUL => 0x1F;
+		public virtual uint OP_DIV => 0x20;
+		public virtual uint OP_NEG => 0x21;
+
+		public virtual uint OP_SETCURVAR => 0x22;
+		public virtual uint OP_SETCURVAR_CREATE => 0x23;
+		public virtual uint OP_SETCURVAR_ARRAY => 0x24;
+		public virtual uint OP_SETCURVAR_ARRAY_CREATE => 0x25;
+
+		public virtual uint OP_LOADVAR_UINT => 0x26;
+		public virtual uint OP_LOADVAR_FLT => 0x27;
+		public virtual uint OP_LOADVAR_STR => 0x28;
+
+		public virtual uint OP_SAVEVAR_UINT => 0x29;
+		public virtual uint OP_SAVEVAR_FLT => 0x2A;
+		public virtual uint OP_SAVEVAR_STR => 0x2B;
+
+		public virtual uint OP_SETCUROBJECT => 0x2C;
+		public virtual uint OP_SETCUROBJECT_NEW => 0x2D;
+
+		public virtual uint OP_SETCURFIELD => 0x2E;
+		public virtual uint OP_SETCURFIELD_ARRAY => 0x2F;
+
+		public virtual uint OP_LOADFIELD_UINT => 0x30;
+		public virtual uint OP_LOADFIELD_FLT => 0x31;
+		public virtual uint OP_LOADFIELD_STR => 0x32;
+
+		public virtual uint OP_SAVEFIELD_UINT => 0x33;
+		public virtual uint OP_SAVEFIELD_FLT => 0x34;
+		public virtual uint OP_SAVEFIELD_STR => 0x35;
+
+		public virtual uint OP_STR_TO_UINT => 0x36;
+		public virtual uint OP_STR_TO_FLT => 0x37;
+		public virtual uint OP_STR_TO_NONE => 0x38;
+		public virtual uint OP_FLT_TO_UINT => 0x39;
+		public virtual uint OP_FLT_TO_STR => 0x3A;
+		public virtual uint OP_FLT_TO_NONE => 0x3B;
+		public virtual uint OP_UINT_TO_FLT => 0x3C;
+		public virtual uint OP_UINT_TO_STR => 0x3D;
+		public virtual uint OP_UINT_TO_NONE => 0x3E;
+
+		public virtual uint OP_LOADIMMED_UINT => 0x3F;
+		public virtual uint OP_LOADIMMED_FLT => 0x40;
+		public virtual uint OP_TAG_TO_STR => 0x41;
+		public virtual uint OP_LOADIMMED_STR => 0x42;
+		public virtual uint OP_LOADIMMED_IDENT => 0x43;
+
+		public virtual uint OP_CALLFUNC_RESOLVE => 0x44;
+		public virtual uint OP_CALLFUNC => 0x45;
+
+		public virtual uint OP_ADVANCE_STR => 0x46;
+		public virtual uint OP_ADVANCE_STR_APPENDCHAR => 0x47;
+		public virtual uint OP_ADVANCE_STR_COMMA => 0x48;
+		public virtual uint OP_ADVANCE_STR_NUL => 0x49;
+		public virtual uint OP_REWIND_STR => 0x4A;
+		public virtual uint OP_TERMINATE_REWIND_STR => 0x4B;
+		public virtual uint OP_COMPARE_STR => 0x4C;
+
+		public virtual uint OP_PUSH => 0x4D;
+		public virtual uint OP_PUSH_FRAME => 0x4E;
+
+		public virtual uint OP_BREAK => 0x4F;
+
+		public virtual uint OP_INVALID => 0x50;
+
+		public virtual uint OP_UNUSED1 => OP_INVALID;
+		public virtual uint OP_UNUSED2 => OP_INVALID;
+		public virtual uint OP_UNUSED3 => OP_INVALID;
+
+		public virtual bool IsValid(uint value) => value != OP_INVALID && value <= 0x4F;
+
+		protected Dictionary<uint, OpcodeTag> _tags = [];
+
+		public Ops()
+		{
+			_tags = new()
+			{
+				{ OP_FUNC_DECL, OpcodeTag.OP_FUNC_DECL },
+
+				{ OP_CREATE_OBJECT, OpcodeTag.OP_CREATE_OBJECT },
+				{ OP_ADD_OBJECT, OpcodeTag.OP_ADD_OBJECT },
+				{ OP_END_OBJECT, OpcodeTag.OP_END_OBJECT },
+
+				{ OP_JMPIFFNOT, OpcodeTag.OP_JMPIFFNOT },
+				{ OP_JMPIFNOT, OpcodeTag.OP_JMPIFNOT },
+				{ OP_JMPIFF, OpcodeTag.OP_JMPIFF },
+				{ OP_JMPIF, OpcodeTag.OP_JMPIF },
+				{ OP_JMPIFNOT_NP, OpcodeTag.OP_JMPIFNOT_NP },
+				{ OP_JMPIF_NP, OpcodeTag.OP_JMPIF_NP },
+				{ OP_JMP, OpcodeTag.OP_JMP },
+
+				{ OP_RETURN, OpcodeTag.OP_RETURN },
+
+				{ OP_CMPEQ, OpcodeTag.OP_CMPEQ },
+				{ OP_CMPGR, OpcodeTag.OP_CMPGR },
+				{ OP_CMPGE, OpcodeTag.OP_CMPGE },
+				{ OP_CMPLT, OpcodeTag.OP_CMPLT },
+				{ OP_CMPLE, OpcodeTag.OP_CMPLE },
+				{ OP_CMPNE, OpcodeTag.OP_CMPNE },
+
+				{ OP_XOR, OpcodeTag.OP_XOR },
+				{ OP_MOD, OpcodeTag.OP_MOD },
+				{ OP_BITAND, OpcodeTag.OP_BITAND },
+				{ OP_BITOR, OpcodeTag.OP_BITOR },
+				{ OP_NOT, OpcodeTag.OP_NOT },
+				{ OP_NOTF, OpcodeTag.OP_NOTF },
+				{ OP_ONESCOMPLEMENT, OpcodeTag.OP_ONESCOMPLEMENT },
+
+				{ OP_SHR, OpcodeTag.OP_SHR },
+				{ OP_SHL, OpcodeTag.OP_SHL },
+				{ OP_AND, OpcodeTag.OP_AND },
+				{ OP_OR, OpcodeTag.OP_OR },
+
+				{ OP_ADD, OpcodeTag.OP_ADD },
+				{ OP_SUB, OpcodeTag.OP_SUB },
+				{ OP_MUL, OpcodeTag.OP_MUL },
+				{ OP_DIV, OpcodeTag.OP_DIV },
+				{ OP_NEG, OpcodeTag.OP_NEG },
+
+				{ OP_SETCURVAR, OpcodeTag.OP_SETCURVAR },
+				{ OP_SETCURVAR_CREATE, OpcodeTag.OP_SETCURVAR_CREATE },
+				{ OP_SETCURVAR_ARRAY, OpcodeTag.OP_SETCURVAR_ARRAY },
+				{ OP_SETCURVAR_ARRAY_CREATE, OpcodeTag.OP_SETCURVAR_ARRAY_CREATE },
+
+				{ OP_LOADVAR_UINT, OpcodeTag.OP_LOADVAR_UINT },
+				{ OP_LOADVAR_FLT, OpcodeTag.OP_LOADVAR_FLT },
+				{ OP_LOADVAR_STR, OpcodeTag.OP_LOADVAR_STR },
+
+				{ OP_SAVEVAR_UINT, OpcodeTag.OP_SAVEVAR_UINT },
+				{ OP_SAVEVAR_FLT, OpcodeTag.OP_SAVEVAR_FLT },
+				{ OP_SAVEVAR_STR, OpcodeTag.OP_SAVEVAR_STR },
+
+				{ OP_SETCUROBJECT, OpcodeTag.OP_SETCUROBJECT },
+				{ OP_SETCUROBJECT_NEW, OpcodeTag.OP_SETCUROBJECT_NEW },
+
+				{ OP_SETCURFIELD, OpcodeTag.OP_SETCURFIELD },
+				{ OP_SETCURFIELD_ARRAY, OpcodeTag.OP_SETCURFIELD_ARRAY },
+
+				{ OP_LOADFIELD_UINT, OpcodeTag.OP_LOADFIELD_UINT },
+				{ OP_LOADFIELD_FLT, OpcodeTag.OP_LOADFIELD_FLT },
+				{ OP_LOADFIELD_STR, OpcodeTag.OP_LOADFIELD_STR },
+
+				{ OP_SAVEFIELD_UINT, OpcodeTag.OP_SAVEFIELD_UINT },
+				{ OP_SAVEFIELD_FLT, OpcodeTag.OP_SAVEFIELD_FLT },
+				{ OP_SAVEFIELD_STR, OpcodeTag.OP_SAVEFIELD_STR },
+
+				{ OP_STR_TO_UINT, OpcodeTag.OP_STR_TO_UINT },
+				{ OP_STR_TO_FLT, OpcodeTag.OP_STR_TO_FLT },
+				{ OP_STR_TO_NONE, OpcodeTag.OP_STR_TO_NONE },
+				{ OP_FLT_TO_UINT, OpcodeTag.OP_FLT_TO_UINT },
+				{ OP_FLT_TO_STR, OpcodeTag.OP_FLT_TO_STR },
+				{ OP_FLT_TO_NONE, OpcodeTag.OP_FLT_TO_NONE },
+				{ OP_UINT_TO_FLT, OpcodeTag.OP_UINT_TO_FLT },
+				{ OP_UINT_TO_STR, OpcodeTag.OP_UINT_TO_STR },
+				{ OP_UINT_TO_NONE, OpcodeTag.OP_UINT_TO_NONE },
+
+				{ OP_LOADIMMED_UINT, OpcodeTag.OP_LOADIMMED_UINT },
+				{ OP_LOADIMMED_FLT, OpcodeTag.OP_LOADIMMED_FLT },
+				{ OP_TAG_TO_STR, OpcodeTag.OP_TAG_TO_STR },
+				{ OP_LOADIMMED_STR, OpcodeTag.OP_LOADIMMED_STR },
+				{ OP_LOADIMMED_IDENT, OpcodeTag.OP_LOADIMMED_IDENT },
+
+				{ OP_CALLFUNC_RESOLVE, OpcodeTag.OP_CALLFUNC_RESOLVE },
+				{ OP_CALLFUNC, OpcodeTag.OP_CALLFUNC },
+
+				{ OP_ADVANCE_STR, OpcodeTag.OP_ADVANCE_STR },
+				{ OP_ADVANCE_STR_APPENDCHAR, OpcodeTag.OP_ADVANCE_STR_APPENDCHAR },
+				{ OP_ADVANCE_STR_COMMA, OpcodeTag.OP_ADVANCE_STR_COMMA },
+				{ OP_ADVANCE_STR_NUL, OpcodeTag.OP_ADVANCE_STR_NUL },
+				{ OP_REWIND_STR, OpcodeTag.OP_REWIND_STR },
+				{ OP_TERMINATE_REWIND_STR, OpcodeTag.OP_TERMINATE_REWIND_STR },
+				{ OP_COMPARE_STR, OpcodeTag.OP_COMPARE_STR },
+
+				{ OP_PUSH, OpcodeTag.OP_PUSH },
+				{ OP_PUSH_FRAME, OpcodeTag.OP_PUSH_FRAME },
+
+				{ OP_BREAK, OpcodeTag.OP_BREAK },
+
+				{ OP_INVALID, OpcodeTag.OP_INVALID },
+			};
+
+			if (!_tags.ContainsKey(OP_UNUSED1))
+			{
+				_tags[OP_UNUSED1] = OpcodeTag.OP_UNUSED1;
+			}
+
+			if (!_tags.ContainsKey(OP_UNUSED2))
+			{
+				_tags[OP_UNUSED2] = OpcodeTag.OP_UNUSED2;
+			}
+
+			if (!_tags.ContainsKey(OP_UNUSED3))
+			{
+				_tags[OP_UNUSED3] = OpcodeTag.OP_UNUSED3;
+			}
+		}
+
+		public virtual OpcodeTag GetOpcodeTag(uint op) => _tags.TryGetValue(op, out OpcodeTag tag) ? tag : OpcodeTag.OP_INVALID;
+
+		public virtual ReturnValue GetReturnValue(uint op) => GetOpcodeTag(op) switch
+		{
+			OpcodeTag.OP_STR_TO_NONE or OpcodeTag.OP_FLT_TO_NONE or OpcodeTag.OP_UINT_TO_NONE or
+			OpcodeTag.OP_JMPIF or OpcodeTag.OP_JMPIFF or
+			OpcodeTag.OP_JMPIFNOT or OpcodeTag.OP_JMPIFFNOT or
+			OpcodeTag.OP_RETURN => ReturnValue.ToFalse,
+
+			OpcodeTag.OP_SAVEVAR_UINT or OpcodeTag.OP_SAVEVAR_FLT or OpcodeTag.OP_SAVEVAR_STR or
+			OpcodeTag.OP_SAVEFIELD_UINT or OpcodeTag.OP_SAVEFIELD_FLT or OpcodeTag.OP_SAVEFIELD_STR or
+			OpcodeTag.OP_LOADVAR_STR or OpcodeTag.OP_LOADFIELD_STR or
+			OpcodeTag.OP_FLT_TO_STR or OpcodeTag.OP_UINT_TO_STR or
+			OpcodeTag.OP_LOADIMMED_UINT or OpcodeTag.OP_LOADIMMED_FLT or
+			OpcodeTag.OP_TAG_TO_STR or OpcodeTag.OP_LOADIMMED_STR or OpcodeTag.OP_LOADIMMED_IDENT or
+			OpcodeTag.OP_CALLFUNC or OpcodeTag.OP_CALLFUNC_RESOLVE or
+			OpcodeTag.OP_REWIND_STR => ReturnValue.ToTrue,
+
+			_ => ReturnValue.NoChange,
+		};
+
+		public virtual TypeReq GetTypeReq(uint op) => GetOpcodeTag(op) switch
+		{
+			OpcodeTag.OP_STR_TO_UINT or OpcodeTag.OP_FLT_TO_UINT => TypeReq.UInt,
+			OpcodeTag.OP_STR_TO_FLT or OpcodeTag.OP_UINT_TO_FLT => TypeReq.Float,
+			OpcodeTag.OP_FLT_TO_STR or OpcodeTag.OP_UINT_TO_STR => TypeReq.String,
+			OpcodeTag.OP_STR_TO_NONE or OpcodeTag.OP_FLT_TO_NONE or OpcodeTag.OP_UINT_TO_NONE => TypeReq.None,
+
+			_ => TypeReq.Invalid,
+		};
+	}
 }

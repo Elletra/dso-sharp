@@ -123,7 +123,7 @@ namespace DSO
 
 			try
 			{
-				var disassembly = _disassembler.Disassemble(_loader.LoadFile(path, game.Version));
+				var disassembly = _disassembler.Disassemble(_loader.LoadFile(path, game.Version), game.Ops);
 				var data = _analyzer.Analyze(disassembly);
 				var nodes = _builder.Build(data, disassembly);
 

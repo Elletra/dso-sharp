@@ -9,26 +9,26 @@ namespace DSO.AST.Nodes
 		public readonly Node Right = right;
 		public readonly Opcode Op = op;
 
-		public bool IsOpAssociative => Op.Value switch
+		public bool IsOpAssociative => Op.Tag switch
 		{
-			Ops.OP_ADD or Ops.OP_MUL or
-			Ops.OP_BITAND or Ops.OP_BITOR or Ops.OP_XOR or
-			Ops.OP_JMPIFNOT_NP or Ops.OP_JMPIF_NP => true,
+			OpcodeTag.OP_ADD or OpcodeTag.OP_MUL or
+			OpcodeTag.OP_BITAND or OpcodeTag.OP_BITOR or OpcodeTag.OP_XOR or
+			OpcodeTag.OP_JMPIFNOT_NP or OpcodeTag.OP_JMPIF_NP => true,
 			_ => false,
 		};
 
-		public override int Precedence => Op.Value switch
+		public override int Precedence => Op.Tag switch
 		{
-			Ops.OP_MUL or Ops.OP_DIV or Ops.OP_MOD => 2,
-			Ops.OP_ADD or Ops.OP_SUB => 3,
-			Ops.OP_SHL or Ops.OP_SHR => 4,
-			Ops.OP_CMPLT or Ops.OP_CMPGR or Ops.OP_CMPLE or Ops.OP_CMPGE => 6,
-			Ops.OP_CMPEQ or Ops.OP_CMPNE => 7,
-			Ops.OP_BITAND => 8,
-			Ops.OP_XOR => 9,
-			Ops.OP_BITOR => 10,
-			Ops.OP_JMPIFNOT_NP => 11,
-			Ops.OP_JMPIF_NP => 12,
+			OpcodeTag.OP_MUL or OpcodeTag.OP_DIV or OpcodeTag.OP_MOD => 2,
+			OpcodeTag.OP_ADD or OpcodeTag.OP_SUB => 3,
+			OpcodeTag.OP_SHL or OpcodeTag.OP_SHR => 4,
+			OpcodeTag.OP_CMPLT or OpcodeTag.OP_CMPGR or OpcodeTag.OP_CMPLE or OpcodeTag.OP_CMPGE => 6,
+			OpcodeTag.OP_CMPEQ or OpcodeTag.OP_CMPNE => 7,
+			OpcodeTag.OP_BITAND => 8,
+			OpcodeTag.OP_XOR => 9,
+			OpcodeTag.OP_BITOR => 10,
+			OpcodeTag.OP_JMPIFNOT_NP => 11,
+			OpcodeTag.OP_JMPIF_NP => 12,
 		};
 
 		public override bool IsAssociativeWith(Node compare) => compare is BinaryNode binary && binary.Op.Equals(Op) && IsOpAssociative;
@@ -42,26 +42,26 @@ namespace DSO.AST.Nodes
 		{
 			stream.Write(Left, CheckPrecedenceAndAssociativity);
 
-			stream.Write(" ", Op.Value switch
+			stream.Write(" ", Op.Tag switch
 			{
-				Ops.OP_ADD => "+",
-				Ops.OP_SUB => "-",
-				Ops.OP_MUL => "*",
-				Ops.OP_DIV => "/",
-				Ops.OP_CMPLT => "<",
-				Ops.OP_CMPGR => ">",
-				Ops.OP_MOD => "%",
-				Ops.OP_BITOR => "|",
-				Ops.OP_BITAND => "&",
-				Ops.OP_XOR => "^",
-				Ops.OP_CMPEQ => "==",
-				Ops.OP_CMPNE => "!=",
-				Ops.OP_CMPLE => "<=",
-				Ops.OP_CMPGE => ">=",
-				Ops.OP_SHL => "<<",
-				Ops.OP_SHR => ">>",
-				Ops.OP_JMPIF_NP => "||",
-				Ops.OP_JMPIFNOT_NP => "&&",
+				OpcodeTag.OP_ADD => "+",
+				OpcodeTag.OP_SUB => "-",
+				OpcodeTag.OP_MUL => "*",
+				OpcodeTag.OP_DIV => "/",
+				OpcodeTag.OP_CMPLT => "<",
+				OpcodeTag.OP_CMPGR => ">",
+				OpcodeTag.OP_MOD => "%",
+				OpcodeTag.OP_BITOR => "|",
+				OpcodeTag.OP_BITAND => "&",
+				OpcodeTag.OP_XOR => "^",
+				OpcodeTag.OP_CMPEQ => "==",
+				OpcodeTag.OP_CMPNE => "!=",
+				OpcodeTag.OP_CMPLE => "<=",
+				OpcodeTag.OP_CMPGE => ">=",
+				OpcodeTag.OP_SHL => "<<",
+				OpcodeTag.OP_SHR => ">>",
+				OpcodeTag.OP_JMPIF_NP => "||",
+				OpcodeTag.OP_JMPIFNOT_NP => "&&",
 			}, " ");
 
 			stream.Write(Right, CheckPrecedenceAndAssociativity);

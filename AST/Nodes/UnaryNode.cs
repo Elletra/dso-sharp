@@ -15,11 +15,11 @@ namespace DSO.AST.Nodes
 
 		public override void Visit(TokenStream stream, bool isExpression)
 		{
-			stream.Write(Op.Value switch
+			stream.Write(Op.Tag switch
 			{
-				Ops.OP_NEG => "-",
-				Ops.OP_ONESCOMPLEMENT => "~",
-				Ops.OP_NOT or Ops.OP_NOTF => "!",
+				OpcodeTag.OP_NEG => "-",
+				OpcodeTag.OP_ONESCOMPLEMENT => "~",
+				OpcodeTag.OP_NOT or OpcodeTag.OP_NOTF => "!",
 			});
 
 			stream.Write(Node, node => node.Precedence > Precedence);

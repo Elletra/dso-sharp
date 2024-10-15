@@ -11,7 +11,8 @@ namespace DSO.AST.Nodes
 
 		public override int Precedence => IsIncrementDecrement ? 1 : 14;
 
-		public bool IsIncrementDecrement => Right is ConstantDoubleNode constant && constant.Value == 1.0f && (Operator?.Value == Ops.OP_ADD || Operator?.Value == Ops.OP_SUB);
+		public bool IsIncrementDecrement => Right is ConstantDoubleNode constant && constant.Value == 1.0f
+			&& (Operator?.Tag == OpcodeTag.OP_ADD || Operator?.Tag == OpcodeTag.OP_SUB);
 
 		public override bool Equals(object? obj) => base.Equals(obj) && obj is AssignmentNode node
 			&& node.Left.Equals(Left) && node.Right.Equals(Right) && Equals(node.Operator, Operator);
@@ -29,16 +30,16 @@ namespace DSO.AST.Nodes
 			}
 			else
 			{
-				var op = Operator.Value;
+				var tag = Operator.Tag;
 				var incDec = IsIncrementDecrement;
 
 				if (incDec)
 				{
-					if (op == Ops.OP_ADD)
+					if (tag == OpcodeTag.OP_ADD)
 					{
 						stream.Write("++");
 					}
-					else if (op == Ops.OP_SUB)
+					else if (tag == OpcodeTag.OP_SUB)
 					{
 						stream.Write("--");
 					}
@@ -46,18 +47,18 @@ namespace DSO.AST.Nodes
 
 				if (!incDec)
 				{
-					stream.Write(" ", $"{op switch
+					stream.Write(" ", $"{tag switch
 					{
-						Ops.OP_ADD => "+",
-						Ops.OP_SUB => "-",
-						Ops.OP_MUL => "*",
-						Ops.OP_DIV => "/",
-						Ops.OP_MOD => "%",
-						Ops.OP_BITOR => "|",
-						Ops.OP_BITAND => "&",
-						Ops.OP_XOR => "^",
-						Ops.OP_SHL => "<<",
-						Ops.OP_SHR => ">>",
+						OpcodeTag.OP_ADD => "+",
+						OpcodeTag.OP_SUB => "-",
+						OpcodeTag.OP_MUL => "*",
+						OpcodeTag.OP_DIV => "/",
+						OpcodeTag.OP_MOD => "%",
+						OpcodeTag.OP_BITOR => "|",
+						OpcodeTag.OP_BITAND => "&",
+						OpcodeTag.OP_XOR => "^",
+						OpcodeTag.OP_SHL => "<<",
+						OpcodeTag.OP_SHR => ">>",
 					}}=", " ");
 
 					stream.Write(Right, isExpression: true);

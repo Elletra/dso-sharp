@@ -24,7 +24,7 @@ namespace DSO.Disassembler
 		/// Mostly a utility function for <see cref="ToString"/>.
 		/// </summary>
 		/// <returns>An array of relevant values to be printed.</returns>
-		public virtual object[] GetValues() => [Address, Opcode.Value];
+		public virtual object[] GetValues() => [Address, Opcode.Tag];
 
 		public override string ToString()
 		{
@@ -78,7 +78,7 @@ namespace DSO.Disassembler
 			var values = new object[7 + Arguments.Count];
 
 			values[0] = Address;
-			values[1] = Opcode.Value;
+			values[1] = Opcode.Tag;
 			values[2] = Name;
 			values[3] = Namespace ?? "(null)";
 			values[4] = Package ?? "(null)";
@@ -105,7 +105,7 @@ namespace DSO.Disassembler
 		public bool IsDataBlock { get; } = isDataBlock;
 		public uint FailJumpAddress { get; } = failJumpAddress;
 
-		public override object[] GetValues() => [Address, Opcode.Value, Parent ?? "(null)", IsDataBlock, FailJumpAddress];
+		public override object[] GetValues() => [Address, Opcode.Tag, Parent ?? "(null)", IsDataBlock, FailJumpAddress];
 	}
 
 	/// <summary>
@@ -115,7 +115,7 @@ namespace DSO.Disassembler
 	{
 		public bool PlaceAtRoot { get; } = placeAtRoot;
 
-		public override object[] GetValues() => [Address, Opcode.Value, PlaceAtRoot];
+		public override object[] GetValues() => [Address, Opcode.Tag, PlaceAtRoot];
 	}
 
 	/// <summary>
@@ -128,7 +128,7 @@ namespace DSO.Disassembler
 		/// </summary>
 		public bool Value { get; } = value;
 
-		public override object[] GetValues() => [Address, Opcode.Value, Value];
+		public override object[] GetValues() => [Address, Opcode.Tag, Value];
 	}
 
 	/// <summary>
@@ -140,15 +140,15 @@ namespace DSO.Disassembler
 
 		public bool IsLoopEnd => TargetAddress < Address;
 
-		public bool IsUnconditional => Opcode.Value == Ops.OP_JMP;
+		public bool IsUnconditional => Opcode.Tag == OpcodeTag.OP_JMP;
 		public bool IsConditional => !IsUnconditional;
 
 		/// <summary>
 		/// Checks whether this is a branch for the logical operators || or &&.
 		/// </summary>
-		public bool IsLogicalOperator => Opcode.Value == Ops.OP_JMPIF_NP || Opcode.Value == Ops.OP_JMPIFNOT_NP;
+		public bool IsLogicalOperator => Opcode.Tag == OpcodeTag.OP_JMPIF_NP || Opcode.Tag == OpcodeTag.OP_JMPIFNOT_NP;
 
-		public override object[] GetValues() => [Address, Opcode.Value, TargetAddress];
+		public override object[] GetValues() => [Address, Opcode.Tag, TargetAddress];
 	}
 
 	/// <summary>
@@ -158,7 +158,7 @@ namespace DSO.Disassembler
 	{
 		public bool ReturnsValue { get; } = returnsValue;
 
-		public override object[] GetValues() => [Address, Opcode.Value, ReturnsValue];
+		public override object[] GetValues() => [Address, Opcode.Tag, ReturnsValue];
 	}
 
 	/// <summary>
@@ -174,7 +174,7 @@ namespace DSO.Disassembler
 
 	public class UnaryInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr)
 	{
-		public bool IsNot => Opcode.Value == Ops.OP_NOT || Opcode.Value == Ops.OP_NOTF;
+		public bool IsNot => Opcode.Tag == OpcodeTag.OP_NOT || Opcode.Tag == OpcodeTag.OP_NOTF;
 	}
 
 	/// <summary>
@@ -186,7 +186,7 @@ namespace DSO.Disassembler
 	{
 		public string Name { get; } = name;
 
-		public override object[] GetValues() => [Address, Opcode.Value, Name];
+		public override object[] GetValues() => [Address, Opcode.Tag, Name];
 	}
 
 	/// <summary>
@@ -221,7 +221,7 @@ namespace DSO.Disassembler
 	{
 		public string Name { get; } = name;
 
-		public override object[] GetValues() => [Address, Opcode.Value, Name];
+		public override object[] GetValues() => [Address, Opcode.Tag, Name];
 	}
 
 	/// <summary>
@@ -247,7 +247,7 @@ namespace DSO.Disassembler
 	public class ConvertToTypeInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr)
 	{
 		public TypeReq Type => Opcode.TypeReq;
-		public override object[] GetValues() => [Address, Opcode.Value, Type.ToString()];
+		public override object[] GetValues() => [Address, Opcode.Tag, Type.ToString()];
 	}
 
 	/// <summary>
@@ -260,13 +260,13 @@ namespace DSO.Disassembler
 	{
 		public T Value { get; } = value;
 
-		public bool IsTaggedString => Opcode.Value == Ops.OP_TAG_TO_STR;
-		public bool IsIdentifier => Opcode.Value == Ops.OP_LOADIMMED_IDENT;
+		public bool IsTaggedString => Opcode.Tag == OpcodeTag.OP_TAG_TO_STR;
+		public bool IsIdentifier => Opcode.Tag == OpcodeTag.OP_LOADIMMED_IDENT;
 
 		public override object[] GetValues() =>
 		[
 			Address,
-			Opcode.Value,
+			Opcode.Tag,
 			typeof(T) == typeof(string) ? $"\"{Value}\"" : Value,
 		];
 	}
@@ -280,7 +280,7 @@ namespace DSO.Disassembler
 		public string? Namespace { get; } = ns;
 		public uint CallType { get; } = callType;
 
-		public override object[] GetValues() => [Address, Opcode.Value, Name, Namespace ?? "(null)", CallType];
+		public override object[] GetValues() => [Address, Opcode.Tag, Name, Namespace ?? "(null)", CallType];
 	}
 
 	/// <summary>
@@ -295,7 +295,7 @@ namespace DSO.Disassembler
 	{
 		public char Char { get; } = ch;
 
-		public override object[] GetValues() => [Address, Opcode.Value, (uint) Char];
+		public override object[] GetValues() => [Address, Opcode.Tag, (uint) Char];
 	}
 
 	/// <summary>

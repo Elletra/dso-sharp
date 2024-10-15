@@ -14,6 +14,7 @@ namespace DSO.Disassembler
 	{
 		private uint _index = 0;
 		private FileData _data = null;
+		private Ops _ops = null;
 
 		private bool IsAtEnd => _index >= _data.Code.Length;
 
@@ -31,10 +32,11 @@ namespace DSO.Disassembler
 		/// </summary>
 		private bool _returnableValue = false;
 
-		public Disassembly Disassemble(FileData data)
+		public Disassembly Disassemble(FileData data, Ops ops)
 		{
 			_index = 0;
 			_data = data;
+			_ops = ops;
 
 			return Disassemble();
 		}
@@ -67,13 +69,13 @@ namespace DSO.Disassembler
 
 		private Instruction Disassemble(uint address, uint op)
 		{
-			var opcode = Opcode.Create(op);
+			var opcode = Opcode.Create(op, _ops);
 
-			return opcode?.Value switch
+			return opcode?.Tag switch
 			{
-				Ops.OP_FUNC_DECL => DisassembleFunction(address, opcode),
+				OpcodeTag.OP_FUNC_DECL => DisassembleFunction(address, opcode),
 
-				Ops.OP_CREATE_OBJECT => new CreateObjectInstruction(
+				OpcodeTag.OP_CREATE_OBJECT => new CreateObjectInstruction(
 					opcode,
 					address,
 					parent: ReadIdentifier(),
@@ -81,51 +83,51 @@ namespace DSO.Disassembler
 					failJumpAddress: Read()
 				),
 
-				Ops.OP_ADD_OBJECT => new AddObjectInstruction(opcode, address, placeAtRoot: ReadBool()),
-				Ops.OP_END_OBJECT => new EndObjectInstruction(opcode, address, value: ReadBool()),
+				OpcodeTag.OP_ADD_OBJECT => new AddObjectInstruction(opcode, address, placeAtRoot: ReadBool()),
+				OpcodeTag.OP_END_OBJECT => new EndObjectInstruction(opcode, address, value: ReadBool()),
 
-				Ops.OP_JMP or
-				Ops.OP_JMPIF_NP or Ops.OP_JMPIFNOT_NP or
-				Ops.OP_JMPIF or Ops.OP_JMPIFF or
-				Ops.OP_JMPIFNOT or Ops.OP_JMPIFFNOT => new BranchInstruction(opcode, address, targetAddress: Read()),
+				OpcodeTag.OP_JMP or
+				OpcodeTag.OP_JMPIF_NP or OpcodeTag.OP_JMPIFNOT_NP or
+				OpcodeTag.OP_JMPIF or OpcodeTag.OP_JMPIFF or
+				OpcodeTag.OP_JMPIFNOT or OpcodeTag.OP_JMPIFFNOT => new BranchInstruction(opcode, address, targetAddress: Read()),
 
-				Ops.OP_RETURN => new ReturnInstruction(opcode, address, _returnableValue),
+				OpcodeTag.OP_RETURN => new ReturnInstruction(opcode, address, _returnableValue),
 
-				Ops.OP_CMPEQ or Ops.OP_CMPNE or
-				Ops.OP_CMPGR or Ops.OP_CMPGE or Ops.OP_CMPLT or Ops.OP_CMPLE or
-				Ops.OP_XOR or Ops.OP_BITAND or Ops.OP_BITOR or Ops.OP_SHR or Ops.OP_SHL or
-				Ops.OP_AND or Ops.OP_OR or
-				Ops.OP_ADD or Ops.OP_SUB or Ops.OP_MUL or Ops.OP_DIV or Ops.OP_MOD => new BinaryInstruction(opcode, address),
+				OpcodeTag.OP_CMPEQ or OpcodeTag.OP_CMPNE or
+				OpcodeTag.OP_CMPGR or OpcodeTag.OP_CMPGE or OpcodeTag.OP_CMPLT or OpcodeTag.OP_CMPLE or
+				OpcodeTag.OP_XOR or OpcodeTag.OP_BITAND or OpcodeTag.OP_BITOR or OpcodeTag.OP_SHR or OpcodeTag.OP_SHL or
+				OpcodeTag.OP_AND or OpcodeTag.OP_OR or
+				OpcodeTag.OP_ADD or OpcodeTag.OP_SUB or OpcodeTag.OP_MUL or OpcodeTag.OP_DIV or OpcodeTag.OP_MOD => new BinaryInstruction(opcode, address),
 
-				Ops.OP_COMPARE_STR => new BinaryStringInstruction(opcode, address),
+				OpcodeTag.OP_COMPARE_STR => new BinaryStringInstruction(opcode, address),
 
-				Ops.OP_NOT or Ops.OP_NOTF or Ops.OP_ONESCOMPLEMENT or Ops.OP_NEG => new UnaryInstruction(opcode, address),
+				OpcodeTag.OP_NOT or OpcodeTag.OP_NOTF or OpcodeTag.OP_ONESCOMPLEMENT or OpcodeTag.OP_NEG => new UnaryInstruction(opcode, address),
 
-				Ops.OP_SETCURVAR or Ops.OP_SETCURVAR_CREATE => new VariableInstruction(opcode, address, name: ReadIdentifier()),
-				Ops.OP_SETCURVAR_ARRAY or Ops.OP_SETCURVAR_ARRAY_CREATE => new VariableArrayInstruction(opcode, address),
+				OpcodeTag.OP_SETCURVAR or OpcodeTag.OP_SETCURVAR_CREATE => new VariableInstruction(opcode, address, name: ReadIdentifier()),
+				OpcodeTag.OP_SETCURVAR_ARRAY or OpcodeTag.OP_SETCURVAR_ARRAY_CREATE => new VariableArrayInstruction(opcode, address),
 
-				Ops.OP_LOADVAR_UINT or Ops.OP_LOADVAR_FLT or Ops.OP_LOADVAR_STR => new LoadVariableInstruction(opcode, address),
-				Ops.OP_SAVEVAR_UINT or Ops.OP_SAVEVAR_FLT or Ops.OP_SAVEVAR_STR => new SaveVariableInstruction(opcode, address),
+				OpcodeTag.OP_LOADVAR_UINT or OpcodeTag.OP_LOADVAR_FLT or OpcodeTag.OP_LOADVAR_STR => new LoadVariableInstruction(opcode, address),
+				OpcodeTag.OP_SAVEVAR_UINT or OpcodeTag.OP_SAVEVAR_FLT or OpcodeTag.OP_SAVEVAR_STR => new SaveVariableInstruction(opcode, address),
 
-				Ops.OP_SETCUROBJECT => new ObjectInstruction(opcode, address),
-				Ops.OP_SETCUROBJECT_NEW => new ObjectNewInstruction(opcode, address),
-				Ops.OP_SETCURFIELD => new FieldInstruction(opcode, address, name: ReadIdentifier()),
-				Ops.OP_SETCURFIELD_ARRAY => new FieldArrayInstruction(opcode, address),
+				OpcodeTag.OP_SETCUROBJECT => new ObjectInstruction(opcode, address),
+				OpcodeTag.OP_SETCUROBJECT_NEW => new ObjectNewInstruction(opcode, address),
+				OpcodeTag.OP_SETCURFIELD => new FieldInstruction(opcode, address, name: ReadIdentifier()),
+				OpcodeTag.OP_SETCURFIELD_ARRAY => new FieldArrayInstruction(opcode, address),
 
-				Ops.OP_LOADFIELD_UINT or Ops.OP_LOADFIELD_FLT or Ops.OP_LOADFIELD_STR => new LoadFieldInstruction(opcode, address),
-				Ops.OP_SAVEFIELD_UINT or Ops.OP_SAVEFIELD_FLT or Ops.OP_SAVEFIELD_STR => new SaveFieldInstruction(opcode, address),
+				OpcodeTag.OP_LOADFIELD_UINT or OpcodeTag.OP_LOADFIELD_FLT or OpcodeTag.OP_LOADFIELD_STR => new LoadFieldInstruction(opcode, address),
+				OpcodeTag.OP_SAVEFIELD_UINT or OpcodeTag.OP_SAVEFIELD_FLT or OpcodeTag.OP_SAVEFIELD_STR => new SaveFieldInstruction(opcode, address),
 
-				Ops.OP_STR_TO_UINT or Ops.OP_STR_TO_FLT or Ops.OP_STR_TO_NONE or
-				Ops.OP_FLT_TO_UINT or Ops.OP_FLT_TO_STR or Ops.OP_FLT_TO_NONE or
-				Ops.OP_UINT_TO_FLT or Ops.OP_UINT_TO_STR or Ops.OP_UINT_TO_NONE => new ConvertToTypeInstruction(opcode, address),
+				OpcodeTag.OP_STR_TO_UINT or OpcodeTag.OP_STR_TO_FLT or OpcodeTag.OP_STR_TO_NONE or
+				OpcodeTag.OP_FLT_TO_UINT or OpcodeTag.OP_FLT_TO_STR or OpcodeTag.OP_FLT_TO_NONE or
+				OpcodeTag.OP_UINT_TO_FLT or OpcodeTag.OP_UINT_TO_STR or OpcodeTag.OP_UINT_TO_NONE => new ConvertToTypeInstruction(opcode, address),
 
-				Ops.OP_LOADIMMED_UINT => new ImmediateInstruction<uint>(opcode, address, value: Read()),
-				Ops.OP_LOADIMMED_FLT => new ImmediateInstruction<double>(opcode, address, value: ReadDouble()),
+				OpcodeTag.OP_LOADIMMED_UINT => new ImmediateInstruction<uint>(opcode, address, value: Read()),
+				OpcodeTag.OP_LOADIMMED_FLT => new ImmediateInstruction<double>(opcode, address, value: ReadDouble()),
 
-				Ops.OP_TAG_TO_STR or Ops.OP_LOADIMMED_STR => new ImmediateInstruction<string>(opcode, address, value: ReadString()),
-				Ops.OP_LOADIMMED_IDENT => new ImmediateInstruction<string>(opcode, address, value: ReadIdentifier()),
+				OpcodeTag.OP_TAG_TO_STR or OpcodeTag.OP_LOADIMMED_STR => new ImmediateInstruction<string>(opcode, address, value: ReadString()),
+				OpcodeTag.OP_LOADIMMED_IDENT => new ImmediateInstruction<string>(opcode, address, value: ReadIdentifier()),
 
-				Ops.OP_CALLFUNC or Ops.OP_CALLFUNC_RESOLVE => new CallInstruction(
+				OpcodeTag.OP_CALLFUNC or OpcodeTag.OP_CALLFUNC_RESOLVE => new CallInstruction(
 					opcode,
 					address,
 					name: ReadIdentifier(),
@@ -133,18 +135,18 @@ namespace DSO.Disassembler
 					callType: Read()
 				),
 
-				Ops.OP_ADVANCE_STR => new AdvanceStringInstruction(opcode, address),
-				Ops.OP_ADVANCE_STR_APPENDCHAR => new AdvanceAppendInstruction(opcode, address, ReadChar()),
-				Ops.OP_ADVANCE_STR_COMMA => new AdvanceCommaInstruction(opcode, address),
-				Ops.OP_ADVANCE_STR_NUL => new AdvanceNullInstruction(opcode, address),
-				Ops.OP_REWIND_STR => new RewindStringInstruction(opcode, address),
-				Ops.OP_TERMINATE_REWIND_STR => new TerminateRewindInstruction(opcode, address),
+				OpcodeTag.OP_ADVANCE_STR => new AdvanceStringInstruction(opcode, address),
+				OpcodeTag.OP_ADVANCE_STR_APPENDCHAR => new AdvanceAppendInstruction(opcode, address, ReadChar()),
+				OpcodeTag.OP_ADVANCE_STR_COMMA => new AdvanceCommaInstruction(opcode, address),
+				OpcodeTag.OP_ADVANCE_STR_NUL => new AdvanceNullInstruction(opcode, address),
+				OpcodeTag.OP_REWIND_STR => new RewindStringInstruction(opcode, address),
+				OpcodeTag.OP_TERMINATE_REWIND_STR => new TerminateRewindInstruction(opcode, address),
 
-				Ops.OP_PUSH => new PushInstruction(opcode, address),
-				Ops.OP_PUSH_FRAME => new PushFrameInstruction(opcode, address),
+				OpcodeTag.OP_PUSH => new PushInstruction(opcode, address),
+				OpcodeTag.OP_PUSH_FRAME => new PushFrameInstruction(opcode, address),
 
-				Ops.OP_BREAK => new DebugBreakInstruction(opcode, address),
-				Ops.OP_UNUSED1 or Ops.OP_UNUSED2 or Ops.OP_UNUSED3 => new UnusedInstruction(opcode, address),
+				OpcodeTag.OP_BREAK => new DebugBreakInstruction(opcode, address),
+				OpcodeTag.OP_UNUSED1 or OpcodeTag.OP_UNUSED2 or OpcodeTag.OP_UNUSED3 => new UnusedInstruction(opcode, address),
 
 				_ => throw new DisassemblerException($"Invalid opcode {op} at {address}"),
 			}; ;

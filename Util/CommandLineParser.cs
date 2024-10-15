@@ -1,4 +1,6 @@
-﻿using static DSO.Constants.Decompiler.GameVersions;
+﻿using DSO.Opcodes;
+
+using static DSO.Constants.Decompiler.GameVersions;
 
 namespace DSO.Util
 {
@@ -11,14 +13,15 @@ namespace DSO.Util
 		BlocklandV21,
 	};
 
-	public class GameVersionData(string displayName, GameIdentifier identifier, uint version)
+	public class GameVersionData(string displayName, GameIdentifier identifier, uint version, Ops ops)
 	{
 		public readonly string DisplayName = displayName;
 		public readonly GameIdentifier Identifier = identifier;
 		public readonly uint Version = version;
+		public readonly Ops Ops = ops;
 
-		public GameVersionData() : this("", GameIdentifier.Unknown, 0) { }
-		public GameVersionData(GameVersionData data) : this(data.DisplayName, data.Identifier, data.Version) { }
+		public GameVersionData() : this("", GameIdentifier.Unknown, 0, new()) { }
+		public GameVersionData(GameVersionData data) : this(data.DisplayName, data.Identifier, data.Version, new()) { }
 	}
 
 	public class CommandLineOptions
@@ -34,10 +37,10 @@ namespace DSO.Util
 	{
 		static private readonly Dictionary<string, GameVersionData> _gameVersions = new()
 		{
-			{ "blv20", new("Blockland v20", GameIdentifier.BlocklandV20, BLV20) },
-			{ "blv21", new("Blockland v21", GameIdentifier.BlocklandV21, BLV21) },
-			{ "tfd", new("  The Forgettable Dungeon", GameIdentifier.ForgettableDungeon, TFD) },
-			{ "tge14", new("Torque Game Engine 1.4", GameIdentifier.TorqueGameEngine14, TGE14) },
+			{ "blv20", new("Blockland v20", GameIdentifier.BlocklandV20, BLV20, new()) },
+			{ "blv21", new("Blockland v21", GameIdentifier.BlocklandV21, BLV21, new Versions.Blockland.V21.Ops()) },
+			{ "tfd", new("  The Forgettable Dungeon", GameIdentifier.ForgettableDungeon, TFD, new()) },
+			{ "tge14", new("Torque Game Engine 1.4", GameIdentifier.TorqueGameEngine14, TGE14, new()) },
 		};
 
 		static public Tuple<bool, CommandLineOptions> Parse(string[] args)
