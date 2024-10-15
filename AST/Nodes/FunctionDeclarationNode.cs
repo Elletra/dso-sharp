@@ -32,7 +32,7 @@ namespace DSO.AST.Nodes
 			{
 				// TODO: There's an edge case where someone actually names their variable or argument `%__unused`, but I don't
 				// feel like addressing it right now.
-				stream.Write(arg ?? "%__unused");
+				stream.Write(arg == null || arg == "" ? "%__unused" : arg);
 
 				if (arg != Arguments.Last())
 				{
