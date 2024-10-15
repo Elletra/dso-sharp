@@ -236,13 +236,11 @@ namespace DSO.Opcodes
 
 		public virtual uint OP_BREAK => 0x4F;
 
-		public virtual uint OP_INVALID => 0x50;
-
 		public virtual uint OP_UNUSED1 => OP_INVALID;
 		public virtual uint OP_UNUSED2 => OP_INVALID;
 		public virtual uint OP_UNUSED3 => OP_INVALID;
 
-		public virtual bool IsValid(uint value) => value != OP_INVALID && value <= 0x4F;
+		public virtual uint OP_INVALID => 0x50;
 
 		protected Dictionary<uint, OpcodeTag> _tags = [];
 
@@ -370,9 +368,11 @@ namespace DSO.Opcodes
 			}
 		}
 
-		public virtual OpcodeTag GetOpcodeTag(uint op) => _tags.TryGetValue(op, out OpcodeTag tag) ? tag : OpcodeTag.OP_INVALID;
+		public bool IsValid(uint value) => _tags.ContainsKey(value) && value != OP_INVALID;
 
-		public virtual ReturnValue GetReturnValue(uint op) => GetOpcodeTag(op) switch
+		public OpcodeTag GetOpcodeTag(uint op) => _tags.TryGetValue(op, out OpcodeTag tag) ? tag : OpcodeTag.OP_INVALID;
+
+		public ReturnValue GetReturnValue(uint op) => GetOpcodeTag(op) switch
 		{
 			OpcodeTag.OP_STR_TO_NONE or OpcodeTag.OP_FLT_TO_NONE or OpcodeTag.OP_UINT_TO_NONE or
 			OpcodeTag.OP_JMPIF or OpcodeTag.OP_JMPIFF or
@@ -391,7 +391,7 @@ namespace DSO.Opcodes
 			_ => ReturnValue.NoChange,
 		};
 
-		public virtual TypeReq GetTypeReq(uint op) => GetOpcodeTag(op) switch
+		public TypeReq GetTypeReq(uint op) => GetOpcodeTag(op) switch
 		{
 			OpcodeTag.OP_STR_TO_UINT or OpcodeTag.OP_FLT_TO_UINT => TypeReq.UInt,
 			OpcodeTag.OP_STR_TO_FLT or OpcodeTag.OP_UINT_TO_FLT => TypeReq.Float,

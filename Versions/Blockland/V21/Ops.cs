@@ -107,14 +107,10 @@
 
 		public override uint OP_BREAK => 0x3D;
 
-		public override uint OP_INVALID => 0x39;
-
 		public override uint OP_UNUSED1 => 0x04;
 		public override uint OP_UNUSED2 => 0x06;
 		public override uint OP_UNUSED3 => 0x0A;
 
-		public override bool IsValid(uint value) => value != OP_INVALID && value <= 0x53;
-
-		public Ops() : base() { }
+		public override uint OP_INVALID => 0x39;
 	}
 }
