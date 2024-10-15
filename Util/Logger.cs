@@ -1,8 +1,8 @@
-﻿using static DSO.Util.Constants.Decompiler;
+﻿using static DSO.Constants.Decompiler;
 
 namespace DSO.Util
 {
-	static public class Logger
+    static public class Logger
 	{
 		static public bool Quiet = false;
 

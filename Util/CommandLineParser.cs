@@ -1,8 +1,8 @@
-﻿using static DSO.Util.Constants.Decompiler.GameVersions;
+﻿using static DSO.Constants.Decompiler.GameVersions;
 
 namespace DSO.Util
 {
-	public enum GameIdentifier : uint
+    public enum GameIdentifier : uint
 	{
 		Unknown,
 		ForgettableDungeon,

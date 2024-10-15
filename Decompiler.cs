@@ -3,11 +3,11 @@ using DSO.ControlFlow;
 using DSO.Loader;
 using DSO.Util;
 
-using static DSO.Util.Constants.Decompiler;
+using static DSO.Constants.Decompiler;
 
 namespace DSO
 {
-	public class Decompiler
+    public class Decompiler
 	{
 		private readonly FileLoader _loader = new();
 		private readonly Disassembler.Disassembler _disassembler = new();

@@ -1,6 +1,6 @@
 ﻿using DSO;
 using DSO.Util;
-using static DSO.Util.Constants.Decompiler;
+using static DSO.Constants.Decompiler;
 
 Console.Title = $"DSO Sharp ({VERSION})";
 
