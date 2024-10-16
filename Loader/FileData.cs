@@ -39,7 +39,26 @@
 			}
 		}
 
-		public string? Get(uint index) => Has(index) ? table[index] : null;
+		public string? Get(uint index)
+		{
+			if (Has(index))
+			{
+				return table[index];
+			}
+
+			if (index >= RawString.Length)
+			{
+				return null;
+			}
+
+			/* If we can't find it in the lookup table, let's search for it in the raw string (this is very slow). */
+
+			var substring = RawString[(int) index..];
+			var end = substring.IndexOf('\0');
+
+			return substring[..end];
+		}
+
 		public bool Has(uint index) => table.ContainsKey(index);
 	}
 
