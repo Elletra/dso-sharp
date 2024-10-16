@@ -26,6 +26,14 @@ namespace DSO.Util
 			}
 		}
 
+		static public void LogMessage(string format, params object[] args)
+		{
+			if (!Quiet)
+			{
+				Console.WriteLine(format, args);
+			}
+		}
+
 		static public void LogHeader()
 		{
 			LogMessage($"### DSO Sharp ({VERSION}) by {AUTHOR} ###\n", ConsoleColor.White);

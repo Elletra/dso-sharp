@@ -1,46 +1,24 @@
-﻿using DSO.Opcodes;
-
-using static DSO.Constants.Decompiler.GameVersions;
+﻿using DSO.Versions;
 
 namespace DSO.Util
 {
-    public enum GameIdentifier : uint
-	{
-		Unknown,
-		ForgettableDungeon,
-		TorqueGameEngine14,
-		BlocklandV20,
-		BlocklandV21,
-	};
-
-	public class GameVersionData(string displayName, GameIdentifier identifier, uint version, Ops ops)
-	{
-		public readonly string DisplayName = displayName;
-		public readonly GameIdentifier Identifier = identifier;
-		public readonly uint Version = version;
-		public readonly Ops Ops = ops;
-
-		public GameVersionData() : this("", GameIdentifier.Unknown, 0, new()) { }
-		public GameVersionData(GameVersionData data) : this(data.DisplayName, data.Identifier, data.Version, new()) { }
-	}
-
 	public class CommandLineOptions
 	{
 		public readonly List<string> Paths = [];
 
-		public GameVersionData? GameVersion { get; set; } = null;
+		public GameVersion? GameVersion { get; set; } = null;
 		public bool Quiet { get; set; } = false;
 		public bool CommandLineMode { get; set; } = false;
 	}
 
 	static public class CommandLineParser
 	{
-		static private readonly Dictionary<string, GameVersionData> _gameVersions = new()
+		static private readonly Dictionary<string, GameIdentifier> _gameIdentifiers = new()
 		{
-			{ "blv20", new("Blockland v20", GameIdentifier.BlocklandV20, BLV20, new()) },
-			{ "blv21", new("Blockland v21", GameIdentifier.BlocklandV21, BLV21, new Versions.Blockland.V21.Ops()) },
-			{ "tfd", new("  The Forgettable Dungeon", GameIdentifier.ForgettableDungeon, TFD, new()) },
-			{ "tge14", new("Torque Game Engine 1.4", GameIdentifier.TorqueGameEngine14, TGE14, new()) },
+			{ "blv20", GameIdentifier.BlocklandV20 },
+			{ "blv21", GameIdentifier.BlocklandV21 },
+			{ "tfd", GameIdentifier.ForgettableDungeon },
+			{ "tge14", GameIdentifier.TorqueGameEngine14 },
 		};
 
 		static public Tuple<bool, CommandLineOptions> Parse(string[] args)
@@ -93,7 +71,7 @@ namespace DSO.Util
 						{
 							var version = args[i + 1];
 
-							if (!_gameVersions.TryGetValue(version, out GameVersionData? data))
+							if (!_gameIdentifiers.TryGetValue(version, out GameIdentifier identifier))
 							{
 								Logger.LogError($"Unsupported game version '{version}'");
 								DisplayVersions();
@@ -101,7 +79,7 @@ namespace DSO.Util
 							}
 							else
 							{
-								options.GameVersion = data;
+								options.GameVersion = GameVersion.Create(identifier);
 							}
 
 							i++;
@@ -168,7 +146,7 @@ namespace DSO.Util
 				"  options:\n" +
 				"    -h, --help     Displays help.\n" +
 				"    -q, --quiet    Disables all messages (except command-line argument errors).\n" +
-				"    -g, --game     Specifies which game's scripts we are decompiling.\n" +
+				"    -g, --game     Specifies which game's scripts we are decompiling (default: 'auto').\n" +
 				"    -X, --cli      Makes the program operate as a command-line interface\n" +
 				"                   that takes no keyboard input and closes immediately\n" +
 				"                   upon completion or failure.\n"
@@ -180,10 +158,11 @@ namespace DSO.Util
 		static private void DisplayVersions()
 		{
 			Logger.LogMessage($"  game versions:");
+			Logger.LogMessage("    {0,-8}    {1}", "auto", "Automatically determines the game version from script file.");
 
-			foreach (var (arg, game) in _gameVersions)
+			foreach (var (arg, game) in _gameIdentifiers)
 			{
-				Logger.LogMessage($"    {arg}    {game.DisplayName}");
+				Logger.LogMessage("    {0,-8}    {1}", arg, GameVersion.GetDisplayName(game));
 			}
 
 			Logger.LogMessage("");

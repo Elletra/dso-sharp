@@ -12,7 +12,17 @@
 	/// </summary>
 	public class FileLoader
 	{
-		private FileReader reader = new();
+		static public uint ReadFileVersion(string filePath)
+		{
+			var reader = new FileReader(filePath);
+			var version = reader.ReadUInt();
+
+			reader.Close();
+
+			return version;
+		}
+
+		protected FileReader _reader = new();
 
 		/// <summary>
 		/// Loads a DSO file, parses it, and returns the parsed data.
@@ -20,24 +30,31 @@
 		/// <exception cref="FileLoaderException">
 		/// <see cref="ReadHeader"/> throws if the DSO file has the wrong version.
 		/// </exception>
-		public FileData LoadFile(string filePath, uint version)
+		public virtual FileData LoadFile(string filePath, uint version)
 		{
-			reader = new(filePath);
+			_reader = new(filePath);
 
 			var data = new FileData(version);
 
 			ReadHeader(data);
-			ReadStringTable(data, global: true);
-			ReadFloatTable(data, global: true);
-			ReadStringTable(data, global: false);
-			ReadFloatTable(data, global: false);
-			
+			ReadTables(data);
+
 			var (codeSize, lineBreaks) = ReadCode(data);
 
 			ReadLineBreaks(codeSize, lineBreaks);
 			ReadIdentifierTable(data);
 
+			_reader.Close();
+
 			return data;
+		}
+
+		protected virtual void ReadTables(FileData data)
+		{
+			ReadStringTable(data, global: true);
+			ReadStringTable(data, global: false);
+			ReadFloatTable(data, global: true);
+			ReadFloatTable(data, global: false);
 		}
 
 		/// <summary>
@@ -45,9 +62,9 @@
 		/// if it does not.
 		/// </summary>
 		/// <exception cref="FileLoaderException">If file has the wrong version.</exception>
-		private void ReadHeader(FileData data)
+		protected virtual void ReadHeader(FileData data)
 		{
-			var fileVersion = reader.ReadUInt();
+			var fileVersion = _reader.ReadUInt();
 
 			if (fileVersion != data.Version)
 			{
@@ -55,9 +72,9 @@
 			}
 		}
 
-		private void ReadStringTable(FileData data, bool global)
+		protected virtual void ReadStringTable(FileData data, bool global)
 		{
-			var table = new StringTable(UnencryptString(reader.ReadString()));
+			var table = new StringTable(_reader.ReadString());
 
 			if (global)
 			{
@@ -69,14 +86,14 @@
 			}
 		}
 
-		private void ReadFloatTable(FileData data, bool global)
+		protected virtual void ReadFloatTable(FileData data, bool global)
 		{
-			var size = reader.ReadUInt();
+			var size = _reader.ReadUInt();
 			var table = new double[size];
 
 			for (uint i = 0; i < size; i++)
 			{
-				table[i] = reader.ReadDouble();
+				table[i] = _reader.ReadDouble();
 			}
 
 			if (global)
@@ -89,16 +106,16 @@
 			}
 		}
 
-		private Tuple<uint, uint> ReadCode(FileData data)
+		protected virtual Tuple<uint, uint> ReadCode(FileData data)
 		{
-			var size = reader.ReadUInt();
-			var lineBreaks = reader.ReadUInt();
+			var size = _reader.ReadUInt();
+			var lineBreaks = _reader.ReadUInt();
 
 			data.Code = new uint[size];
 
 			for (uint i = 0; i < size; i++)
 			{
-				data.Code[i] = reader.ReadOp();
+				data.Code[i] = _reader.ReadOp();
 			}
 
 			return new(size, lineBreaks);
@@ -108,53 +125,36 @@
 		/// To be perfectly honest, I don't really know what the line break stuff is for, but it's
 		/// part of the file format so we have to parse it.
 		/// </summary>
-		private void ReadLineBreaks(uint codeSize, uint lineBreaks)
+		protected virtual void ReadLineBreaks(uint codeSize, uint lineBreaks)
 		{
 			var totalSize = codeSize + lineBreaks * 2;
 
 			for (uint i = codeSize; i < totalSize; i++)
 			{
-				reader.ReadUInt();
+				_reader.ReadUInt();
 			}
 		}
 
 		/// <summary>
 		/// Reads identifier table to insert proper string table indices into parts of the code.
 		/// </summary>
-		private void ReadIdentifierTable(FileData data)
+		protected virtual void ReadIdentifierTable(FileData data)
 		{
-			var identifiers = reader.ReadUInt();
+			var identifiers = _reader.ReadUInt();
 
 			while (identifiers-- > 0)
 			{
-				var index = reader.ReadUInt();
-				var count = reader.ReadUInt();
+				var index = _reader.ReadUInt();
+				var count = _reader.ReadUInt();
 
 				while (count-- > 0)
 				{
-					var ip = reader.ReadUInt();
+					var ip = _reader.ReadUInt();
 
 					data.Code[ip] = index;
 					data.IdentifierTable[ip] = index;
 				}
 			}
-		}
-
-		/// <summary>
-		/// Unencrypt Blockland's string tables.
-		/// </summary>
-		/// <returns>The unencrypted string.</returns>
-		static private string UnencryptString(string str)
-		{
-			var key = "cl3buotro";
-			var unencrypted = "";
-
-			for (var i = 0; i < str.Length; i++)
-			{
-				unencrypted += (char) (str[i] ^ key[i % 9]);
-			}
-
-			return unencrypted;
 		}
 	}
 }

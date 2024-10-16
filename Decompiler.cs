@@ -2,14 +2,14 @@
 using DSO.ControlFlow;
 using DSO.Loader;
 using DSO.Util;
-
+using DSO.Versions;
 using static DSO.Constants.Decompiler;
 
 namespace DSO
 {
     public class Decompiler
 	{
-		private readonly FileLoader _loader = new();
+		private FileLoader _loader = new();
 		private readonly Disassembler.Disassembler _disassembler = new();
 		private readonly ControlFlowAnalyzer _analyzer = new();
 		private readonly Builder _builder = new();
@@ -76,27 +76,28 @@ namespace DSO
 			}
 
 			var totalTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - startTime;
+			var plural = files != 1;
 
 			Logger.LogMessage("");
 
 			if (failures <= 0)
 			{
-				Logger.LogSuccess($"Decompiled {files} file{(files != 1 ? "s" : "")} successfully in {totalTime} ms\n");
+				Logger.LogSuccess($"Decompiled {files} file{(plural ? "s" : "")} successfully in {totalTime} ms\n");
 			}
 			else
 			{
 				if (failures < files)
 				{
-					Logger.LogWarning($"Decompiled {files - failures} of {files} file{(files != 1 ? "s" : "")} successfully in {totalTime} ms");
+					Logger.LogWarning($"Decompiled {files - failures} of {files} file{(plural ? "s" : "")} successfully in {totalTime} ms");
 				}
 				else
 				{
-					Logger.LogError($"Failed to decompile all {files} file{(files != 1 ? "s" : "")}");
+					Logger.LogError($"Failed to decompile {(plural ? "all " : "")}{files} file{(plural ? "s" : "")}");
 				}
 			}
 		}
 
-		private Tuple<int, int> DecompileDirectory(string path, GameVersionData game)
+		private Tuple<int, int> DecompileDirectory(string path, GameVersion? game)
 		{
 			Logger.LogMessage($"Decompiling all files in directory: \"{path}\"");
 
@@ -114,7 +115,7 @@ namespace DSO
 			return new(files.Length, failures);
 		}
 
-		private bool DecompileFile(string path, GameVersionData game)
+		private bool DecompileFile(string path, GameVersion? game)
 		{
 			string outputPath;
 			List<string> stream;
@@ -123,7 +124,9 @@ namespace DSO
 
 			try
 			{
-				var disassembly = _disassembler.Disassemble(_loader.LoadFile(path, game.Version), game.Ops);
+				game ??= GameVersion.Create(GameVersion.GetIdentifierFromVersion(FileLoader.ReadFileVersion(path)));
+
+				var disassembly = _disassembler.Disassemble(game.FileLoader.LoadFile(path, game.Version), game.Ops);
 				var data = _analyzer.Analyze(disassembly);
 				var nodes = _builder.Build(data, disassembly);
 

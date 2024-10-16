@@ -75,11 +75,9 @@
 		public override uint OP_STR_TO_UINT => 0x26;
 		public override uint OP_STR_TO_FLT => 0x3A;
 		public override uint OP_STR_TO_NONE => 0x20;
-
 		public override uint OP_FLT_TO_UINT => 0x08;
 		public override uint OP_FLT_TO_STR => 0x09;
 		public override uint OP_FLT_TO_NONE => 0x51;
-
 		public override uint OP_UINT_TO_FLT => 0x00;
 		public override uint OP_UINT_TO_STR => 0x02;
 		public override uint OP_UINT_TO_NONE => 0x03;

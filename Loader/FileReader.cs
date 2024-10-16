@@ -16,6 +16,8 @@
 			reader = new(new FileStream(filePath, FileMode.Open));
 		}
 
+		public void Close() => reader?.Close();
+
 		public byte ReadByte() => reader.ReadByte();
 		public uint ReadUInt() => reader.ReadUInt32();
 		public double ReadDouble() => reader.ReadDouble();
