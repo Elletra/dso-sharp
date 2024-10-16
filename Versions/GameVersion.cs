@@ -18,8 +18,8 @@ namespace DSO.Versions
 	{
 		static public string GetDisplayName(GameIdentifier identifier) => identifier switch
 		{
-			GameIdentifier.ForgettableDungeon => "The Forgettable Dungeon",
 			GameIdentifier.TorqueGameEngine14 => "Torque Game Engine 1.4",
+			GameIdentifier.ForgettableDungeon => "The Forgettable Dungeon",
 			GameIdentifier.BlocklandV20 => "Blockland v20",
 			GameIdentifier.BlocklandV21 => "Blockland v21",
 			_ => "<ERROR>",
@@ -27,8 +27,8 @@ namespace DSO.Versions
 
 		static public uint GetVersionFromIdentifier(GameIdentifier identifier) => identifier switch
 		{
-			GameIdentifier.ForgettableDungeon => GameVersions.TFD,
 			GameIdentifier.TorqueGameEngine14 => GameVersions.TGE14,
+			GameIdentifier.ForgettableDungeon => GameVersions.TFD,
 			GameIdentifier.BlocklandV20 => GameVersions.BLV20,
 			GameIdentifier.BlocklandV21 => GameVersions.BLV21,
 			_ => 0,
@@ -36,8 +36,8 @@ namespace DSO.Versions
 
 		static public GameIdentifier GetIdentifierFromVersion(uint version) => version switch
 		{
-			GameVersions.TFD => GameIdentifier.ForgettableDungeon,
 			GameVersions.TGE14 => GameIdentifier.TorqueGameEngine14,
+			GameVersions.TFD => GameIdentifier.ForgettableDungeon,
 			GameVersions.BLV20 => GameIdentifier.BlocklandV20,
 			GameVersions.BLV21 => GameIdentifier.BlocklandV21,
 			_ => GameIdentifier.Unknown,
@@ -45,8 +45,8 @@ namespace DSO.Versions
 
 		static public Ops? CreateOps(GameIdentifier identifier) => identifier switch
 		{
-			GameIdentifier.ForgettableDungeon => new TFD.Ops(),
 			GameIdentifier.TorqueGameEngine14 => new Ops(),
+			GameIdentifier.ForgettableDungeon => new TFD.Ops(),
 			// TODO: GameIdentifier.BlocklandV20 =>,
 			GameIdentifier.BlocklandV21 => new Blockland.V21.Ops(),
 			_ => null,
@@ -54,8 +54,8 @@ namespace DSO.Versions
 
 		static public FileLoader? CreateFileLoader(GameIdentifier identifier) => identifier switch
 		{
-			GameIdentifier.ForgettableDungeon => new TFD.FileLoader(),
 			GameIdentifier.TorqueGameEngine14 => new FileLoader(),
+			GameIdentifier.ForgettableDungeon => new TFD.FileLoader(),
 			GameIdentifier.BlocklandV20 => new Blockland.FileLoader(),
 			GameIdentifier.BlocklandV21 => new Blockland.FileLoader(),
 			_ => null,

@@ -15,10 +15,10 @@ namespace DSO.Util
 	{
 		static private readonly Dictionary<string, GameIdentifier> _gameIdentifiers = new()
 		{
+			{ "tge14", GameIdentifier.TorqueGameEngine14 },
+			{ "tfd", GameIdentifier.ForgettableDungeon },
 			{ "blv20", GameIdentifier.BlocklandV20 },
 			{ "blv21", GameIdentifier.BlocklandV21 },
-			{ "tfd", GameIdentifier.ForgettableDungeon },
-			{ "tge14", GameIdentifier.TorqueGameEngine14 },
 		};
 
 		static public Tuple<bool, CommandLineOptions> Parse(string[] args)
