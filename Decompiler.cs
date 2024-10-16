@@ -88,7 +88,7 @@ namespace DSO
 			{
 				if (failures < files)
 				{
-					Logger.LogWarning($"Decompiled {files - failures} of {files} file{(plural ? "s" : "")} successfully in {totalTime} ms");
+					Logger.LogWarning($"Decompiled {files - failures} of {files} file{(plural ? "s" : "")} in {totalTime} ms");
 				}
 				else
 				{
