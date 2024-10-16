@@ -7,6 +7,8 @@ namespace DSO.Disassembler
 		private readonly List<Instruction> _list = [];
 		private readonly Dictionary<uint, Instruction> _dictionary = [];
 
+		public int Count => _list.Count;
+
 		public Instruction? First => _list.Count > 0 ? _list[0] : null;
 		public Instruction? Last => _list.Count > 0 ? _list[^1] : null;
 
