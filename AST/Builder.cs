@@ -102,6 +102,11 @@ namespace DSO.AST
 						if (block.End is BranchInstruction branch && branch.IsUnconditional && _data.Branches[branch.Address].Type == ControlFlowBranchType.Else)
 						{
 							node.False = ParseRange(branch.Next, _disassembly.GetInstruction(branch.TargetAddress).Prev);
+
+							if (node.False.Count == 1 && node.False[0] is IfNode elseIf && elseIf.CanConvertToTernary)
+							{
+								node.False[0] = elseIf.ConvertToTernary();
+							}
 						}
 
 						return CollapseIfLoop(node);
