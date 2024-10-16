@@ -4,7 +4,7 @@ using static DSO.Constants.Decompiler;
 
 Console.Title = $"DSO Sharp ({VERSION})";
 
-var (error, options) = CommandLineParser.Parse(["-h"]);
+var (error, options) = CommandLineParser.Parse(args);
 var exitImmediately = options.CommandLineMode;
 var errorCode = error ? 1 : 0;
 

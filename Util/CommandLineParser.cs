@@ -130,8 +130,13 @@ namespace DSO.Util
 
 			if (!error && options.Paths.Count <= 0)
 			{
-				Logger.LogHeader();
-				Logger.LogError("No file or directory path(s) specified");
+				if (!options.Quiet && !options.CommandLineMode)
+				{
+					Logger.LogHeader();
+					Logger.LogError("No file or directory path(s) specified\n");
+				}
+
+				DisplayHelp();
 
 				error = true;
 			}
@@ -158,11 +163,11 @@ namespace DSO.Util
 		static private void DisplayVersions()
 		{
 			Logger.LogMessage($"  game versions:");
-			Logger.LogMessage("    {0,-8}    {1}", "auto", "Automatically determines the game version from script file.");
+			Logger.LogMessage("    {0,-5}    {1}", "auto", "Automatically determines the game version from script file.");
 
 			foreach (var (arg, game) in _gameIdentifiers)
 			{
-				Logger.LogMessage("    {0,-8}    {1}", arg, GameVersion.GetDisplayName(game));
+				Logger.LogMessage("    {0,-5}    {1}", arg, GameVersion.GetDisplayName(game));
 			}
 
 			Logger.LogMessage("");
