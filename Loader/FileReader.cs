@@ -1,4 +1,14 @@
-﻿namespace DSO.Loader
+﻿/**
+ * FileReader.cs
+ *
+ * Copyright (C) 2024 Elletra
+ *
+ * This file is part of the DSO Sharp source code. It may be used under the BSD 3-Clause License.
+ *
+ * For full terms, see the LICENSE file or visit https://spdx.org/licenses/BSD-3-Clause.html
+ */
+
+namespace DSO.Loader
 {
 	/// <summary>
 	/// Mostly a wrapper for BinaryReader, but with some added methods specifically for DSO file reading.
