@@ -14,7 +14,7 @@ using DSO.Disassembler;
 
 namespace DSO.AST
 {
-    public class BuilderException : Exception
+	public class BuilderException : Exception
 	{
 		public BuilderException() { }
 		public BuilderException(string message) : base(message) { }
@@ -112,11 +112,6 @@ namespace DSO.AST
 						if (block.End is BranchInstruction branch && branch.IsUnconditional && _data.Branches[branch.Address].Type == ControlFlowBranchType.Else)
 						{
 							node.False = ParseRange(branch.Next, _disassembly.GetInstruction(branch.TargetAddress).Prev);
-
-							if (node.False.Count == 1 && node.False[0] is IfNode elseIf && elseIf.CanConvertToTernary)
-							{
-								node.False[0] = elseIf.ConvertToTernary();
-							}
 						}
 
 						return CollapseIfLoop(node);
@@ -442,7 +437,7 @@ namespace DSO.AST
 
 				if (end.IsExpression)
 				{
-					if (end is IfNode ifNode && ifNode.CanConvertToTernary)
+					if (end is IfNode ifNode && ifNode.CanConvertToTernary())
 					{
 						end = ifNode.ConvertToTernary();
 					}

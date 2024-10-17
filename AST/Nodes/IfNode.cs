@@ -18,7 +18,35 @@ namespace DSO.AST.Nodes
 		public List<Node> True { get; set; } = [];
 		public List<Node> False { get; set; } = [];
 
-		public bool CanConvertToTernary => Test != null && True.Count == 1 && False.Count == 1 && True[0].IsExpression && False[0].IsExpression;
+		public bool CanConvertToTernary()
+		{
+			if (Test == null || True.Count != 1 || False.Count != 1)
+			{
+				return false;
+			}
+
+			var canConvert = true;
+
+			if (True[0] is IfNode trueIf)
+			{
+				canConvert = canConvert && trueIf.CanConvertToTernary();
+			}
+			else
+			{
+				canConvert = canConvert && True[0].IsExpression;
+			}
+
+			if (False[0] is IfNode falseIf)
+			{
+				canConvert = canConvert && falseIf.CanConvertToTernary();
+			}
+			else
+			{
+				canConvert = canConvert && False[0].IsExpression;
+			}
+
+			return canConvert;
+		}
 
 		public override bool Equals(object? obj) => base.Equals(obj) && obj is IfNode node
 			&& Equals(node.Test, Test) && node.True.SequenceEqual(True) && node.False.SequenceEqual(False);
@@ -57,12 +85,16 @@ namespace DSO.AST.Nodes
 
 		public TernaryIfNode ConvertToTernary()
 		{
-			if (!CanConvertToTernary)
+			if (!CanConvertToTernary())
 			{
 				throw new InvalidCastException("Could not convert if statement to ternary expression");
 			}
 
-			return new(Test, True[0], False[0]);
+			return new(
+				Test,
+				True[0] is IfNode trueIf ? trueIf.ConvertToTernary() : True[0],
+				False[0] is IfNode falseIf ? falseIf.ConvertToTernary() : False[0]
+			);
 		}
 	}
 
