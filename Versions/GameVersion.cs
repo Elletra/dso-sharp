@@ -7,17 +7,18 @@ namespace DSO.Versions
 {
 	public enum GameIdentifier : uint
 	{
+		Auto,
 		ForgettableDungeon,
 		TorqueGameEngine14,
 		BlocklandV20,
 		BlocklandV21,
-		Unknown,
 	};
 
 	public class GameVersion
 	{
 		static public string GetDisplayName(GameIdentifier identifier) => identifier switch
 		{
+			GameIdentifier.Auto => "Automatically determines the game version from script file.",
 			GameIdentifier.TorqueGameEngine14 => "Torque Game Engine 1.4",
 			GameIdentifier.ForgettableDungeon => "The Forgettable Dungeon",
 			GameIdentifier.BlocklandV20 => "Blockland v20",
@@ -27,6 +28,7 @@ namespace DSO.Versions
 
 		static public uint GetVersionFromIdentifier(GameIdentifier identifier) => identifier switch
 		{
+			GameIdentifier.Auto => 0,
 			GameIdentifier.TorqueGameEngine14 => GameVersions.TGE14,
 			GameIdentifier.ForgettableDungeon => GameVersions.TFD,
 			GameIdentifier.BlocklandV20 => GameVersions.BLV20,
@@ -40,20 +42,22 @@ namespace DSO.Versions
 			GameVersions.TFD => GameIdentifier.ForgettableDungeon,
 			GameVersions.BLV20 => GameIdentifier.BlocklandV20,
 			GameVersions.BLV21 => GameIdentifier.BlocklandV21,
-			_ => GameIdentifier.Unknown,
+			_ => GameIdentifier.Auto,
 		};
 
 		static public Ops? CreateOps(GameIdentifier identifier) => identifier switch
 		{
+			GameIdentifier.Auto => null,
 			GameIdentifier.TorqueGameEngine14 => new Ops(),
 			GameIdentifier.ForgettableDungeon => new TFD.Ops(),
-			// TODO: GameIdentifier.BlocklandV20 =>,
+			GameIdentifier.BlocklandV20 => new Blockland.V20.Ops(),
 			GameIdentifier.BlocklandV21 => new Blockland.V21.Ops(),
 			_ => null,
 		};
 
 		static public FileLoader? CreateFileLoader(GameIdentifier identifier) => identifier switch
 		{
+			GameIdentifier.Auto => null,
 			GameIdentifier.TorqueGameEngine14 => new FileLoader(),
 			GameIdentifier.ForgettableDungeon => new TFD.FileLoader(),
 			GameIdentifier.BlocklandV20 => new Blockland.FileLoader(),
@@ -61,7 +65,7 @@ namespace DSO.Versions
 			_ => null,
 		};
 
-		static public GameVersion? Create(GameIdentifier identifier) => identifier >= GameIdentifier.Unknown ? null : new()
+		static public GameVersion? Create(GameIdentifier identifier) => identifier == GameIdentifier.Auto ? null : new()
 		{
 			Identifier = identifier,
 			DisplayName = GetDisplayName(identifier),
@@ -70,7 +74,7 @@ namespace DSO.Versions
 			FileLoader = CreateFileLoader(identifier),
 		};
 
-		public GameIdentifier Identifier { get; set; } = GameIdentifier.Unknown;
+		public GameIdentifier Identifier { get; set; } = GameIdentifier.Auto;
 		public string DisplayName { get; set; } = "<ERROR>";
 		public uint Version { get; set; } = 0;
 		public Ops Ops { get; set; } = null;
