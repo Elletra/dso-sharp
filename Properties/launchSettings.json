@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "DSO": {
+      "commandName": "Project",
+      "workingDirectory": "bin"
+    }
+  }
+}
