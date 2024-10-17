@@ -113,11 +113,11 @@ namespace DSO.AST.Nodes
 
 		public override void Visit(TokenStream stream, bool isExpression)
 		{
-			stream.Write(Test, isExpression: true);
+			stream.Write(Test, node => node is TernaryIfNode || node is AssignmentNode);
 			stream.Write(" ", "?", " ");
-			stream.Write(True, isExpression: true);
+			stream.Write(True, node => node is TernaryIfNode || node is AssignmentNode);
 			stream.Write(" ", ":", " ");
-			stream.Write(False, isExpression: true);
+			stream.Write(False, node => node is TernaryIfNode || node is AssignmentNode);
 		}
 	}
 }
