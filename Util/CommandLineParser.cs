@@ -15,6 +15,7 @@ namespace DSO.Util
 	{
 		static private readonly Dictionary<string, GameIdentifier> _gameIdentifiers = new()
 		{
+			{ "auto", GameIdentifier.Auto },
 			{ "tge14", GameIdentifier.TorqueGameEngine14 },
 			{ "tfd", GameIdentifier.ForgettableDungeon },
 			{ "blv20", GameIdentifier.BlocklandV20 },
@@ -163,11 +164,17 @@ namespace DSO.Util
 		static private void DisplayVersions()
 		{
 			Logger.LogMessage($"  game versions:");
-			Logger.LogMessage("    {0,-5}    {1}", "auto", "Automatically determines the game version from script file.");
+
+			var longest = 0;
 
 			foreach (var (arg, game) in _gameIdentifiers)
 			{
-				Logger.LogMessage("    {0,-5}    {1}", arg, GameVersion.GetDisplayName(game));
+				longest = Math.Max(arg.Length, longest);
+			}
+
+			foreach (var (arg, game) in _gameIdentifiers)
+			{
+				Logger.LogMessage($"    {{0,-{longest}}}    {{1}}", arg, GameVersion.GetDisplayName(game));
 			}
 
 			Logger.LogMessage("");
