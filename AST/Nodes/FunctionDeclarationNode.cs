@@ -38,13 +38,15 @@ namespace DSO.AST.Nodes
 
 			stream.Write(Name, "(");
 
-			foreach (var arg in Arguments)
+			for (var i = 0; i < Arguments.Count; i++)
 			{
+				var arg = Arguments[i];
+
 				// TODO: There's an edge case where someone actually names their variable or argument `%__unused`, but I don't
 				// feel like addressing it right now.
 				stream.Write(arg == null || arg == "" ? "%__unused" : arg);
 
-				if (arg != Arguments.Last())
+				if (i < Arguments.Count - 1)
 				{
 					stream.Write(",", " ");
 				}
