@@ -37,6 +37,8 @@ namespace DSO.Disassembler
 			_index = 0;
 			_data = data;
 			_ops = ops;
+			_function = null;
+			_returnableValue = false;
 
 			return Disassemble();
 		}
@@ -148,7 +150,7 @@ namespace DSO.Disassembler
 				OpcodeTag.OP_BREAK => new DebugBreakInstruction(opcode, address),
 				OpcodeTag.OP_UNUSED1 or OpcodeTag.OP_UNUSED2 or OpcodeTag.OP_UNUSED3 => new UnusedInstruction(opcode, address),
 
-				_ => throw new DisassemblerException($"Invalid opcode {op} at {address}"),
+				_ => throw new DisassemblerException($"Invalid opcode 0x{op:X2} at {address}"),
 			}; ;
 		}
 
@@ -160,7 +162,7 @@ namespace DSO.Disassembler
 				name: ReadIdentifier(),
 				ns: ReadIdentifier(),
 				package: ReadIdentifier(),
-				hasBody : ReadBool(),
+				hasBody: ReadBool(),
 				endAddr: Read()
 			);
 
@@ -172,7 +174,7 @@ namespace DSO.Disassembler
 			}
 
 			return instruction;
-        }
+		}
 
 		private void ProcessInstruction(Instruction instruction)
 		{

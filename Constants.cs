@@ -10,6 +10,7 @@
         {
             public const uint TGE14 = 36;
             public const uint TFD = 33;
+            public const uint BLBETA = 33;
             public const uint BLV20 = 190;
             public const uint BLV21 = 210;
         }

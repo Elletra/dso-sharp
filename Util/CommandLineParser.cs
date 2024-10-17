@@ -6,7 +6,7 @@ namespace DSO.Util
 	{
 		public readonly List<string> Paths = [];
 
-		public GameVersion? GameVersion { get; set; } = null;
+		public GameIdentifier GameIdentifier { get; set; } = GameIdentifier.Auto;
 		public bool Quiet { get; set; } = false;
 		public bool CommandLineMode { get; set; } = false;
 	}
@@ -18,6 +18,7 @@ namespace DSO.Util
 			{ "auto", GameIdentifier.Auto },
 			{ "tge14", GameIdentifier.TorqueGameEngine14 },
 			{ "tfd", GameIdentifier.ForgettableDungeon },
+			{ "blbeta", GameIdentifier.BlocklandBeta },
 			{ "blv20", GameIdentifier.BlocklandV20 },
 			{ "blv21", GameIdentifier.BlocklandV21 },
 		};
@@ -28,6 +29,7 @@ namespace DSO.Util
 			var options = new CommandLineOptions();
 			var error = false;
 			var paths = new List<string>();
+			var gameSpecified = false;
 
 			for (var i = 0; i < args.Length && !error; i++)
 			{
@@ -63,7 +65,7 @@ namespace DSO.Util
 						{
 							Logger.LogError($"Missing game version after '{arg}'");
 						}
-						else if (options.GameVersion != null)
+						else if (gameSpecified)
 						{
 							Logger.LogError("Multiple game versions specified");
 							error = true;
@@ -71,6 +73,8 @@ namespace DSO.Util
 						else
 						{
 							var version = args[i + 1];
+
+							gameSpecified = true;
 
 							if (!_gameIdentifiers.TryGetValue(version, out GameIdentifier identifier))
 							{
@@ -80,7 +84,7 @@ namespace DSO.Util
 							}
 							else
 							{
-								options.GameVersion = GameVersion.Create(identifier);
+								options.GameIdentifier = identifier;
 							}
 
 							i++;

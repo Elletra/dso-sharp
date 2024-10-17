@@ -32,6 +32,7 @@
 		/// </exception>
 		public virtual FileData LoadFile(string filePath, uint version)
 		{
+			_reader.Close();
 			_reader = new(filePath);
 
 			var data = new FileData(version);
