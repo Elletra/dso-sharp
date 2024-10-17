@@ -19,10 +19,10 @@
 		public override uint OP_RETURN => 0x12;
 
 		public override uint OP_CMPEQ => 0x0F;
-		public override uint OP_CMPGR => 0x11;
-		public override uint OP_CMPGE => 0x10;
-		public override uint OP_CMPLT => 0x0A;
-		public override uint OP_CMPLE => 0x09;
+		public override uint OP_CMPGR => 0x10;
+		public override uint OP_CMPGE => 0x11;
+		public override uint OP_CMPLT => 0x09;
+		public override uint OP_CMPLE => 0x0A;
 		public override uint OP_CMPNE => 0x17;
 
 		public override uint OP_XOR => 0x13;
