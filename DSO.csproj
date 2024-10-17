@@ -7,9 +7,9 @@
     <Nullable>enable</Nullable>
     <PublishAot>true</PublishAot>
     <InvariantGlobalization>true</InvariantGlobalization>
-    <FileVersion>0.1.0</FileVersion>
-    <AssemblyVersion>0.1.0</AssemblyVersion>
-    <Version>0.1.0</Version>
+    <FileVersion>1.0.0</FileVersion>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <Version>1.0.0</Version>
     <PackageId>dso-sharp</PackageId>
     <Title>DSO Sharp</Title>
     <Authors>Elletra</Authors>

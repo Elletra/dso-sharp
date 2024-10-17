@@ -13,7 +13,7 @@ namespace DSO.Constants
     static public class Decompiler
     {
         public const string AUTHOR = "Elletra";
-        public const string VERSION = "0.1.0";
+        public const string VERSION = "1.0.0";
         public const string EXTENSION = ".dso";
 
         static public class GameVersions
