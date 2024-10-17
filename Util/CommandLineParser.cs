@@ -73,22 +73,22 @@ namespace DSO.Util
 
 						if (error)
 						{
-							Logger.LogError($"Missing game version after '{arg}'");
+							Logger.LogError($"Missing game after '{arg}'");
 						}
 						else if (gameSpecified)
 						{
-							Logger.LogError("Multiple game versions specified");
+							Logger.LogError("Multiple games specified");
 							error = true;
 						}
 						else
 						{
-							var version = args[i + 1];
+							var game = args[i + 1];
 
 							gameSpecified = true;
 
-							if (!_gameIdentifiers.TryGetValue(version, out GameIdentifier identifier))
+							if (!_gameIdentifiers.TryGetValue(game, out GameIdentifier identifier))
 							{
-								Logger.LogError($"Unsupported game version '{version}'");
+								Logger.LogError($"Unsupported game '{game}'");
 								DisplayVersions();
 								error = true;
 							}
@@ -177,7 +177,7 @@ namespace DSO.Util
 
 		static private void DisplayVersions()
 		{
-			Logger.LogMessage($"  game versions:");
+			Logger.LogMessage($"  supported games:");
 
 			var longest = 0;
 

@@ -150,12 +150,12 @@ namespace DSO
 
 				if (identifiers.Length <= 0)
 				{
-					decompileException = new DecompilerException("Could not automatically identify game version");
+					decompileException = new DecompilerException("Could not automatically identify game from file");
 				}
 
 				if (identifiers.Length == 1)
 				{
-					Logger.LogMessage($"\tGame version automatically detected as {GameVersion.GetDisplayName(identifiers[0])}", ConsoleColor.DarkGray);
+					Logger.LogMessage($"\tGame automatically detected as {GameVersion.GetDisplayName(identifiers[0])}", ConsoleColor.DarkGray);
 
 					decompileException = DisassembleAndParseFile(path, identifiers[0], out stream);
 				}

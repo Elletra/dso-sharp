@@ -29,7 +29,7 @@ namespace DSO.Versions
 	{
 		static public string GetDisplayName(GameIdentifier identifier) => identifier switch
 		{
-			GameIdentifier.Auto => "Automatically determines the game version from script file.",
+			GameIdentifier.Auto => "Automatically determines the game from script file.",
 			GameIdentifier.TorqueGameEngine14 => "Torque Game Engine 1.4",
 			GameIdentifier.ForgettableDungeon => "The Forgettable Dungeon",
 			GameIdentifier.BlocklandBeta => "Blockland Retail Beta",

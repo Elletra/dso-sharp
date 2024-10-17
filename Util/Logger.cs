@@ -46,7 +46,7 @@ namespace DSO.Util
 
 		static public void LogHeader()
 		{
-			LogMessage($"### DSO Sharp ({VERSION}) by {AUTHOR} ###\n", ConsoleColor.White);
+			LogMessage($"## DSO Sharp ({VERSION}) by {AUTHOR} ##\n", ConsoleColor.White);
 		}
 	}
 }
