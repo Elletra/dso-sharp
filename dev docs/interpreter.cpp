@@ -1,5 +1,5 @@
 /**
- * This is the interpreter with the opcode switch code hastily inline into the cases to make it easier to
+ * This is the interpreter with the opcode switch code hastily inlined into the cases to make it easier to
  * determine opcodes for games.
  *
  * It is solely for reference and is not functional code.
