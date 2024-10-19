@@ -7,6 +7,7 @@ This project only supports the following games and engines:
 * Torque Game Engine 1.4
 * The Forgettable Dungeon
 * [Blockland Retail Beta](https://bl.kenko.dev/Versions/Retail%20Beta)
+* Blockland v1
 * Blockland v20
 * Blockland v21
 
@@ -47,6 +48,7 @@ You can also use it as a command-line interface: `usage: dso-sharp path1[, path2
 | `tge14`  | Torque Game Engine 1.4 |
 | `tfd`    | The Forgettable Dungeon |
 | `blbeta` | [Blockland Retail Beta](https://bl.kenko.dev/Versions/Retail%20Beta) |
+| `blv1`   | Blockland v1 |
 | `blv20`  | Blockland v20 |
 | `blv21`  | Blockland v21 |
 

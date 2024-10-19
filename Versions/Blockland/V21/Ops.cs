@@ -107,7 +107,6 @@ namespace DSO.Versions.Blockland.V21
 		public override uint OP_ADVANCE_STR_NUL => 0x01;
 		public override uint OP_REWIND_STR => 0x29;
 		public override uint OP_TERMINATE_REWIND_STR => 0x15;
-
 		public override uint OP_COMPARE_STR => 0x21;
 
 		public override uint OP_PUSH => 0x50;
