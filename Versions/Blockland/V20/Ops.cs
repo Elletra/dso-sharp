@@ -28,12 +28,12 @@ namespace DSO.Versions.Blockland.V20
 
 		public override uint OP_RETURN => 0x48;
 
-		public override uint OP_CMPEQ => 0x33;
+		public override uint OP_CMPEQ => 0x31;
 		public override uint OP_CMPGR => 0x32;
 		public override uint OP_CMPGE => 0x4A;
 		public override uint OP_CMPLT => 0x3C;
 		public override uint OP_CMPLE => 0x16;
-		public override uint OP_CMPNE => 0x31;
+		public override uint OP_CMPNE => 0x33;
 
 		public override uint OP_XOR => 0x49;
 		public override uint OP_MOD => 0x28;
