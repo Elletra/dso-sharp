@@ -23,6 +23,7 @@ namespace DSO.Disassembler
 		public Instruction? Last => _list.Count > 0 ? _list[^1] : null;
 
 		public readonly List<BranchInstruction> Branches = [];
+		private readonly HashSet<uint> _branchTargets = [];
 
 		public Instruction AddInstruction(Instruction instruction)
 		{
@@ -37,6 +38,7 @@ namespace DSO.Disassembler
 			if (instruction is BranchInstruction branch)
 			{
 				Branches.Add(branch);
+				_branchTargets.Add(branch.TargetAddress);
 			}
 
 			_list.Add(instruction);
@@ -70,5 +72,18 @@ namespace DSO.Disassembler
 		}
 
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+		public void Visit(DisassemblyWriter writer)
+		{
+			foreach (var instruction in _list)
+			{
+				if (_branchTargets.Contains(instruction.Address))
+				{
+					writer.WriteBranchLabel(instruction.Address);
+				}
+
+				writer.Write(instruction);
+			}
+		}
 	}
 }

@@ -35,7 +35,6 @@ namespace DSO.Disassembler
 		/// </summary>
 		/// <returns>An array of relevant values to be printed.</returns>
 		public virtual object[] GetValues() => [Address, Opcode.Tag];
-
 		public override string ToString()
 		{
 			/* The proper, more efficient way would probably be to use a StringBuilder, but this
@@ -63,6 +62,8 @@ namespace DSO.Disassembler
 
 			return str;
 		}
+
+		public virtual void Visit(DisassemblyWriter writer) => writer.WriteValue(Opcode.Tag);
 	}
 
 	/// <summary>
@@ -104,6 +105,22 @@ namespace DSO.Disassembler
 
 			return values;
 		}
+
+		public override void Visit(DisassemblyWriter writer)
+		{
+			base.Visit(writer);
+
+			writer.WriteValue(Name, "name");
+			writer.WriteValue(Namespace, "namespace");
+			writer.WriteValue(Package, "package");
+			writer.WriteValue(HasBody, "has body");
+			writer.WriteAddressValue(EndAddress, "end address");
+			writer.WriteValue($"{Arguments.Count}", "argument count");
+
+			var count = 1;
+
+			Arguments.ForEach(arg => writer.WriteValue(arg, $"arg {count++}"));
+		}
 	}
 
 	/// <summary>
@@ -116,6 +133,15 @@ namespace DSO.Disassembler
 		public uint FailJumpAddress { get; } = failJumpAddress;
 
 		public override object[] GetValues() => [Address, Opcode.Tag, Parent ?? "(null)", IsDataBlock, FailJumpAddress];
+
+		public override void Visit(DisassemblyWriter writer)
+		{
+			base.Visit(writer);
+
+			writer.WriteValue(Parent, "parent");
+			writer.WriteValue(IsDataBlock, "is datablock");
+			writer.WriteAddressValue(FailJumpAddress, "fail jump address");
+		}
 	}
 
 	/// <summary>
@@ -126,6 +152,13 @@ namespace DSO.Disassembler
 		public bool PlaceAtRoot { get; } = placeAtRoot;
 
 		public override object[] GetValues() => [Address, Opcode.Tag, PlaceAtRoot];
+
+		public override void Visit(DisassemblyWriter writer)
+		{
+			base.Visit(writer);
+
+			writer.WriteValue(PlaceAtRoot, "place at root");
+		}
 	}
 
 	/// <summary>
@@ -139,6 +172,13 @@ namespace DSO.Disassembler
 		public bool Value { get; } = value;
 
 		public override object[] GetValues() => [Address, Opcode.Tag, Value];
+
+		public override void Visit(DisassemblyWriter writer)
+		{
+			base.Visit(writer);
+
+			writer.WriteValue(Value, "is datablock or place at root");
+		}
 	}
 
 	/// <summary>
@@ -159,6 +199,13 @@ namespace DSO.Disassembler
 		public bool IsLogicalOperator => Opcode.Tag == OpcodeTag.OP_JMPIF_NP || Opcode.Tag == OpcodeTag.OP_JMPIFNOT_NP;
 
 		public override object[] GetValues() => [Address, Opcode.Tag, TargetAddress];
+
+		public override void Visit(DisassemblyWriter writer)
+		{
+			base.Visit(writer);
+
+			writer.WriteBranchTarget(TargetAddress, "branch target");
+		}
 	}
 
 	/// <summary>
@@ -197,6 +244,13 @@ namespace DSO.Disassembler
 		public string Name { get; } = name;
 
 		public override object[] GetValues() => [Address, Opcode.Tag, Name];
+
+		public override void Visit(DisassemblyWriter writer)
+		{
+			base.Visit(writer);
+
+			writer.WriteValue(Name, "variable name");
+		}
 	}
 
 	/// <summary>
@@ -232,6 +286,13 @@ namespace DSO.Disassembler
 		public string Name { get; } = name;
 
 		public override object[] GetValues() => [Address, Opcode.Tag, Name];
+
+		public override void Visit(DisassemblyWriter writer)
+		{
+			base.Visit(writer);
+
+			writer.WriteValue(Name, "field name");
+		}
 	}
 
 	/// <summary>
@@ -279,6 +340,13 @@ namespace DSO.Disassembler
 			Opcode.Tag,
 			typeof(T) == typeof(string) ? $"\"{Value}\"" : Value,
 		];
+
+		public override void Visit(DisassemblyWriter writer)
+		{
+			base.Visit(writer);
+
+			writer.WriteValue(Value, "value");
+		}
 	}
 
 	/// <summary>
@@ -291,6 +359,15 @@ namespace DSO.Disassembler
 		public uint CallType { get; } = callType;
 
 		public override object[] GetValues() => [Address, Opcode.Tag, Name, Namespace ?? "(null)", CallType];
+
+		public override void Visit(DisassemblyWriter writer)
+		{
+			base.Visit(writer);
+
+			writer.WriteValue(Name, "name");
+			writer.WriteValue(Namespace, "namespace");
+			writer.WriteValue(CallType, "call type");
+		}
 	}
 
 	/// <summary>
@@ -306,6 +383,13 @@ namespace DSO.Disassembler
 		public char Char { get; } = ch;
 
 		public override object[] GetValues() => [Address, Opcode.Tag, (uint) Char];
+
+		public override void Visit(DisassemblyWriter writer)
+		{
+			base.Visit(writer);
+
+			writer.WriteValue(Char, "char to append");
+		}
 	}
 
 	/// <summary>

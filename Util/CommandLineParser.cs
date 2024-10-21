@@ -9,6 +9,7 @@
  */
 
 using DSO.Versions;
+using static DSO.Constants.Decompiler;
 
 namespace DSO.Util
 {
@@ -18,6 +19,7 @@ namespace DSO.Util
 
 		public GameIdentifier GameIdentifier { get; set; } = GameIdentifier.Auto;
 		public bool Quiet { get; set; } = false;
+		public bool OutputDisassembly { get; set; } = false;
 		public bool CommandLineMode { get; set; } = false;
 	}
 
@@ -66,6 +68,10 @@ namespace DSO.Util
 
 					case "--quiet" or "-q":
 						options.Quiet = true;
+						break;
+
+					case "--disassembly" or "-d":
+						options.OutputDisassembly = true;
 						break;
 
 					case "--game" or "-g":
@@ -163,14 +169,15 @@ namespace DSO.Util
 		static private void DisplayHelp()
 		{
 			Logger.LogMessage(
-				"usage: dso-sharp path1[, path2[, ...]] [-h] [-q] [-g game_version] [-X]\n" +
+				"usage: dso-sharp path1[, path2[, ...]] [-h] [-q] [-g game_version] [-d] [-X]\n" +
 				"  options:\n" +
-				"    -h, --help     Displays help.\n" +
-				"    -q, --quiet    Disables all messages (except command-line argument errors).\n" +
-				"    -g, --game     Specifies which game's scripts we are decompiling (default: 'auto').\n" +
-				"    -X, --cli      Makes the program operate as a command-line interface\n" +
-				"                   that takes no keyboard input and closes immediately\n" +
-				"                   upon completion or failure.\n"
+				"    -h, --help           Displays help.\n" +
+				"    -q, --quiet          Disables all messages (except command-line argument errors).\n" +
+				"    -g, --game           Specifies which game settings to use (default: 'auto').\n" +
+				"    -d, --disassembly    Writes a `" + DISASM_EXTENSION + "` file containg the disassembly.\n" +
+				"    -X, --cli            Makes the program operate as a command-line interface\n" +
+				"                         that takes no keyboard input and closes immediately\n" +
+				"                         upon completion or failure.\n"
 			);
 
 			DisplayVersions();

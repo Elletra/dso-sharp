@@ -10,6 +10,7 @@
 
 using DSO.AST;
 using DSO.ControlFlow;
+using DSO.Disassembler;
 using DSO.Loader;
 using DSO.Util;
 using DSO.Versions;
@@ -72,7 +73,7 @@ namespace DSO
 				{
 					files++;
 
-					if (!DecompileFile(path, options.GameIdentifier))
+					if (!DecompileFile(path, options.GameIdentifier, options.OutputDisassembly))
 					{
 						failures++;
 					}
@@ -84,7 +85,7 @@ namespace DSO
 						Logger.LogMessage("");
 					}
 
-					var result = DecompileDirectory(path, options.GameIdentifier);
+					var result = DecompileDirectory(path, options.GameIdentifier, options.OutputDisassembly);
 
 					files += result.Item1;
 					failures += result.Item2;
@@ -113,7 +114,7 @@ namespace DSO
 			}
 		}
 
-		private Tuple<int, int> DecompileDirectory(string path, GameIdentifier identifier)
+		private Tuple<int, int> DecompileDirectory(string path, GameIdentifier identifier, bool outputDisassembly)
 		{
 			Logger.LogMessage($"Decompiling all files in directory: \"{path}\"");
 
@@ -122,7 +123,7 @@ namespace DSO
 
 			foreach (var file in files)
 			{
-				if (!DecompileFile(file, identifier))
+				if (!DecompileFile(file, identifier, outputDisassembly))
 				{
 					failures++;
 				}
@@ -131,9 +132,10 @@ namespace DSO
 			return new(files.Length, failures);
 		}
 
-		private bool DecompileFile(string path, GameIdentifier identifier)
+		private bool DecompileFile(string path, GameIdentifier identifier, bool outputDisassembly)
 		{
-			List<string> stream = [];
+			List<string> tokens = [];
+			Disassembly disassembly = [];
 
 			Exception? decompileException = null;
 
@@ -141,7 +143,7 @@ namespace DSO
 
 			if (identifier != GameIdentifier.Auto)
 			{
-				decompileException = DisassembleAndParseFile(path, identifier, out stream);
+				decompileException = DisassembleAndParseFile(path, identifier, out tokens, out disassembly);
 			}
 			else
 			{
@@ -157,7 +159,7 @@ namespace DSO
 				{
 					Logger.LogMessage($"\tGame automatically detected as {GameVersion.GetDisplayName(identifiers[0])}", ConsoleColor.DarkGray);
 
-					decompileException = DisassembleAndParseFile(path, identifiers[0], out stream);
+					decompileException = DisassembleAndParseFile(path, identifiers[0], out tokens, out disassembly);
 				}
 				else
 				{
@@ -167,7 +169,7 @@ namespace DSO
 					{
 						Logger.LogMessage($"\tAttempting with settings: \"{GameVersion.GetDisplayName(ident)}\"", ConsoleColor.DarkGray);
 
-						decompileException = DisassembleAndParseFile(path, ident, out stream);
+						decompileException = DisassembleAndParseFile(path, ident, out tokens, out disassembly);
 
 						if (decompileException == null)
 						{
@@ -183,14 +185,37 @@ namespace DSO
 				return false;
 			}
 
+			var outputPath = $"{Directory.GetParent(path)}/{Path.GetFileNameWithoutExtension(path)}";
+
 			try
 			{
-				File.WriteAllText($"{Directory.GetParent(path)}/{Path.GetFileNameWithoutExtension(path)}", string.Join("", stream));
+				File.WriteAllText(outputPath, string.Join("", tokens));
 			}
 			catch (Exception writeException)
 			{
 				Logger.LogError($"Error writing output file: {writeException.Message}");
 				return false;
+			}
+
+			if (outputDisassembly)
+			{
+				outputPath += DISASM_EXTENSION;
+
+				Logger.LogMessage($"Writing disassembly file: \"{outputPath}\"");
+
+				try
+				{
+					var writer = new DisassemblyWriter();
+
+					disassembly.Visit(writer);
+
+					File.WriteAllText(outputPath, string.Join("", writer.Stream));
+				}
+				catch (Exception writeException)
+				{
+					Logger.LogError($"Error writing disassembly file: {writeException.Message}");
+					return false;
+				}
 			}
 
 			return true;
@@ -199,14 +224,15 @@ namespace DSO
 		/// <summary>
 		/// Returning exceptions from functions is really bad, but I have gone past the point of caring.
 		/// </summary>
-		private Exception? DisassembleAndParseFile(string path, GameIdentifier identifier, out List<string> tokens)
+		private Exception? DisassembleAndParseFile(string path, GameIdentifier identifier, out List<string> tokens, out Disassembly disassembly)
 		{
 			tokens = [];
+			disassembly = [];
 
 			try
 			{
 				var game = GameVersion.Create(identifier);
-				var disassembly = new Disassembler.Disassembler().Disassemble(game.FileLoader.LoadFile(path, game.Version), game.Ops);
+				disassembly = new Disassembler.Disassembler().Disassemble(game.FileLoader.LoadFile(path, game.Version), game.Ops);
 				var data = new ControlFlowAnalyzer().Analyze(disassembly);
 				var nodes = new Builder().Build(data, disassembly);
 
