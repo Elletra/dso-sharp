@@ -4,7 +4,7 @@ This is a DSO decompiler for the Torque Game Engine. It takes `.dso` files and d
 
 This project supports the following games and engines:
 
-* Torque Game Engine 1.0-1.3 (e.g. Marble Blast Gold, Blockland v0002, and [Blockland Retail Beta](https://bl.kenko.dev/Versions/Retail%20Beta))
+* Torque Game Engine 1.0-1.3 (e.g. Marble Blast Gold, Blockland v0002, [Blockland Retail Beta](https://bl.kenko.dev/Versions/Retail%20Beta), Age of Time)
 * Torque Game Engine 1.4
 * Tribes 2
 * The Forgettable Dungeon
@@ -19,7 +19,7 @@ Years ago, I made [dso.js](https://github.com/Elletra/dso.js), a DSO decompiler 
 
 I tried off and on for a few years to write a better DSO decompiler using actual [computer science](https://www.cs.tufts.edu/comp/150FP/archive/keith-cooper/dom14.pdf) [concepts](https://www.usenix.org/system/files/conference/usenixsecurity13/sec13-paper_schwartz.pdf). Unfortunately, I struggled to do so and burned out multiple times, so I eventually gave up.
 
-But I still really wanted decompiled scripts for other games, so decided to just rewrite the program using similar techniques in _dso.js_, but better. After all, a shoddily-coded decompiler is better than no decompiler at all!
+But I still really wanted decompiled scripts for other games, so I decided to just rewrite the program using similar techniques in _dso.js_, but better. After all, a shoddily-coded decompiler is better than no decompiler at all!
 
 And so, here it finally is.
 
