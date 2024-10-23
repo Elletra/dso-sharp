@@ -30,7 +30,7 @@ There are two ways to use this program: either as a typical console program, or 
 
 To use it normally, just drag a `.dso` file or a directory full of `.dso` files onto the program. It will try to automatically detect and decompile the file(s) that were passed in.
 
-You can also use it as a command-line interface: `usage: dso-sharp path1[, path2[, ...]] [-h] [-q] [-g game_version] [-X]`
+You can also use it as a command-line interface: `usage: dso-sharp path1[, path2[, ...]] [-h] [-q] [-g game_version] [-d] [-X]`
 
 
 | Flag                   |   Description  |
