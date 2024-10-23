@@ -138,116 +138,116 @@ namespace DSO.Opcodes
 	}
 
 	/// <summary>
-	/// Base `Ops` class uses TGE 1.4's opcodes.
+	/// Base `Ops` class uses opcodes for Torque Game Engine 1.0-1.3.
 	/// </summary>
 	public class Ops
 	{
 		public virtual uint OP_FUNC_DECL => 0x00;
 
 		public virtual uint OP_CREATE_OBJECT => 0x01;
-		public virtual uint OP_ADD_OBJECT => 0x02;
-		public virtual uint OP_END_OBJECT => 0x03;
+		public virtual uint OP_ADD_OBJECT => 0x04;
+		public virtual uint OP_END_OBJECT => 0x05;
 
-		public virtual uint OP_JMPIFFNOT => 0x04;
-		public virtual uint OP_JMPIFNOT => 0x05;
-		public virtual uint OP_JMPIFF => 0x06;
-		public virtual uint OP_JMPIF => 0x07;
-		public virtual uint OP_JMPIFNOT_NP => 0x08;
-		public virtual uint OP_JMPIF_NP => 0x09;
-		public virtual uint OP_JMP => 0x0A;
+		public virtual uint OP_JMPIFFNOT => 0x06;
+		public virtual uint OP_JMPIFNOT => 0x07;
+		public virtual uint OP_JMPIFF => 0x08;
+		public virtual uint OP_JMPIF => 0x09;
+		public virtual uint OP_JMPIFNOT_NP => 0x0A;
+		public virtual uint OP_JMPIF_NP => 0x0B;
+		public virtual uint OP_JMP => 0x0C;
 
-		public virtual uint OP_RETURN => 0x0B;
+		public virtual uint OP_RETURN => 0x0D;
 
-		public virtual uint OP_CMPEQ => 0x0C;
-		public virtual uint OP_CMPGR => 0x0D;
-		public virtual uint OP_CMPGE => 0x0E;
-		public virtual uint OP_CMPLT => 0x0F;
-		public virtual uint OP_CMPLE => 0x10;
-		public virtual uint OP_CMPNE => 0x11;
+		public virtual uint OP_CMPEQ => 0x0E;
+		public virtual uint OP_CMPGR => 0x0F;
+		public virtual uint OP_CMPGE => 0x10;
+		public virtual uint OP_CMPLT => 0x11;
+		public virtual uint OP_CMPLE => 0x12;
+		public virtual uint OP_CMPNE => 0x13;
 
-		public virtual uint OP_XOR => 0x12;
-		public virtual uint OP_MOD => 0x13;
-		public virtual uint OP_BITAND => 0x14;
-		public virtual uint OP_BITOR => 0x15;
-		public virtual uint OP_NOT => 0x16;
-		public virtual uint OP_NOTF => 0x17;
-		public virtual uint OP_ONESCOMPLEMENT => 0x18;
+		public virtual uint OP_XOR => 0x14;
+		public virtual uint OP_MOD => 0x15;
+		public virtual uint OP_BITAND => 0x16;
+		public virtual uint OP_BITOR => 0x17;
+		public virtual uint OP_NOT => 0x18;
+		public virtual uint OP_NOTF => 0x19;
+		public virtual uint OP_ONESCOMPLEMENT => 0x1A;
 
-		public virtual uint OP_SHR => 0x19;
-		public virtual uint OP_SHL => 0x1A;
-		public virtual uint OP_AND => 0x1B;
-		public virtual uint OP_OR => 0x1C;
+		public virtual uint OP_SHR => 0x1B;
+		public virtual uint OP_SHL => 0x1C;
+		public virtual uint OP_AND => 0x1D;
+		public virtual uint OP_OR => 0x1E;
 
-		public virtual uint OP_ADD => 0x1D;
-		public virtual uint OP_SUB => 0x1E;
-		public virtual uint OP_MUL => 0x1F;
-		public virtual uint OP_DIV => 0x20;
-		public virtual uint OP_NEG => 0x21;
+		public virtual uint OP_ADD => 0x1F;
+		public virtual uint OP_SUB => 0x20;
+		public virtual uint OP_MUL => 0x21;
+		public virtual uint OP_DIV => 0x22;
+		public virtual uint OP_NEG => 0x23;
 
-		public virtual uint OP_SETCURVAR => 0x22;
-		public virtual uint OP_SETCURVAR_CREATE => 0x23;
-		public virtual uint OP_SETCURVAR_ARRAY => 0x24;
-		public virtual uint OP_SETCURVAR_ARRAY_CREATE => 0x25;
+		public virtual uint OP_SETCURVAR => 0x24;
+		public virtual uint OP_SETCURVAR_CREATE => 0x25;
+		public virtual uint OP_SETCURVAR_ARRAY => 0x26;
+		public virtual uint OP_SETCURVAR_ARRAY_CREATE => 0x27;
 
-		public virtual uint OP_LOADVAR_UINT => 0x26;
-		public virtual uint OP_LOADVAR_FLT => 0x27;
-		public virtual uint OP_LOADVAR_STR => 0x28;
+		public virtual uint OP_LOADVAR_UINT => 0x28;
+		public virtual uint OP_LOADVAR_FLT => 0x29;
+		public virtual uint OP_LOADVAR_STR => 0x2A;
 
-		public virtual uint OP_SAVEVAR_UINT => 0x29;
-		public virtual uint OP_SAVEVAR_FLT => 0x2A;
-		public virtual uint OP_SAVEVAR_STR => 0x2B;
+		public virtual uint OP_SAVEVAR_UINT => 0x2B;
+		public virtual uint OP_SAVEVAR_FLT => 0x2C;
+		public virtual uint OP_SAVEVAR_STR => 0x2D;
 
-		public virtual uint OP_SETCUROBJECT => 0x2C;
-		public virtual uint OP_SETCUROBJECT_NEW => 0x2D;
+		public virtual uint OP_SETCUROBJECT => 0x2E;
+		public virtual uint OP_SETCUROBJECT_NEW => 0x2F;
 
-		public virtual uint OP_SETCURFIELD => 0x2E;
-		public virtual uint OP_SETCURFIELD_ARRAY => 0x2F;
+		public virtual uint OP_SETCURFIELD => 0x30;
+		public virtual uint OP_SETCURFIELD_ARRAY => 0x31;
 
-		public virtual uint OP_LOADFIELD_UINT => 0x30;
-		public virtual uint OP_LOADFIELD_FLT => 0x31;
-		public virtual uint OP_LOADFIELD_STR => 0x32;
+		public virtual uint OP_LOADFIELD_UINT => 0x32;
+		public virtual uint OP_LOADFIELD_FLT => 0x33;
+		public virtual uint OP_LOADFIELD_STR => 0x34;
 
-		public virtual uint OP_SAVEFIELD_UINT => 0x33;
-		public virtual uint OP_SAVEFIELD_FLT => 0x34;
-		public virtual uint OP_SAVEFIELD_STR => 0x35;
+		public virtual uint OP_SAVEFIELD_UINT => 0x35;
+		public virtual uint OP_SAVEFIELD_FLT => 0x36;
+		public virtual uint OP_SAVEFIELD_STR => 0x37;
 
-		public virtual uint OP_STR_TO_UINT => 0x36;
-		public virtual uint OP_STR_TO_FLT => 0x37;
-		public virtual uint OP_STR_TO_NONE => 0x38;
-		public virtual uint OP_FLT_TO_UINT => 0x39;
-		public virtual uint OP_FLT_TO_STR => 0x3A;
-		public virtual uint OP_FLT_TO_NONE => 0x3B;
-		public virtual uint OP_UINT_TO_FLT => 0x3C;
-		public virtual uint OP_UINT_TO_STR => 0x3D;
-		public virtual uint OP_UINT_TO_NONE => 0x3E;
+		public virtual uint OP_STR_TO_UINT => 0x38;
+		public virtual uint OP_STR_TO_FLT => 0x39;
+		public virtual uint OP_STR_TO_NONE => 0x3A;
+		public virtual uint OP_FLT_TO_UINT => 0x3B;
+		public virtual uint OP_FLT_TO_STR => 0x3C;
+		public virtual uint OP_FLT_TO_NONE => 0x3D;
+		public virtual uint OP_UINT_TO_FLT => 0x3E;
+		public virtual uint OP_UINT_TO_STR => 0x3F;
+		public virtual uint OP_UINT_TO_NONE => 0x40;
 
-		public virtual uint OP_LOADIMMED_UINT => 0x3F;
-		public virtual uint OP_LOADIMMED_FLT => 0x40;
-		public virtual uint OP_TAG_TO_STR => 0x41;
-		public virtual uint OP_LOADIMMED_STR => 0x42;
-		public virtual uint OP_LOADIMMED_IDENT => 0x43;
+		public virtual uint OP_LOADIMMED_UINT => 0x41;
+		public virtual uint OP_LOADIMMED_FLT => 0x42;
+		public virtual uint OP_TAG_TO_STR => 0x43;
+		public virtual uint OP_LOADIMMED_STR => 0x44;
+		public virtual uint OP_LOADIMMED_IDENT => 0x45;
 
-		public virtual uint OP_CALLFUNC_RESOLVE => 0x44;
-		public virtual uint OP_CALLFUNC => 0x45;
+		public virtual uint OP_CALLFUNC_RESOLVE => 0x46;
+		public virtual uint OP_CALLFUNC => 0x47;
 
-		public virtual uint OP_ADVANCE_STR => 0x46;
-		public virtual uint OP_ADVANCE_STR_APPENDCHAR => 0x47;
-		public virtual uint OP_ADVANCE_STR_COMMA => 0x48;
-		public virtual uint OP_ADVANCE_STR_NUL => 0x49;
-		public virtual uint OP_REWIND_STR => 0x4A;
-		public virtual uint OP_TERMINATE_REWIND_STR => 0x4B;
-		public virtual uint OP_COMPARE_STR => 0x4C;
+		public virtual uint OP_ADVANCE_STR => 0x49;
+		public virtual uint OP_ADVANCE_STR_APPENDCHAR => 0x4A;
+		public virtual uint OP_ADVANCE_STR_COMMA => 0x4B;
+		public virtual uint OP_ADVANCE_STR_NUL => 0x4C;
+		public virtual uint OP_REWIND_STR => 0x4D;
+		public virtual uint OP_TERMINATE_REWIND_STR => 0x4E;
+		public virtual uint OP_COMPARE_STR => 0x4F;
 
-		public virtual uint OP_PUSH => 0x4D;
-		public virtual uint OP_PUSH_FRAME => 0x4E;
+		public virtual uint OP_PUSH => 0x50;
+		public virtual uint OP_PUSH_FRAME => 0x51;
 
-		public virtual uint OP_BREAK => 0x4F;
+		public virtual uint OP_BREAK => 0x52;
 
-		public virtual uint OP_UNUSED1 => OP_INVALID;
-		public virtual uint OP_UNUSED2 => OP_INVALID;
-		public virtual uint OP_UNUSED3 => OP_INVALID;
+		public virtual uint OP_UNUSED1 => 0x02;
+		public virtual uint OP_UNUSED2 => 0x03;
+		public virtual uint OP_UNUSED3 => 0x48;
 
-		public virtual uint OP_INVALID => 0x50;
+		public virtual uint OP_INVALID => 0x53;
 
 		protected Dictionary<uint, OpcodeTag> _tags = [];
 

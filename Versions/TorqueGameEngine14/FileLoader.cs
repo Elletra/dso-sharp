@@ -10,15 +10,15 @@
 
 using DSO.Loader;
 
-namespace DSO.Versions.TorqueGameEngine10
+namespace DSO.Versions.TorqueGameEngine14
 {
 	public class FileLoader : Loader.FileLoader
 	{
 		protected override void ReadTables(FileData data)
 		{
 			ReadStringTable(data, global: true);
-			ReadFloatTable(data, global: true);
 			ReadStringTable(data, global: false);
+			ReadFloatTable(data, global: true);
 			ReadFloatTable(data, global: false);
 		}
 	}

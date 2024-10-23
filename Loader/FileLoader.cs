@@ -65,8 +65,8 @@ namespace DSO.Loader
 		protected virtual void ReadTables(FileData data)
 		{
 			ReadStringTable(data, global: true);
-			ReadStringTable(data, global: false);
 			ReadFloatTable(data, global: true);
+			ReadStringTable(data, global: false);
 			ReadFloatTable(data, global: false);
 		}
 

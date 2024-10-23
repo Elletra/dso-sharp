@@ -55,8 +55,8 @@ namespace DSO.Versions
 
 		static public GameIdentifier[] GetIdentifiersFromVersion(uint version) => version switch
 		{
+			GameVersions.TGE10 or GameVersions.TFD => [GameIdentifier.TorqueGameEngine10, GameIdentifier.ForgettableDungeon],
 			GameVersions.TGE14 => [GameIdentifier.TorqueGameEngine14],
-			GameVersions.TFD or GameVersions.TGE10 => [GameIdentifier.ForgettableDungeon, GameIdentifier.TorqueGameEngine10],
 			GameVersions.BLV1 => [GameIdentifier.BlocklandV1],
 			GameVersions.BLV20 => [GameIdentifier.BlocklandV20],
 			GameVersions.BLV21 => [GameIdentifier.BlocklandV21],
@@ -66,8 +66,8 @@ namespace DSO.Versions
 		static public Ops? CreateOps(GameIdentifier identifier) => identifier switch
 		{
 			GameIdentifier.Auto => null,
-			GameIdentifier.TorqueGameEngine10 => new TorqueGameEngine10.Ops(),
-			GameIdentifier.TorqueGameEngine14 => new Ops(),
+			GameIdentifier.TorqueGameEngine10 => new Ops(),
+			GameIdentifier.TorqueGameEngine14 => new TorqueGameEngine14.Ops(),
 			GameIdentifier.ForgettableDungeon => new TFD.Ops(),
 			GameIdentifier.BlocklandV1 => new Blockland.V1.Ops(),
 			GameIdentifier.BlocklandV20 => new Blockland.V20.Ops(),
@@ -78,8 +78,8 @@ namespace DSO.Versions
 		static public FileLoader? CreateFileLoader(GameIdentifier identifier) => identifier switch
 		{
 			GameIdentifier.Auto => null,
-			GameIdentifier.TorqueGameEngine10 => new TorqueGameEngine10.FileLoader(),
-			GameIdentifier.TorqueGameEngine14 => new FileLoader(),
+			GameIdentifier.TorqueGameEngine10 => new FileLoader(),
+			GameIdentifier.TorqueGameEngine14 => new TorqueGameEngine14.FileLoader(),
 			GameIdentifier.ForgettableDungeon => new TFD.FileLoader(),
 			GameIdentifier.BlocklandV1 => new Blockland.V1.FileLoader(),
 			GameIdentifier.BlocklandV20 => new Blockland.FileLoader(),
@@ -94,7 +94,7 @@ namespace DSO.Versions
 			var ops = CreateOps(identifier);
 			var loader = CreateFileLoader(identifier);
 
-			return displayName == null || version == 0 || ops == null || loader == null ? null : new()
+			return displayName == null || ops == null || loader == null ? null : new()
 			{
 				Identifier = identifier,
 				DisplayName = displayName,
