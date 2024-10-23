@@ -8,6 +8,7 @@
  * For full terms, see the LICENSE file or visit https://spdx.org/licenses/BSD-3-Clause.html
  */
 
+using DSO.Disassembler;
 using DSO.Loader;
 using DSO.Opcodes;
 
@@ -100,5 +101,13 @@ namespace DSO.Versions
 		public uint Version { get; set; } = 0;
 		public Ops? Ops { get; set; } = null;
 		public FileLoader? FileLoader { get; set; } = null;
+
+		public void Visit(DisassemblyWriter writer)
+		{
+			writer.WriteCommentLine("");
+			writer.WriteCommentLine($" Game Settings : {DisplayName}");
+			writer.WriteCommentLine($" DSO Version   : {Version}");
+			writer.WriteCommentLine("");
+		}
 	}
 }

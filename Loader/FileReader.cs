@@ -26,6 +26,8 @@ namespace DSO.Loader
 			reader = new(new FileStream(filePath, FileMode.Open));
 		}
 
+		~FileReader() => reader?.Close();
+
 		public void Close() => reader?.Close();
 
 		public byte ReadByte() => reader.ReadByte();

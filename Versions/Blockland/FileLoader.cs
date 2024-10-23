@@ -37,7 +37,7 @@ namespace DSO.Versions.Blockland
 
 		protected override void ReadStringTable(FileData data, bool global)
 		{
-			var table = new StringTable(UnencryptString(_reader.ReadString()));
+			var table = new StringTable(UnencryptString(_reader.ReadString()), global);
 
 			if (global)
 			{

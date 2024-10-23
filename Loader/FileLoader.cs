@@ -42,7 +42,7 @@ namespace DSO.Loader
 		/// </exception>
 		public virtual FileData LoadFile(string filePath, uint version)
 		{
-			_reader.Close();
+			_reader?.Close();
 			_reader = new(filePath);
 
 			var data = new FileData(version);
@@ -55,10 +55,12 @@ namespace DSO.Loader
 			ReadLineBreaks(codeSize, lineBreaks);
 			ReadIdentifierTable(data);
 
-			_reader.Close();
+			_reader?.Close();
 
 			return data;
 		}
+
+		public void Close() => _reader?.Close();
 
 		protected virtual void ReadTables(FileData data)
 		{
@@ -85,7 +87,7 @@ namespace DSO.Loader
 
 		protected virtual void ReadStringTable(FileData data, bool global)
 		{
-			var table = new StringTable(_reader.ReadString());
+			var table = new StringTable(_reader.ReadString(), global);
 
 			if (global)
 			{
@@ -100,7 +102,7 @@ namespace DSO.Loader
 		protected virtual void ReadFloatTable(FileData data, bool global)
 		{
 			var size = _reader.ReadUInt();
-			var table = new double[size];
+			var table = new FloatTable(size, global);
 
 			for (uint i = 0; i < size; i++)
 			{

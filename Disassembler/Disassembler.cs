@@ -136,8 +136,8 @@ namespace DSO.Disassembler
 				OpcodeTag.OP_LOADIMMED_UINT => new ImmediateInstruction<uint>(opcode, address, value: Read()),
 				OpcodeTag.OP_LOADIMMED_FLT => new ImmediateInstruction<double>(opcode, address, value: ReadDouble()),
 
-				OpcodeTag.OP_TAG_TO_STR or OpcodeTag.OP_LOADIMMED_STR => new ImmediateInstruction<string>(opcode, address, value: ReadString()),
-				OpcodeTag.OP_LOADIMMED_IDENT => new ImmediateInstruction<string>(opcode, address, value: ReadIdentifier()),
+				OpcodeTag.OP_TAG_TO_STR or OpcodeTag.OP_LOADIMMED_STR => new ImmediateInstruction<StringTableEntry>(opcode, address, value: ReadString()),
+				OpcodeTag.OP_LOADIMMED_IDENT => new ImmediateInstruction<StringTableEntry>(opcode, address, value: ReadIdentifier()),
 
 				OpcodeTag.OP_CALLFUNC or OpcodeTag.OP_CALLFUNC_RESOLVE => new CallInstruction(
 					opcode,
@@ -247,7 +247,7 @@ namespace DSO.Disassembler
 		private bool ReadBool() => Read() != 0;
 		private char ReadChar() => (char) Read();
 
-		private string? ReadIdentifier()
+		private StringTableEntry? ReadIdentifier()
 		{
 			var identifierIndex = _index;
 			var stringIndex = Read();
@@ -255,7 +255,7 @@ namespace DSO.Disassembler
 			return _data.IdentifierTable.ContainsKey(identifierIndex) ? _data.GlobalStringTable[stringIndex] : null;
 		}
 
-		private string ReadString() => (InFunction ? _data.FunctionStringTable : _data.GlobalStringTable).Get(Read());
+		private StringTableEntry ReadString() => (InFunction ? _data.FunctionStringTable : _data.GlobalStringTable).Get(Read());
 		private double ReadDouble() => (InFunction ? _data.FunctionFloatTable : _data.GlobalFloatTable)[Read()];
 	}
 }

@@ -9,6 +9,7 @@
  */
 
 using DSO.AST;
+using DSO.AST.Nodes;
 using DSO.ControlFlow;
 using DSO.Disassembler;
 using DSO.Loader;
@@ -25,12 +26,9 @@ namespace DSO
 		public DecompilerException(string message, Exception inner) : base(message, inner) { }
 	}
 
-	/// <summary>
-	/// This class is an abomination but I do not care anymore.
-	/// </summary>
 	public class Decompiler
 	{
-		private readonly CodeGenerator.CodeGenerator _generator = new();
+		private CommandLineOptions _options;
 
 		public void Decompile(CommandLineOptions options)
 		{
@@ -38,6 +36,8 @@ namespace DSO
 			{
 				return;
 			}
+
+			_options = options;
 
 			var startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
@@ -73,7 +73,7 @@ namespace DSO
 				{
 					files++;
 
-					if (!DecompileFile(path, options.GameIdentifier, options.OutputDisassembly))
+					if (!DecompileFile(path))
 					{
 						failures++;
 					}
@@ -85,7 +85,7 @@ namespace DSO
 						Logger.LogMessage("");
 					}
 
-					var result = DecompileDirectory(path, options.GameIdentifier, options.OutputDisassembly);
+					var result = DecompileDirectory(path);
 
 					files += result.Item1;
 					failures += result.Item2;
@@ -101,20 +101,17 @@ namespace DSO
 			{
 				Logger.LogSuccess($"Decompiled {files} file{(plural ? "s" : "")} successfully in {totalTime} ms\n");
 			}
+			else if (failures < files)
+			{
+				Logger.LogWarning($"Decompiled {files - failures} of {files} file{(plural ? "s" : "")} in {totalTime} ms");
+			}
 			else
 			{
-				if (failures < files)
-				{
-					Logger.LogWarning($"Decompiled {files - failures} of {files} file{(plural ? "s" : "")} in {totalTime} ms");
-				}
-				else
-				{
-					Logger.LogError($"Failed to decompile {(plural ? "all " : "")}{files} file{(plural ? "s" : "")}");
-				}
+				Logger.LogError($"Failed to decompile {(plural ? "all " : "")}{files} file{(plural ? "s" : "")}");
 			}
 		}
 
-		private Tuple<int, int> DecompileDirectory(string path, GameIdentifier identifier, bool outputDisassembly)
+		private Tuple<int, int> DecompileDirectory(string path)
 		{
 			Logger.LogMessage($"Decompiling all files in directory: \"{path}\"");
 
@@ -123,7 +120,7 @@ namespace DSO
 
 			foreach (var file in files)
 			{
-				if (!DecompileFile(file, identifier, outputDisassembly))
+				if (!DecompileFile(file))
 				{
 					failures++;
 				}
@@ -132,118 +129,133 @@ namespace DSO
 			return new(files.Length, failures);
 		}
 
-		private bool DecompileFile(string path, GameIdentifier identifier, bool outputDisassembly)
+		private bool DecompileFile(string path)
 		{
-			List<string> tokens = [];
-			Disassembly disassembly = [];
-
-			Exception? decompileException = null;
-
 			Logger.LogMessage($"Decompiling file: \"{path}\"");
 
-			if (identifier != GameIdentifier.Auto)
+			if (_options.GameIdentifier != GameIdentifier.Auto)
 			{
-				decompileException = DisassembleAndParseFile(path, identifier, out tokens, out disassembly);
-			}
-			else
-			{
-				var version = FileLoader.ReadFileVersion(path);
-				var identifiers = GameVersion.GetIdentifiersFromVersion(version);
-
-				if (identifiers.Length <= 0)
-				{
-					decompileException = new DecompilerException("Could not automatically identify game from file");
-				}
-
-				if (identifiers.Length == 1)
-				{
-					Logger.LogMessage($"\tGame automatically detected as {GameVersion.GetDisplayName(identifiers[0])}", ConsoleColor.DarkGray);
-
-					decompileException = DisassembleAndParseFile(path, identifiers[0], out tokens, out disassembly);
-				}
-				else
-				{
-					Logger.LogWarning($"Multiple games use file version {version}!");
-
-					foreach (var ident in identifiers)
-					{
-						Logger.LogMessage($"\tAttempting with settings: \"{GameVersion.GetDisplayName(ident)}\"", ConsoleColor.DarkGray);
-
-						decompileException = DisassembleAndParseFile(path, ident, out tokens, out disassembly);
-
-						if (decompileException == null)
-						{
-							break;
-						}
-					}
-				}
+				return DecompileFile(path, _options.GameIdentifier, silentError: false);
 			}
 
-			if (decompileException != null)
+			var version = FileLoader.ReadFileVersion(path);
+			var identifiers = GameVersion.GetIdentifiersFromVersion(version);
+
+			if (identifiers.Length <= 0)
 			{
-				Logger.LogError($"Error decompiling file: {decompileException.Message}");
+				Logger.LogError($"Could not automatically identify game from file");
+
 				return false;
 			}
 
-			var outputPath = $"{Directory.GetParent(path)}/{Path.GetFileNameWithoutExtension(path)}";
+			if (identifiers.Length == 1)
+			{
+				Logger.LogMessage($"\tGame automatically detected as {GameVersion.GetDisplayName(identifiers[0])}", ConsoleColor.DarkGray);
+
+				return DecompileFile(path, identifiers[0], silentError: false);
+			}
+
+			Logger.LogWarning($"Multiple games use file version {version}!");
+
+			for (var i = 0; i < identifiers.Length; i++)
+			{
+				var ident = identifiers[i];
+
+				Logger.LogMessage($"\tAttempting with settings: \"{GameVersion.GetDisplayName(ident)}\"", ConsoleColor.DarkGray);
+
+				if (DecompileFile(path, ident, silentError: i < identifiers.Length - 1))
+				{
+					return true;
+				}
+			}
+
+			Logger.LogError("Failed to decompile after multiple attempts");
+
+			return false;
+		}
+
+		private bool DecompileFile(string path, GameIdentifier identifier, bool silentError)
+		{
+			GameVersion game = new();
+			FileData fileData;
+			Disassembly disassembly;
+			List<Node> nodes;
 
 			try
 			{
-				File.WriteAllText(outputPath, string.Join("", tokens));
+				game = GameVersion.Create(identifier);
+				fileData = game.FileLoader.LoadFile(path, game.Version);
+				disassembly = new Disassembler.Disassembler().Disassemble(fileData, game.Ops);
+				nodes = new Builder().Build(new ControlFlowAnalyzer().Analyze(disassembly), disassembly);
 			}
-			catch (Exception writeException)
+			catch (Exception exception)
 			{
-				Logger.LogError($"Error writing output file: {writeException.Message}");
+				if (!silentError)
+				{
+					Logger.LogError(exception.Message);
+				}
+
+				game?.FileLoader?.Close();
+
 				return false;
 			}
 
-			if (outputDisassembly)
+			var scriptPath = $"{Directory.GetParent(path)}/{Path.GetFileNameWithoutExtension(path)}";
+
+			Logger.LogMessage($"Writing output file: \"{scriptPath}\"");
+
+			WriteScriptFile(scriptPath, nodes);
+
+			if (_options.OutputDisassembly)
 			{
-				outputPath += DISASM_EXTENSION;
+				var disassemblyPath = $"{Directory.GetParent(path)}/{Path.GetFileNameWithoutExtension(path)}{DISASM_EXTENSION}";
 
-				Logger.LogMessage($"Writing disassembly file: \"{outputPath}\"");
+				Logger.LogMessage($"Writing disassembly file: \"{disassemblyPath}\"");
 
-				try
-				{
-					var writer = new DisassemblyWriter();
-
-					disassembly.Visit(writer);
-
-					File.WriteAllText(outputPath, string.Join("", writer.Stream));
-				}
-				catch (Exception writeException)
-				{
-					Logger.LogError($"Error writing disassembly file: {writeException.Message}");
-					return false;
-				}
+				WriteDisassemblyFile(disassemblyPath, game, fileData, disassembly);
 			}
 
 			return true;
 		}
 
-		/// <summary>
-		/// Returning exceptions from functions is really bad, but I have gone past the point of caring.
-		/// </summary>
-		private Exception? DisassembleAndParseFile(string path, GameIdentifier identifier, out List<string> tokens, out Disassembly disassembly)
+		private bool WriteScriptFile(string outputPath, List<Node> nodes)
 		{
-			tokens = [];
-			disassembly = [];
+			var success = false;
 
 			try
 			{
-				var game = GameVersion.Create(identifier);
-				disassembly = new Disassembler.Disassembler().Disassemble(game.FileLoader.LoadFile(path, game.Version), game.Ops);
-				var data = new ControlFlowAnalyzer().Analyze(disassembly);
-				var nodes = new Builder().Build(data, disassembly);
-
-				tokens = _generator.Generate(nodes);
-
-				return null;
+				File.WriteAllText(outputPath, string.Join("", new CodeGenerator.CodeGenerator().Generate(nodes)));
+				success = true;
 			}
 			catch (Exception exception)
 			{
-				return exception;
+				Logger.LogError(exception.Message);
 			}
+
+			return success;
+		}
+
+		private bool WriteDisassemblyFile(string outputPath, GameVersion game, FileData fileData, Disassembly disassembly)
+		{
+			var success = false;
+
+			try
+			{
+				var writer = new DisassemblyWriter();
+
+				writer.WriteHeader(game, fileData);
+				disassembly.Visit(writer);
+
+				File.WriteAllText(outputPath, string.Join("", writer.Stream));
+
+				success = true;
+			}
+			catch (Exception exception)
+			{
+				Logger.LogError(exception.Message);
+			}
+
+			return success;
 		}
 	}
 }

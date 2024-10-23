@@ -8,15 +8,33 @@
  * For full terms, see the LICENSE file or visit https://spdx.org/licenses/BSD-3-Clause.html
  */
 
-using static DSO.Constants.Disassembly;
+using DSO.Loader;
+using DSO.Versions;
+using static DSO.Constants.Decompiler;
+using static DSO.Constants.Disassembler;
 
 namespace DSO.Disassembler
 {
 	public class DisassemblyWriter
 	{
-		public readonly List<string> Stream = [];
+		public List<string> Stream { get; set; } = [];
 		public uint Address { get; set; } = 0;
 		public FunctionInstruction? Function { get; set; } = null;
+
+		public void WriteHeader(GameVersion game, FileData data)
+		{
+			WriteCommentLine("========================================================================");
+			WriteCommentLine("");
+			WriteCommentLine($" This file was automatically generated with DSO Sharp ({VERSION})");
+			WriteCommentLine("");
+			WriteCommentLine("========================================================================");
+
+			game.Visit(this);
+			data.Visit(this);
+
+			WriteCommentLine("========================================================================");
+			Write("\n");
+		}
 
 		public void Write(params string[] tokens)
 		{
@@ -32,24 +50,17 @@ namespace DSO.Disassembler
 
 			if (instruction.Address >= Function?.EndAddress)
 			{
-				WriteLine(Address, $"; End of {(Function.Namespace == null ? "" : $"{Function.Namespace}::")}{Function.Name}()\n\n");
-				Function = null;
-			}
-
-			if (instruction is FunctionInstruction function)
-			{
-				Function = function;
-				WriteLine(Address, $"; Start of {(Function.Namespace == null ? "" : $"{Function.Namespace}::")}{Function.Name}()");
+				WriteLine(Address, $"; End of `{(Function.Namespace == null ? "" : $"{Function.Namespace}::")}{Function.Name}()`\n");
 			}
 
 			instruction.Visit(this);
 		}
 
-		public void WriteValue(object token, string comment = "")
+		public void WriteValue(object token, string comment = "", bool indent = true)
 		{
-			if (token is string str)
+			if (token is StringTableEntry entry)
 			{
-				str = Util.String.EscapeString(str);
+				var str = Util.String.EscapeString(entry.Value);
 
 				if (str.Length > VALUE_TRUNCATE_LENGTH)
 				{
@@ -61,28 +72,50 @@ namespace DSO.Disassembler
 					str = $"\"{str}\"";
 				}
 
+				comment += $" ({(entry.Global ? "global" : "function")} table index: {entry.Index})";
 				token = str;
 			}
 
 			var stringToken = token switch
 			{
-				string => $"{token}",
+				string str => str,
 				char ch => $"'{Util.String.EscapeChar(ch)}'",
 				bool => $"({token.ToString().ToLower()})",
 				null => "(null)",
 				_ => token.ToString(),
 			};
 
-			WriteLine(Address++, stringToken, comment);
+			WriteLine(Address++, stringToken, comment, indent);
 		}
 
-		public void WriteBranchLabel(uint target) => WriteLine(Address, $"\naddr_{target:x8}:");
+		public void WriteBranchLabel(uint target)
+		{
+			WriteLine(Address, "", "", indent: false);
+			WriteLine(Address, $" addr_{target:x8}:", "", indent: false);
+		}
+
 		public void WriteBranchTarget(uint target, string comment = "") => WriteLine(Address++, $"[addr_{target:x8}]", comment);
 		public void WriteAddressValue(uint address, string comment = "") => WriteLine(Address++, $"0x{address:X8}", comment);
-
-		public void WriteLine(uint address, string token, string comment = "")
+		public void WriteCommentLine(string comment, bool writeAddress = false, bool indent = false)
 		{
-			Write(string.Format($"        {{0,-8:X8}}    {{1,-{VALUE_COLUMN_LENGTH}}}", address, token));
+			if (writeAddress)
+			{
+				Write(string.Format("{0,-8:X8}", Address));
+			}
+
+			Write(string.Format("{0}; {1}\n", indent ? "        " : " ", comment));
+		}
+
+		public void WriteLine(uint address, string token = "", string comment = "", bool indent = true)
+		{
+			if (token == "")
+			{
+				Write(string.Format($"{{0,-8:X8}}{{1}}", address, indent ? "        " : ""));
+			}
+			else
+			{
+				Write(string.Format($"{{0,-8:X8}}{{1}}{{2,-{VALUE_COLUMN_LENGTH}}}", address, indent ? "        " : "", token));
+			}
 
 			if (comment != "")
 			{

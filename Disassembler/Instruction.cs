@@ -8,6 +8,7 @@
  * For full terms, see the LICENSE file or visit https://spdx.org/licenses/BSD-3-Clause.html
  */
 
+using DSO.Loader;
 using DSO.Opcodes;
 
 namespace DSO.Disassembler
@@ -30,51 +31,26 @@ namespace DSO.Disassembler
 		public Instruction? Prev { get; set; } = null;
 		public Instruction? Next { get; set; } = null;
 
-		/// <summary>
-		/// Mostly a utility function for <see cref="ToString"/>.
-		/// </summary>
-		/// <returns>An array of relevant values to be printed.</returns>
-		public virtual object[] GetValues() => [Address, Opcode.Tag];
-		public override string ToString()
+		public virtual void Visit(DisassemblyWriter writer)
 		{
-			/* The proper, more efficient way would probably be to use a StringBuilder, but this
-			   works well enough... */
-
-			var str = $"{GetType().Name}";
-			var values = GetValues();
-
-			if (values.Length > 0)
+			if (Address >= writer.Function?.EndAddress)
 			{
-				str += "(";
-
-				for (var i = 0; i < values.Length; i++)
-				{
-					str += values[i];
-
-					if (i < values.Length - 1)
-					{
-						str += ", ";
-					}
-				}
-
-				str += ")";
+				writer.Function = null;
 			}
 
-			return str;
+			writer.WriteValue(Opcode.Tag);
 		}
-
-		public virtual void Visit(DisassemblyWriter writer) => writer.WriteValue(Opcode.Tag);
 	}
 
 	/// <summary>
 	/// Function declaration instruction.
 	/// </summary>
-	public class FunctionInstruction(Opcode opcode, uint addr, string name, string ns, string package,
+	public class FunctionInstruction(Opcode opcode, uint addr, StringTableEntry name, StringTableEntry ns, StringTableEntry package,
 		bool hasBody, uint endAddr) : Instruction(opcode, addr)
 	{
-		public string Name { get; } = name;
-		public string? Namespace { get; } = ns;
-		public string? Package { get; } = package;
+		public StringTableEntry Name { get; } = name;
+		public StringTableEntry? Namespace { get; } = ns;
+		public StringTableEntry? Package { get; } = package;
 		public bool HasBody { get; } = hasBody;
 
 		/// <summary>
@@ -82,32 +58,16 @@ namespace DSO.Disassembler
 		/// </summary>
 		public uint EndAddress { get; } = endAddr;
 
-		public List<string> Arguments { get; } = [];
-
-		public override object[] GetValues()
-		{
-			var values = new object[7 + Arguments.Count];
-
-			values[0] = Address;
-			values[1] = Opcode.Tag;
-			values[2] = Name;
-			values[3] = Namespace ?? "(null)";
-			values[4] = Package ?? "(null)";
-			values[5] = HasBody;
-			values[6] = EndAddress;
-
-			var args = Arguments.Count;
-
-			for (var i = 0; i < args; i++)
-			{
-				values[i + 7] = Arguments[i];
-			}
-
-			return values;
-		}
+		public List<StringTableEntry> Arguments { get; } = [];
 
 		public override void Visit(DisassemblyWriter writer)
 		{
+			writer.Write("\n");
+			writer.WriteCommentLine("======================== F U N C T I O N ============================================", writeAddress: true);
+			writer.WriteLine(Address, "", "", indent: false);
+			writer.WriteCommentLine($"Start of `{(Namespace == null ? "" : $"{Namespace}::")}{Name}()`", writeAddress: true, indent: true);
+			writer.WriteLine(Address, "");
+
 			base.Visit(writer);
 
 			writer.WriteValue(Name, "name");
@@ -115,24 +75,24 @@ namespace DSO.Disassembler
 			writer.WriteValue(Package, "package");
 			writer.WriteValue(HasBody, "has body");
 			writer.WriteAddressValue(EndAddress, "end address");
-			writer.WriteValue($"{Arguments.Count}", "argument count");
+			writer.WriteValue(Arguments.Count, "argument count");
 
 			var count = 1;
 
 			Arguments.ForEach(arg => writer.WriteValue(arg, $"arg {count++}"));
+
+			writer.Function = this;
 		}
 	}
 
 	/// <summary>
 	/// Instruction for the first part of object creation.
 	/// </summary>
-	public class CreateObjectInstruction(Opcode opcode, uint addr, string parent, bool isDataBlock, uint failJumpAddress) : Instruction(opcode, addr)
+	public class CreateObjectInstruction(Opcode opcode, uint addr, StringTableEntry parent, bool isDataBlock, uint failJumpAddress) : Instruction(opcode, addr)
 	{
-		public string? Parent { get; } = parent;
+		public StringTableEntry? Parent { get; } = parent;
 		public bool IsDataBlock { get; } = isDataBlock;
 		public uint FailJumpAddress { get; } = failJumpAddress;
-
-		public override object[] GetValues() => [Address, Opcode.Tag, Parent ?? "(null)", IsDataBlock, FailJumpAddress];
 
 		public override void Visit(DisassemblyWriter writer)
 		{
@@ -151,8 +111,6 @@ namespace DSO.Disassembler
 	{
 		public bool PlaceAtRoot { get; } = placeAtRoot;
 
-		public override object[] GetValues() => [Address, Opcode.Tag, PlaceAtRoot];
-
 		public override void Visit(DisassemblyWriter writer)
 		{
 			base.Visit(writer);
@@ -170,8 +128,6 @@ namespace DSO.Disassembler
 		/// Can either be for `isDataBlock` or `placeAtRoot`.
 		/// </summary>
 		public bool Value { get; } = value;
-
-		public override object[] GetValues() => [Address, Opcode.Tag, Value];
 
 		public override void Visit(DisassemblyWriter writer)
 		{
@@ -198,8 +154,6 @@ namespace DSO.Disassembler
 		/// </summary>
 		public bool IsLogicalOperator => Opcode.Tag == OpcodeTag.OP_JMPIF_NP || Opcode.Tag == OpcodeTag.OP_JMPIFNOT_NP;
 
-		public override object[] GetValues() => [Address, Opcode.Tag, TargetAddress];
-
 		public override void Visit(DisassemblyWriter writer)
 		{
 			base.Visit(writer);
@@ -214,8 +168,6 @@ namespace DSO.Disassembler
 	public class ReturnInstruction(Opcode opcode, uint addr, bool returnsValue) : Instruction(opcode, addr)
 	{
 		public bool ReturnsValue { get; } = returnsValue;
-
-		public override object[] GetValues() => [Address, Opcode.Tag, ReturnsValue];
 	}
 
 	/// <summary>
@@ -239,11 +191,9 @@ namespace DSO.Disassembler
 	///
 	/// For "array"-indexing a variable, see <see cref="VariableArrayInstruction"/>.
 	/// </summary>
-	public class VariableInstruction(Opcode opcode, uint addr, string name) : Instruction(opcode, addr)
+	public class VariableInstruction(Opcode opcode, uint addr, StringTableEntry name) : Instruction(opcode, addr)
 	{
-		public string Name { get; } = name;
-
-		public override object[] GetValues() => [Address, Opcode.Tag, Name];
+		public StringTableEntry Name { get; } = name;
 
 		public override void Visit(DisassemblyWriter writer)
 		{
@@ -281,11 +231,9 @@ namespace DSO.Disassembler
 	/// <summary>
 	/// Field instruction.
 	/// </summary>
-	public class FieldInstruction(Opcode opcode, uint addr, string name) : Instruction(opcode, addr)
+	public class FieldInstruction(Opcode opcode, uint addr, StringTableEntry name) : Instruction(opcode, addr)
 	{
-		public string Name { get; } = name;
-
-		public override object[] GetValues() => [Address, Opcode.Tag, Name];
+		public StringTableEntry Name { get; } = name;
 
 		public override void Visit(DisassemblyWriter writer)
 		{
@@ -318,7 +266,6 @@ namespace DSO.Disassembler
 	public class ConvertToTypeInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr)
 	{
 		public TypeReq Type => Opcode.TypeReq;
-		public override object[] GetValues() => [Address, Opcode.Tag, Type.ToString()];
 	}
 
 	/// <summary>
@@ -334,13 +281,6 @@ namespace DSO.Disassembler
 		public bool IsTaggedString => Opcode.Tag == OpcodeTag.OP_TAG_TO_STR;
 		public bool IsIdentifier => Opcode.Tag == OpcodeTag.OP_LOADIMMED_IDENT;
 
-		public override object[] GetValues() =>
-		[
-			Address,
-			Opcode.Tag,
-			typeof(T) == typeof(string) ? $"\"{Value}\"" : Value,
-		];
-
 		public override void Visit(DisassemblyWriter writer)
 		{
 			base.Visit(writer);
@@ -352,13 +292,11 @@ namespace DSO.Disassembler
 	/// <summary>
 	/// Function call instruction.
 	/// </summary>
-	public class CallInstruction(Opcode opcode, uint addr, string name, string ns, uint callType) : Instruction(opcode, addr)
+	public class CallInstruction(Opcode opcode, uint addr, StringTableEntry name, StringTableEntry ns, uint callType) : Instruction(opcode, addr)
 	{
-		public string Name { get; } = name;
-		public string? Namespace { get; } = ns;
+		public StringTableEntry Name { get; } = name;
+		public StringTableEntry? Namespace { get; } = ns;
 		public uint CallType { get; } = callType;
-
-		public override object[] GetValues() => [Address, Opcode.Tag, Name, Namespace ?? "(null)", CallType];
 
 		public override void Visit(DisassemblyWriter writer)
 		{
@@ -381,8 +319,6 @@ namespace DSO.Disassembler
 	public class AdvanceAppendInstruction(Opcode opcode, uint addr, char ch) : Instruction(opcode, addr)
 	{
 		public char Char { get; } = ch;
-
-		public override object[] GetValues() => [Address, Opcode.Tag, (uint) Char];
 
 		public override void Visit(DisassemblyWriter writer)
 		{
