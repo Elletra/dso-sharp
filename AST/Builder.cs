@@ -21,6 +21,16 @@ namespace DSO.AST
 		public BuilderException(string message, Exception inner) : base(message, inner) { }
 	}
 
+	/// <summary>
+	/// This place is not a place of honor. Nothing is valued here.
+	///
+	/// What is here was dangerous and repulsive to us.
+	///
+	/// The danger is still present in your time, as it was in ours.
+	/// The danger is to the mind and it can kill.
+	///
+	/// This place is best shunned and left uninhabited.
+	/// </summary>
 	public class Builder
 	{
 		private Disassembly _disassembly = new();
