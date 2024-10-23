@@ -87,14 +87,22 @@ namespace DSO.Versions
 			_ => null,
 		};
 
-		static public GameVersion Create(GameIdentifier identifier) => new()
+		static public GameVersion? Create(GameIdentifier identifier)
 		{
-			Identifier = identifier,
-			DisplayName = GetDisplayName(identifier),
-			Version = GetVersionFromIdentifier(identifier),
-			Ops = CreateOps(identifier),
-			FileLoader = CreateFileLoader(identifier),
-		};
+			var displayName = GetDisplayName(identifier);
+			var version = GetVersionFromIdentifier(identifier);
+			var ops = CreateOps(identifier);
+			var loader = CreateFileLoader(identifier);
+
+			return displayName == null || version == 0 || ops == null || loader == null ? null : new()
+			{
+				Identifier = identifier,
+				DisplayName = displayName,
+				Version = version,
+				Ops = ops,
+				FileLoader = loader,
+			};
+		}
 
 		public GameIdentifier Identifier { get; set; } = GameIdentifier.Auto;
 		public string DisplayName { get; set; } = "<ERROR>";
