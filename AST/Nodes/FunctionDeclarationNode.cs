@@ -27,16 +27,16 @@ namespace DSO.AST.Nodes
 		public override int GetHashCode() => base.GetHashCode() ^ Name.GetHashCode() ^ (Namespace?.GetHashCode() ?? 0)
 			^ Arguments.GetHashCode() ^ Body.GetHashCode();
 
-		public override void Visit(TokenStream stream, bool isExpression)
+		public override void Visit(CodeWriter writer, bool isExpression)
 		{
-			stream.Write("function", " ");
+			writer.Write("function", " ");
 
 			if (Namespace != null)
 			{
-				stream.Write(Namespace, "::");
+				writer.Write(Namespace, "::");
 			}
 
-			stream.Write(Name, "(");
+			writer.Write(Name, "(");
 
 			for (var i = 0; i < Arguments.Count; i++)
 			{
@@ -44,17 +44,17 @@ namespace DSO.AST.Nodes
 
 				// TODO: There's an edge case where someone actually names their variable or argument `%__unused`, but I don't
 				// feel like addressing it right now.
-				stream.Write(arg == null || arg == "" ? "%__unused" : arg);
+				writer.Write(arg == null || arg == "" ? "%__unused" : arg);
 
 				if (i < Arguments.Count - 1)
 				{
-					stream.Write(",", " ");
+					writer.Write(",", " ");
 				}
 			}
 
-			stream.Write(")", "\n", "{", "\n");
-			Body.ForEach(node => stream.Write(node, isExpression: false));
-			stream.Write("}", "\n", "\n");
+			writer.Write(")", "\n", "{", "\n");
+			Body.ForEach(node => writer.Write(node, isExpression: false));
+			writer.Write("}", "\n", "\n");
 		}
 	}
 
@@ -68,11 +68,11 @@ namespace DSO.AST.Nodes
 
 		public override int GetHashCode() => base.GetHashCode() ^ Name.GetHashCode() ^ Functions.GetHashCode();
 
-		public override void Visit(TokenStream stream, bool isExpression)
+		public override void Visit(CodeWriter writer, bool isExpression)
 		{
-			stream.Write("package", " ", Name, "\n", "{", "\n");
-			Functions.ForEach(function => stream.Write(function, isExpression: false));
-			stream.Write("}", ";", "\n");
+			writer.Write("package", " ", Name, "\n", "{", "\n");
+			Functions.ForEach(function => writer.Write(function, isExpression: false));
+			writer.Write("}", ";", "\n");
 		}
 	}
 }

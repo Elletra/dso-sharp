@@ -53,33 +53,33 @@ namespace DSO.AST.Nodes
 
 		public override int GetHashCode() => base.GetHashCode() ^ (Test?.GetHashCode() ?? 0) ^ True.GetHashCode() ^ False.GetHashCode();
 
-		public override void Visit(TokenStream stream, bool isExpression)
+		public override void Visit(CodeWriter writer, bool isExpression)
 		{
-			stream.Write("if", " ", "(");
-			stream.Write(Test, isExpression: true);
-			stream.Write(")", "\n", "{", "\n");
+			writer.Write("if", " ", "(");
+			writer.Write(Test, isExpression: true);
+			writer.Write(")", "\n", "{", "\n");
 
-			True.ForEach(node => stream.Write(node, isExpression: false));
+			True.ForEach(node => writer.Write(node, isExpression: false));
 
-			stream.Write("}", "\n");
+			writer.Write("}", "\n");
 
 			if (False.Count <= 0)
 			{
 				return;
 			}
 
-			stream.Write("else");
+			writer.Write("else");
 
 			if (False.Count == 1 && False[0] is IfNode)
 			{
-				stream.Write(" ");
-				stream.Write(False[0], isExpression: false);
+				writer.Write(" ");
+				writer.Write(False[0], isExpression: false);
 			}
 			else
 			{
-				stream.Write("\n", "{", "\n");
-				False.ForEach(node => stream.Write(node, isExpression: false));
-				stream.Write("}", "\n");
+				writer.Write("\n", "{", "\n");
+				False.ForEach(node => writer.Write(node, isExpression: false));
+				writer.Write("}", "\n");
 			}
 		}
 
@@ -111,13 +111,13 @@ namespace DSO.AST.Nodes
 
 		public override int GetHashCode() => base.GetHashCode() ^ Test.GetHashCode() ^ True.GetHashCode() ^ False.GetHashCode();
 
-		public override void Visit(TokenStream stream, bool isExpression)
+		public override void Visit(CodeWriter writer, bool isExpression)
 		{
-			stream.Write(Test, node => node is TernaryIfNode || node is AssignmentNode);
-			stream.Write(" ", "?", " ");
-			stream.Write(True, node => node is TernaryIfNode || node is AssignmentNode);
-			stream.Write(" ", ":", " ");
-			stream.Write(False, node => node is TernaryIfNode || node is AssignmentNode);
+			writer.Write(Test, node => node is TernaryIfNode || node is AssignmentNode);
+			writer.Write(" ", "?", " ");
+			writer.Write(True, node => node is TernaryIfNode || node is AssignmentNode);
+			writer.Write(" ", ":", " ");
+			writer.Write(False, node => node is TernaryIfNode || node is AssignmentNode);
 		}
 	}
 }

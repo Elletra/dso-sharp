@@ -21,18 +21,18 @@ namespace DSO.CodeGenerator
 
 	public class CodeGenerator
 	{
-		private TokenStream _stream = new();
+		private CodeWriter _writer = new();
 
 		public List<string> Generate(List<Node> nodes)
 		{
-			_stream = new();
+			_writer = new();
 
 			foreach (var node in nodes)
 			{
-				node.Visit(_stream, isExpression: false);
+				node.Visit(_writer, isExpression: false);
 			}
 
-			return _stream.Stream;
+			return _writer.Stream;
 		}
 	}
 }

@@ -38,37 +38,37 @@ namespace DSO.AST.Nodes
 		public override int GetHashCode() => base.GetHashCode() ^ Name.GetHashCode() ^ (Namespace?.GetHashCode() ?? 0)
 			^ CallType.GetHashCode() ^ _arguments.GetHashCode();
 
-		public override void Visit(TokenStream stream, bool isExpression)
+		public override void Visit(CodeWriter writer, bool isExpression)
 		{
 			var methodCall = CallType == CallType.MethodCall;
 
 			if (methodCall)
 			{
-				stream.Write(_arguments[0], node => node.Precedence > Precedence);
-				stream.Write(".");
+				writer.Write(_arguments[0], node => node.Precedence > Precedence);
+				writer.Write(".");
 			}
 			else if (Namespace != null)
 			{
-				stream.Write(Namespace, "::");
+				writer.Write(Namespace, "::");
 			}
 
-			stream.Write(Name, "(");
+			writer.Write(Name, "(");
 
 			for (var i = methodCall ? 1 : 0; i < _arguments.Count; i++)
 			{
-				stream.Write(_arguments[i], isExpression: true);
+				writer.Write(_arguments[i], isExpression: true);
 
 				if (i < _arguments.Count - 1)
 				{
-					stream.Write(",", " ");
+					writer.Write(",", " ");
 				}
 			}
 
-			stream.Write(")");
+			writer.Write(")");
 
 			if (!isExpression)
 			{
-				stream.Write(";", "\n");
+				writer.Write(";", "\n");
 			}
 		}
 	}

@@ -37,6 +37,6 @@ namespace DSO.AST.Nodes
 		public virtual bool IsAssociativeWith(Node compare) => false;
 		public override bool Equals(object? obj) => obj is Node node && node.Type.Equals(Type);
 		public override int GetHashCode() => Type.GetHashCode();
-		public virtual void Visit(TokenStream stream, bool isExpression) { }
+		public virtual void Visit(CodeWriter writer, bool isExpression) { }
 	}
 }

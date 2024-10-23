@@ -10,6 +10,7 @@
 
 using DSO.CodeGenerator;
 using DSO.Disassembler;
+using DSO.Loader;
 
 namespace DSO.AST.Nodes
 {
@@ -28,7 +29,7 @@ namespace DSO.AST.Nodes
 
 		public override bool Equals(object? obj) => base.Equals(obj) && obj is ConstantNode<T> node && Equals(node.Value, Value);
 		public override int GetHashCode() => base.GetHashCode() ^ (Value?.GetHashCode() ?? 0);
-		public override void Visit(TokenStream stream, bool isExpression) => stream.Write(Value.ToString());
+		public override void Visit(CodeWriter writer, bool isExpression) => writer.Write(Value.ToString());
 	}
 
 	public class ConstantUIntNode(uint value) : ConstantNode<uint>(value)
@@ -41,11 +42,11 @@ namespace DSO.AST.Nodes
 		public ConstantDoubleNode(ImmediateInstruction<double> instruction) : this(instruction.Value) { }
 	}
 
-	public class ConstantStringNode : ConstantNode<string>
+	public class ConstantStringNode : ConstantNode<StringTableEntry>
 	{
 		public readonly StringType StringType;
 
-		public ConstantStringNode(ImmediateInstruction<string> instruction) : base(instruction)
+		public ConstantStringNode(ImmediateInstruction<StringTableEntry> instruction) : base(instruction)
 		{
 			if (instruction.IsIdentifier)
 			{
@@ -64,7 +65,7 @@ namespace DSO.AST.Nodes
 		public override bool Equals(object? obj) => base.Equals(obj) && obj is ConstantStringNode node && node.StringType.Equals(StringType);
 		public override int GetHashCode() => base.GetHashCode() ^ StringType.GetHashCode();
 
-		public override void Visit(TokenStream stream, bool isExpression)
+		public override void Visit(CodeWriter writer, bool isExpression)
 		{
 			var str = Util.String.EscapeString(Value);
 
@@ -77,7 +78,7 @@ namespace DSO.AST.Nodes
 				str = $"'{str.Replace("'", "\\\'")}'";
 			}
 
-			stream.Write(str);
+			writer.Write(str);
 		}
 
 		public ConstantUIntNode? ConvertToUIntNode()

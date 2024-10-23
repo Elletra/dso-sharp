@@ -20,15 +20,15 @@ namespace DSO.AST.Nodes
 		public override bool Equals(object? obj) => base.Equals(obj) && obj is LoopNode node && node.Test.Equals(Test) && node.Body.SequenceEqual(Body);
 		public override int GetHashCode() => base.GetHashCode() ^ Test.GetHashCode() ^ Body.GetHashCode();
 
-		public override void Visit(TokenStream stream, bool isExpression)
+		public override void Visit(CodeWriter writer, bool isExpression)
 		{
-			stream.Write("do", "\n", "{", "\n");
+			writer.Write("do", "\n", "{", "\n");
 
-			Body.ForEach(node => stream.Write(node, isExpression: false));
+			Body.ForEach(node => writer.Write(node, isExpression: false));
 
-			stream.Write("}", "\n", "while", " ", "(");
-			stream.Write(Test, isExpression: true);
-			stream.Write(")", "\n");
+			writer.Write("}", "\n", "while", " ", "(");
+			writer.Write(Test, isExpression: true);
+			writer.Write(")", "\n");
 		}
 	}
 
@@ -37,15 +37,15 @@ namespace DSO.AST.Nodes
 		public override bool Equals(object? obj) => base.Equals(obj) && obj is WhileLoopNode;
 		public override int GetHashCode() => base.GetHashCode() ^ 41;
 
-		public override void Visit(TokenStream stream, bool isExpression)
+		public override void Visit(CodeWriter writer, bool isExpression)
 		{
-			stream.Write("while", " ", "(");
-			stream.Write(Test, isExpression: true);
-			stream.Write(")", "\n", "{", "\n");
+			writer.Write("while", " ", "(");
+			writer.Write(Test, isExpression: true);
+			writer.Write(")", "\n", "{", "\n");
 
-			Body.ForEach(node => stream.Write(node, isExpression: false));
+			Body.ForEach(node => writer.Write(node, isExpression: false));
 
-			stream.Write("}", "\n");
+			writer.Write("}", "\n");
 		}
 	}
 
@@ -59,19 +59,19 @@ namespace DSO.AST.Nodes
 
 		public override int GetHashCode() => base.GetHashCode() ^ Init.GetHashCode() ^ End.GetHashCode();
 
-		public override void Visit(TokenStream stream, bool isExpression)
+		public override void Visit(CodeWriter writer, bool isExpression)
 		{
-			stream.Write("for", " ", "(");
-			stream.Write(Init, isExpression: true);
-			stream.Write(";", " ");
-			stream.Write(Test, isExpression: true);
-			stream.Write(";", " ");
-			stream.Write(End, isExpression: true);
-			stream.Write(")", "\n", "{", "\n");
+			writer.Write("for", " ", "(");
+			writer.Write(Init, isExpression: true);
+			writer.Write(";", " ");
+			writer.Write(Test, isExpression: true);
+			writer.Write(";", " ");
+			writer.Write(End, isExpression: true);
+			writer.Write(")", "\n", "{", "\n");
 
-			Body.ForEach(node => stream.Write(node, isExpression: false));
+			Body.ForEach(node => writer.Write(node, isExpression: false));
 
-			stream.Write("}", "\n");
+			writer.Write("}", "\n");
 		}
 	}
 }

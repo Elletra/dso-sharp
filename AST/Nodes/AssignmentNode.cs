@@ -29,14 +29,14 @@ namespace DSO.AST.Nodes
 
 		public override int GetHashCode() => base.GetHashCode() ^ Left.GetHashCode() ^ Right.GetHashCode() ^ (Operator?.GetHashCode() ?? 0);
 
-		public override void Visit(TokenStream stream, bool isExpression)
+		public override void Visit(CodeWriter writer, bool isExpression)
 		{
-			stream.Write(Left, isExpression: true);
+			writer.Write(Left, isExpression: true);
 
 			if (Operator == null)
 			{
-				stream.Write(" ", "=", " ");
-				stream.Write(Right, isExpression: true);
+				writer.Write(" ", "=", " ");
+				writer.Write(Right, isExpression: true);
 			}
 			else
 			{
@@ -47,17 +47,17 @@ namespace DSO.AST.Nodes
 				{
 					if (tag == OpcodeTag.OP_ADD)
 					{
-						stream.Write("++");
+						writer.Write("++");
 					}
 					else if (tag == OpcodeTag.OP_SUB)
 					{
-						stream.Write("--");
+						writer.Write("--");
 					}
 				}
 
 				if (!incDec)
 				{
-					stream.Write(" ", $"{tag switch
+					writer.Write(" ", $"{tag switch
 					{
 						OpcodeTag.OP_ADD => "+",
 						OpcodeTag.OP_SUB => "-",
@@ -71,13 +71,13 @@ namespace DSO.AST.Nodes
 						OpcodeTag.OP_SHR => ">>",
 					}}=", " ");
 
-					stream.Write(Right, isExpression: true);
+					writer.Write(Right, isExpression: true);
 				}
 			}
 
 			if (!isExpression)
 			{
-				stream.Write(";", "\n");
+				writer.Write(";", "\n");
 			}
 		}
 	}

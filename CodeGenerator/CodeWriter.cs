@@ -1,5 +1,5 @@
 ﻿/**
- * TokenStream.cs
+ * CodeWriter.cs
  *
  * Copyright (C) 2024 Elletra
  *
@@ -14,7 +14,7 @@ namespace DSO.CodeGenerator
 {
 	public delegate bool ShouldAddParentheses(Node node);
 
-	public class TokenStream
+	public class CodeWriter
 	{
 		private string _prevToken = "";
 		public readonly List<string> Stream = [];

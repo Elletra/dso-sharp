@@ -35,11 +35,11 @@ namespace DSO.AST.Nodes
 
 		public override bool IsAssociativeWith(Node compare) => compare is ConcatNode;
 
-		public override void Visit(TokenStream stream, bool isExpression)
+		public override void Visit(CodeWriter writer, bool isExpression)
 		{
-			stream.Write(Left, CheckPrecedenceAndAssociativity);
+			writer.Write(Left, CheckPrecedenceAndAssociativity);
 
-			stream.Write(" ", Char switch
+			writer.Write(" ", Char switch
 			{
 				' ' => "SPC",
 				'\t' => "TAB",
@@ -47,7 +47,7 @@ namespace DSO.AST.Nodes
 				null => "@",
 			}, " ");
 
-			stream.Write(Right, CheckPrecedenceAndAssociativity);
+			writer.Write(Right, CheckPrecedenceAndAssociativity);
 		}
 	}
 
@@ -61,11 +61,11 @@ namespace DSO.AST.Nodes
 		public override bool Equals(object? obj) => base.Equals(obj) && obj is CommaConcatNode;
 		public override int GetHashCode() => base.GetHashCode();
 
-		public override void Visit(TokenStream stream, bool isExpression)
+		public override void Visit(CodeWriter writer, bool isExpression)
 		{
-			stream.Write(Left, isExpression: true);
-			stream.Write(",", " ");
-			stream.Write(Right, isExpression: true);
+			writer.Write(Left, isExpression: true);
+			writer.Write(",", " ");
+			writer.Write(Right, isExpression: true);
 		}
 	}
 }

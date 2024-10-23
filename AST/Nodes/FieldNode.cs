@@ -30,21 +30,21 @@ namespace DSO.AST.Nodes
 
 		public override int GetHashCode() => base.GetHashCode() ^ Name.GetHashCode() ^ (Object?.GetHashCode() ?? 0) ^ (Index?.GetHashCode() ?? 0);
 
-		public override void Visit(TokenStream stream, bool isExpression)
+		public override void Visit(CodeWriter writer, bool isExpression)
 		{
 			if (Object != null)
 			{
-				stream.Write(Object, node => node.Precedence > Precedence);
-				stream.Write(".");
+				writer.Write(Object, node => node.Precedence > Precedence);
+				writer.Write(".");
 			}
 
-			stream.Write(Name);
+			writer.Write(Name);
 
 			if (Index != null)
 			{
-				stream.Write("[");
-				stream.Write(Index, isExpression: true);
-				stream.Write("]");
+				writer.Write("[");
+				writer.Write(Index, isExpression: true);
+				writer.Write("]");
 			}
 		}
 	}

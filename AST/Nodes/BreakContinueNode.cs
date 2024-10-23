@@ -17,7 +17,7 @@ namespace DSO.AST.Nodes
 		public override bool Equals(object? obj) => base.Equals(obj) && obj is BreakNode;
 		public override int GetHashCode() => base.GetHashCode();
 
-		public override void Visit(TokenStream stream, bool isExpression) => stream.Write("break", ";", "\n");
+		public override void Visit(CodeWriter writer, bool isExpression) => writer.Write("break", ";", "\n");
 	}
 
 	public class ContinueNode() : Node(NodeType.Statement)
@@ -25,6 +25,6 @@ namespace DSO.AST.Nodes
 		public override bool Equals(object? obj) => base.Equals(obj) && obj is ContinueNode;
 		public override int GetHashCode() => base.GetHashCode();
 
-		public override void Visit(TokenStream stream, bool isExpression) => stream.Write("continue", ";", "\n");
+		public override void Visit(CodeWriter writer, bool isExpression) => writer.Write("continue", ";", "\n");
 	}
 }

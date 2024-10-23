@@ -35,63 +35,63 @@ namespace DSO.AST.Nodes
 			^ Class.GetHashCode() ^ (Name?.GetHashCode() ?? 0) ^ (Parent?.GetHashCode() ?? 0)
 			^ Depth.GetHashCode() ^ _arguments.GetHashCode() ^ Fields.GetHashCode() ^ Children.GetHashCode();
 
-		public override void Visit(TokenStream stream, bool isExpression)
+		public override void Visit(CodeWriter writer, bool isExpression)
 		{
-			stream.Write(IsDataBlock ? "datablock" : "new", " ");
-			stream.Write(Class, node => node is not ConstantStringNode str || str.StringType != StringType.Identifier);
-			stream.Write("(");
+			writer.Write(IsDataBlock ? "datablock" : "new", " ");
+			writer.Write(Class, node => node is not ConstantStringNode str || str.StringType != StringType.Identifier);
+			writer.Write("(");
 
 			if (Name != null && (Name is not ConstantStringNode || (Name is ConstantStringNode constant && constant.Value != "")))
 			{
-				stream.Write(Name, isExpression: true);
+				writer.Write(Name, isExpression: true);
 			}
 
 			if (Parent != null && Parent != "")
 			{
 				if (Name != null)
 				{
-					stream.Write(" ");
+					writer.Write(" ");
 				}
 
-				stream.Write(":", " ", Parent);
+				writer.Write(":", " ", Parent);
 			}
 
 			if (_arguments.Count > 0)
 			{
-				stream.Write(",", " ");
+				writer.Write(",", " ");
 			}
 
 			foreach (var arg in _arguments)
 			{
-				stream.Write(arg, isExpression: true);
+				writer.Write(arg, isExpression: true);
 
 				if (arg != _arguments.Last())
 				{
-					stream.Write(",", " ");
+					writer.Write(",", " ");
 				}
 			}
 
-			stream.Write(")");
+			writer.Write(")");
 
 			if (Fields.Count > 0 || Children.Count > 0)
 			{
-				stream.Write("\n", "{", "\n");
+				writer.Write("\n", "{", "\n");
 
-				Fields.ForEach(field => stream.Write(field, isExpression: false));
+				Fields.ForEach(field => writer.Write(field, isExpression: false));
 
 				if (Fields.Count > 0 && Children.Count > 0)
 				{
-					stream.Write("\n");
+					writer.Write("\n");
 				}
 
-				Children.ForEach(child => stream.Write(child, isExpression: false));
+				Children.ForEach(child => writer.Write(child, isExpression: false));
 
-				stream.Write("}");
+				writer.Write("}");
 			}
 
 			if (!isExpression)
 			{
-				stream.Write(";", "\n");
+				writer.Write(";", "\n");
 			}
 		}
 	}

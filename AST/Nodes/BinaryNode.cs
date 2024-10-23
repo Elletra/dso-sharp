@@ -48,11 +48,11 @@ namespace DSO.AST.Nodes
 
 		public override int GetHashCode() => base.GetHashCode() ^ Left.GetHashCode() ^ Right.GetHashCode() ^ Op.GetHashCode();
 
-		public override void Visit(TokenStream stream, bool isExpression)
+		public override void Visit(CodeWriter writer, bool isExpression)
 		{
-			stream.Write(Left, CheckPrecedenceAndAssociativity);
+			writer.Write(Left, CheckPrecedenceAndAssociativity);
 
-			stream.Write(" ", Op.Tag switch
+			writer.Write(" ", Op.Tag switch
 			{
 				OpcodeTag.OP_ADD => "+",
 				OpcodeTag.OP_SUB => "-",
@@ -74,7 +74,7 @@ namespace DSO.AST.Nodes
 				OpcodeTag.OP_JMPIFNOT_NP => "&&",
 			}, " ");
 
-			stream.Write(Right, CheckPrecedenceAndAssociativity);
+			writer.Write(Right, CheckPrecedenceAndAssociativity);
 		}
 	}
 
@@ -87,11 +87,11 @@ namespace DSO.AST.Nodes
 		public override bool Equals(object? obj) => base.Equals(obj) && obj is BinaryStringNode node && node.Not.Equals(Not);
 		public override int GetHashCode() => base.GetHashCode() ^ Not.GetHashCode();
 
-		public override void Visit(TokenStream stream, bool isExpression)
+		public override void Visit(CodeWriter writer, bool isExpression)
 		{
-			stream.Write(Left, CheckPrecedenceAndAssociativity);
-			stream.Write(" ", Not ? "!$=" : "$=", " ");
-			stream.Write(Right, CheckPrecedenceAndAssociativity);
+			writer.Write(Left, CheckPrecedenceAndAssociativity);
+			writer.Write(" ", Not ? "!$=" : "$=", " ");
+			writer.Write(Right, CheckPrecedenceAndAssociativity);
 		}
 	}
 }

@@ -19,17 +19,17 @@ namespace DSO.AST.Nodes
 		public override bool Equals(object? obj) => base.Equals(obj) && obj is ReturnNode node && Equals(node.Value, Value);
 		public override int GetHashCode() => base.GetHashCode() ^ (Value?.GetHashCode() ?? 0);
 
-		public override void Visit(TokenStream stream, bool isExpression)
+		public override void Visit(CodeWriter writer, bool isExpression)
 		{
-			stream.Write("return");
+			writer.Write("return");
 
 			if (Value != null)
 			{
-				stream.Write(" ");
-				stream.Write(Value, isExpression: true);
+				writer.Write(" ");
+				writer.Write(Value, isExpression: true);
 			}
 
-			stream.Write(";", "\n");
+			writer.Write(";", "\n");
 		}
 	}
 }

@@ -11,6 +11,7 @@
 using DSO.AST.Nodes;
 using DSO.ControlFlow;
 using DSO.Disassembler;
+using DSO.Loader;
 
 namespace DSO.AST
 {
@@ -137,7 +138,7 @@ namespace DSO.AST
 
 			switch (instruction)
 			{
-				case ImmediateInstruction<string> immediate:
+				case ImmediateInstruction<StringTableEntry> immediate:
 					return new ConstantStringNode(immediate);
 
 				case ImmediateInstruction<double> immediate:
