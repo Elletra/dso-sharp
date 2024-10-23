@@ -103,7 +103,7 @@ namespace DSO.Disassembler
 				Write(string.Format("{0,-8:X8}", Address));
 			}
 
-			Write(string.Format("{0}; {1}\n", indent ? "        " : " ", comment));
+			Write(string.Format("{0}; {1}\n", indent ? "        " : (writeAddress ? " " : ""), comment));
 		}
 
 		public void WriteLine(uint address, string token = "", string comment = "", bool indent = true)

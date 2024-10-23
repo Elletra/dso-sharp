@@ -46,7 +46,7 @@ namespace DSO.AST.Nodes
 	{
 		public readonly StringType StringType;
 
-		public ConstantStringNode(ImmediateInstruction<StringTableEntry> instruction) : base(instruction)
+		public ConstantStringNode(ImmediateStringInstruction instruction) : base(instruction)
 		{
 			if (instruction.IsIdentifier)
 			{

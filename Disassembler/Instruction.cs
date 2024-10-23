@@ -23,13 +23,29 @@ namespace DSO.Disassembler
 	/// <summary>
 	/// Base instruction class.
 	/// </summary>
-	public abstract class Instruction(Opcode opcode, uint addr)
+	public abstract class Instruction
 	{
-		public Opcode Opcode { get; } = opcode;
-		public uint Address { get; } = addr;
+		public Opcode Opcode { get; }
+		public uint Address { get; }
 
 		public Instruction? Prev { get; set; } = null;
 		public Instruction? Next { get; set; } = null;
+
+		public Instruction(Opcode opcode, uint address, BytecodeReader reader)
+		{
+			Opcode = opcode;
+			Address = address;
+
+			if (Opcode.ReturnValue != ReturnValue.NoChange)
+			{
+				reader.ReturnableValue = Opcode.ReturnValue == ReturnValue.ToTrue;
+			}
+
+			if (reader.InFunction && address >= reader.Function?.EndAddress)
+			{
+				reader.Function = null;
+			}
+		}
 
 		public virtual void Visit(DisassemblyWriter writer)
 		{
@@ -45,20 +61,37 @@ namespace DSO.Disassembler
 	/// <summary>
 	/// Function declaration instruction.
 	/// </summary>
-	public class FunctionInstruction(Opcode opcode, uint addr, StringTableEntry name, StringTableEntry ns, StringTableEntry package,
-		bool hasBody, uint endAddr) : Instruction(opcode, addr)
+	public class FunctionInstruction : Instruction
 	{
-		public StringTableEntry Name { get; } = name;
-		public StringTableEntry? Namespace { get; } = ns;
-		public StringTableEntry? Package { get; } = package;
-		public bool HasBody { get; } = hasBody;
+		public StringTableEntry Name { get; }
+		public StringTableEntry? Namespace { get; }
+		public StringTableEntry? Package { get; }
+		public bool HasBody { get; }
 
 		/// <summary>
 		/// Ignore if <see cref="HasBody"/> is <see langword="false"/>.
 		/// </summary>
-		public uint EndAddress { get; } = endAddr;
+		public uint EndAddress { get; }
 
 		public List<StringTableEntry> Arguments { get; } = [];
+
+		public FunctionInstruction(Opcode opcode, uint address, BytecodeReader reader) : base(opcode, address, reader)
+		{
+			Name = reader.ReadIdentifier();
+			Namespace = reader.ReadIdentifier();
+			Package = reader.ReadIdentifier();
+			HasBody = reader.ReadBool();
+			EndAddress = reader.ReadUInt();
+
+			var args = reader.ReadUInt();
+
+			for (uint i = 0; i < args; i++)
+			{
+				Arguments.Add(reader.ReadIdentifier());
+			}
+
+			reader.Function = this;
+		}
 
 		public override void Visit(DisassemblyWriter writer)
 		{
@@ -88,11 +121,11 @@ namespace DSO.Disassembler
 	/// <summary>
 	/// Instruction for the first part of object creation.
 	/// </summary>
-	public class CreateObjectInstruction(Opcode opcode, uint addr, StringTableEntry parent, bool isDataBlock, uint failJumpAddress) : Instruction(opcode, addr)
+	public class CreateObjectInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader)
 	{
-		public StringTableEntry? Parent { get; } = parent;
-		public bool IsDataBlock { get; } = isDataBlock;
-		public uint FailJumpAddress { get; } = failJumpAddress;
+		public StringTableEntry? Parent { get; } = reader.ReadIdentifier();
+		public bool IsDataBlock { get; } = reader.ReadBool();
+		public uint FailJumpAddress { get; } = reader.ReadUInt();
 
 		public override void Visit(DisassemblyWriter writer)
 		{
@@ -107,9 +140,9 @@ namespace DSO.Disassembler
 	/// <summary>
 	/// Instruction for the second part of object creation.
 	/// </summary>
-	public class AddObjectInstruction(Opcode opcode, uint addr, bool placeAtRoot) : Instruction(opcode, addr)
+	public class AddObjectInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader)
 	{
-		public bool PlaceAtRoot { get; } = placeAtRoot;
+		public bool PlaceAtRoot { get; } = reader.ReadBool();
 
 		public override void Visit(DisassemblyWriter writer)
 		{
@@ -122,12 +155,12 @@ namespace DSO.Disassembler
 	/// <summary>
 	/// Instruction for the third and final part of object creation.
 	/// </summary>
-	public class EndObjectInstruction(Opcode opcode, uint addr, bool value) : Instruction(opcode, addr)
+	public class EndObjectInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader)
 	{
 		/// <summary>
 		/// Can either be for `isDataBlock` or `placeAtRoot`.
 		/// </summary>
-		public bool Value { get; } = value;
+		public bool Value { get; } = reader.ReadBool();
 
 		public override void Visit(DisassemblyWriter writer)
 		{
@@ -140,9 +173,9 @@ namespace DSO.Disassembler
 	/// <summary>
 	/// Branch instruction, for loops, conditionals, breaks, continues, and logical AND/OR.
 	/// </summary>
-	public class BranchInstruction(Opcode opcode, uint addr, uint targetAddress) : Instruction(opcode, addr)
+	public class BranchInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader)
 	{
-		public uint TargetAddress { get; } = targetAddress;
+		public uint TargetAddress { get; } = reader.ReadUInt();
 
 		public bool IsLoopEnd => TargetAddress < Address;
 
@@ -165,23 +198,23 @@ namespace DSO.Disassembler
 	/// <summary>
 	/// Return instruction.
 	/// </summary>
-	public class ReturnInstruction(Opcode opcode, uint addr, bool returnsValue) : Instruction(opcode, addr)
+	public class ReturnInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader)
 	{
-		public bool ReturnsValue { get; } = returnsValue;
+		public bool ReturnsValue { get; } = reader.ReturnableValue;
 	}
 
 	/// <summary>
 	/// Opcodes for binary instructions like OP_ADD, OP_XOR, OP_CMPEQ, etc.
 	/// </summary>
-	public class BinaryInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr) { }
+	public class BinaryInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader) { }
 
 	/// <summary>
 	/// A separate instruction for OP_COMPARE_STR because the operands are inverse of the other
 	/// binary operations.
 	/// </summary>
-	public class BinaryStringInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr) { }
+	public class BinaryStringInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader) { }
 
-	public class UnaryInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr)
+	public class UnaryInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader)
 	{
 		public bool IsNot => Opcode.Tag == OpcodeTag.OP_NOT || Opcode.Tag == OpcodeTag.OP_NOTF;
 	}
@@ -191,9 +224,9 @@ namespace DSO.Disassembler
 	///
 	/// For "array"-indexing a variable, see <see cref="VariableArrayInstruction"/>.
 	/// </summary>
-	public class VariableInstruction(Opcode opcode, uint addr, StringTableEntry name) : Instruction(opcode, addr)
+	public class VariableInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader)
 	{
-		public StringTableEntry Name { get; } = name;
+		public StringTableEntry Name { get; } = reader.ReadIdentifier();
 
 		public override void Visit(DisassemblyWriter writer)
 		{
@@ -206,34 +239,34 @@ namespace DSO.Disassembler
 	/// <summary>
 	/// "Array"-indexing a variable (e.g. OP_SETCURVAR_ARRAY, OP_SETCURVAR_ARRAY_CREATE, etc.).
 	/// </summary>
-	public class VariableArrayInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr) { }
+	public class VariableArrayInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader) { }
 
 	/// <summary>
 	/// OP_LOADVAR_*
 	/// </summary>
-	public class LoadVariableInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr) { }
+	public class LoadVariableInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader) { }
 
 	/// <summary>
 	/// OP_SAVEVAR_*
 	/// </summary>
-	public class SaveVariableInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr) { }
+	public class SaveVariableInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader) { }
 
 	/// <summary>
 	/// OP_SETCUROBJECT
 	/// </summary>
-	public class ObjectInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr) { }
+	public class ObjectInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader) { }
 
 	/// <summary>
 	/// OP_SETCUROBJECT_NEW
 	/// </summary>
-	public class ObjectNewInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr) { }
+	public class ObjectNewInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader) { }
 
 	/// <summary>
 	/// Field instruction.
 	/// </summary>
-	public class FieldInstruction(Opcode opcode, uint addr, StringTableEntry name) : Instruction(opcode, addr)
+	public class FieldInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader)
 	{
-		public StringTableEntry Name { get; } = name;
+		public StringTableEntry Name { get; } = reader.ReadIdentifier();
 
 		public override void Visit(DisassemblyWriter writer)
 		{
@@ -246,24 +279,24 @@ namespace DSO.Disassembler
 	/// <summary>
 	/// "Array"-indexing a field (e.g. OP_SETCURFIELD_ARRAY).
 	/// </summary>
-	public class FieldArrayInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr) { }
+	public class FieldArrayInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader) { }
 
 	/// <summary>
 	/// OP_LOADFIELD_*
 	/// </summary>
-	public class LoadFieldInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr) { }
+	public class LoadFieldInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader) { }
 
 	/// <summary>
 	/// OP_SAVEFIELD_*
 	/// </summary>
-	public class SaveFieldInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr) { }
+	public class SaveFieldInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader) { }
 
 	/// <summary>
 	/// Type conversion instruction.<br/><br/>
 	///
 	/// Does not have any operands, but it still has extra information we want to know.
 	/// </summary>
-	public class ConvertToTypeInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr)
+	public class ConvertToTypeInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader)
 	{
 		public TypeReq Type => Opcode.TypeReq;
 	}
@@ -274,12 +307,9 @@ namespace DSO.Disassembler
 	/// "Identifier" is a term that Torque uses to refer to strings that aren't surrounded by quotes...
 	/// TorqueScript is a very odd language.
 	/// </summary>
-	public class ImmediateInstruction<T>(Opcode opcode, uint addr, T value) : Instruction(opcode, addr)
+	public abstract class ImmediateInstruction<T>(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader)
 	{
-		public T Value { get; } = value;
-
-		public bool IsTaggedString => Opcode.Tag == OpcodeTag.OP_TAG_TO_STR;
-		public bool IsIdentifier => Opcode.Tag == OpcodeTag.OP_LOADIMMED_IDENT;
+		public T Value { get; protected set; }
 
 		public override void Visit(DisassemblyWriter writer)
 		{
@@ -289,14 +319,41 @@ namespace DSO.Disassembler
 		}
 	}
 
+	public class ImmediateStringInstruction : ImmediateInstruction<StringTableEntry>
+	{
+		public bool IsTaggedString => Opcode.Tag == OpcodeTag.OP_TAG_TO_STR;
+		public bool IsIdentifier => Opcode.Tag == OpcodeTag.OP_LOADIMMED_IDENT;
+
+		public ImmediateStringInstruction(Opcode opcode, uint address, BytecodeReader reader) : base(opcode, address, reader)
+		{
+			Value = opcode.Tag == OpcodeTag.OP_LOADIMMED_IDENT ? reader.ReadIdentifier() : reader.ReadString();
+		}
+	}
+
+	public class ImmediateUIntInstruction : ImmediateInstruction<uint>
+	{
+		public ImmediateUIntInstruction(Opcode opcode, uint address, BytecodeReader reader) : base(opcode, address, reader)
+		{
+			Value = reader.ReadUInt();
+		}
+	}
+
+	public class ImmediateDoubleInstruction : ImmediateInstruction<double>
+	{
+		public ImmediateDoubleInstruction(Opcode opcode, uint address, BytecodeReader reader) : base(opcode, address, reader)
+		{
+			Value = reader.ReadDouble();
+		}
+	}
+
 	/// <summary>
 	/// Function call instruction.
 	/// </summary>
-	public class CallInstruction(Opcode opcode, uint addr, StringTableEntry name, StringTableEntry ns, uint callType) : Instruction(opcode, addr)
+	public class CallInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader)
 	{
-		public StringTableEntry Name { get; } = name;
-		public StringTableEntry? Namespace { get; } = ns;
-		public uint CallType { get; } = callType;
+		public StringTableEntry Name { get; } = reader.ReadIdentifier();
+		public StringTableEntry? Namespace { get; } = reader.ReadIdentifier();
+		public uint CallType { get; } = reader.ReadUInt();
 
 		public override void Visit(DisassemblyWriter writer)
 		{
@@ -311,14 +368,14 @@ namespace DSO.Disassembler
 	/// <summary>
 	/// OP_ADVANCE_STR
 	/// </summary>
-	public class AdvanceStringInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr) { }
+	public class AdvanceStringInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader) { }
 
 	/// <summary>
 	/// Advance-string instruction with appended character (used for SPC, TAB, and NL keywords).<br/><br/>
 	/// </summary>
-	public class AdvanceAppendInstruction(Opcode opcode, uint addr, char ch) : Instruction(opcode, addr)
+	public class AdvanceAppendInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader)
 	{
-		public char Char { get; } = ch;
+		public char Char { get; } = reader.ReadChar();
 
 		public override void Visit(DisassemblyWriter writer)
 		{
@@ -331,40 +388,40 @@ namespace DSO.Disassembler
 	/// <summary>
 	/// OP_ADVANCE_STR_COMMA
 	/// </summary>
-	public class AdvanceCommaInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr) { }
+	public class AdvanceCommaInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader) { }
 
 	/// <summary>
 	/// OP_ADVANCE_STR_NUL
 	/// </summary>
-	public class AdvanceNullInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr) { }
+	public class AdvanceNullInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader) { }
 
 	/// <summary>
 	/// OP_REWIND_STR
 	/// </summary>
-	public class RewindStringInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr) { }
+	public class RewindStringInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader) { }
 
 	/// <summary>
 	/// OP_TERMINATE_REWIND_STR
 	/// </summary>
-	public class TerminateRewindInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr) { }
+	public class TerminateRewindInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader) { }
 
 	/// <summary>
 	/// OP_PUSH
 	/// </summary>
-	public class PushInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr) { }
+	public class PushInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader) { }
 
 	/// <summary>
 	/// OP_PUSH_FRAME
 	/// </summary>
-	public class PushFrameInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr) { }
+	public class PushFrameInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader) { }
 
 	/// <summary>
 	/// OP_BREAK
 	/// </summary>
-	public class DebugBreakInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr) { }
+	public class DebugBreakInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader) { }
 
 	/// <summary>
 	/// OP_UNUSED#
 	/// </summary>
-	public class UnusedInstruction(Opcode opcode, uint addr) : Instruction(opcode, addr) { }
+	public class UnusedInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader) { }
 }
