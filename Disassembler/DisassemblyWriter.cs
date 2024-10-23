@@ -50,7 +50,22 @@ namespace DSO.Disassembler
 
 			if (instruction.Address >= Function?.EndAddress)
 			{
-				WriteLine(Address, $"; End of `{(Function.Namespace == null ? "" : $"{Function.Namespace}::")}{Function.Name}()`\n");
+				var endComment = "End of `";
+
+				if (Function.Namespace != null)
+				{
+					endComment += $"{Function.Namespace}::";
+				}
+
+				endComment += $"{Function.Name}()`";
+
+				if (Function.Package != null)
+				{
+					endComment += $" (package: `{Function.Package}`)";
+				}
+
+				WriteCommentLine(endComment, writeAddress: true, indent: true);
+				Write("\n");
 			}
 
 			instruction.Visit(this);

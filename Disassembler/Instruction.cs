@@ -98,7 +98,22 @@ namespace DSO.Disassembler
 			writer.Write("\n");
 			writer.WriteCommentLine("======================== F U N C T I O N ============================================", writeAddress: true);
 			writer.WriteLine(Address, "", "", indent: false);
-			writer.WriteCommentLine($"Start of `{(Namespace == null ? "" : $"{Namespace}::")}{Name}()`", writeAddress: true, indent: true);
+
+			var startComment = "Start of `";
+
+			if (Namespace != null)
+			{
+				startComment += $"{Namespace}::";
+			}
+
+			startComment += $"{Name}()`";
+
+			if (Package != null)
+			{
+				startComment += $" (package: `{Package}`)";
+			}
+
+			writer.WriteCommentLine(startComment, writeAddress: true, indent: true);
 			writer.WriteLine(Address, "");
 
 			base.Visit(writer);
