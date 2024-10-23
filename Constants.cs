@@ -19,9 +19,9 @@ namespace DSO.Constants
 
 		static public class GameVersions
 		{
+			public const uint TGE10 = 33;
 			public const uint TGE14 = 36;
 			public const uint TFD = 33;
-			public const uint BLBETA = 33;
 			public const uint BLV1 = 90;
 			public const uint BLV20 = 190;
 			public const uint BLV21 = 210;

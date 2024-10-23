@@ -8,7 +8,7 @@
  * For full terms, see the LICENSE file or visit https://spdx.org/licenses/BSD-3-Clause.html
  */
 
-namespace DSO.Versions.Blockland.Beta
+namespace DSO.Versions.TorqueGameEngine10
 {
 	public class Ops : Opcodes.Ops
 	{

@@ -2,11 +2,11 @@
 
 This is a DSO decompiler for the Torque Game Engine. It takes `.dso` files and decompiles them back into TorqueScript!
 
-This project only supports the following games and engines:
+This project supports the following games and engines:
 
+* Torque Game Engine 1.0-1.3 (e.g. Marble Blast Gold, Blockland v0002, and [Blockland Retail Beta](https://bl.kenko.dev/Versions/Retail%20Beta))
 * Torque Game Engine 1.4
 * The Forgettable Dungeon
-* [Blockland Retail Beta](https://bl.kenko.dev/Versions/Retail%20Beta)
 * Blockland v1
 * Blockland v20
 * Blockland v21
@@ -45,9 +45,9 @@ You can also use it as a command-line interface: `usage: dso-sharp path1[, path2
 | Value    | Game |
 |:---------|:-----|
 | `auto`   | Automatically determines the game from script file (defaults to this if `--game` flag is not set). |
+| `tge10`  | Torque Game Engine 1.0-1.3 |
 | `tge14`  | Torque Game Engine 1.4 |
 | `tfd`    | The Forgettable Dungeon |
-| `blbeta` | [Blockland Retail Beta](https://bl.kenko.dev/Versions/Retail%20Beta) |
 | `blv1`   | Blockland v1 |
 | `blv20`  | Blockland v20 |
 | `blv21`  | Blockland v21 |

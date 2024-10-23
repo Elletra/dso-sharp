@@ -28,9 +28,9 @@ namespace DSO.Util
 		static private readonly Dictionary<string, GameIdentifier> _gameIdentifiers = new()
 		{
 			{ "auto", GameIdentifier.Auto },
+			{ "tge10", GameIdentifier.TorqueGameEngine10 },
 			{ "tge14", GameIdentifier.TorqueGameEngine14 },
 			{ "tfd", GameIdentifier.ForgettableDungeon },
-			{ "blbeta", GameIdentifier.BlocklandBeta },
 			{ "blv1", GameIdentifier.BlocklandV1 },
 			{ "blv20", GameIdentifier.BlocklandV20 },
 			{ "blv21", GameIdentifier.BlocklandV21 },

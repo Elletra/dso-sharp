@@ -10,7 +10,7 @@
 
 using DSO.Loader;
 
-namespace DSO.Versions.Blockland.Beta
+namespace DSO.Versions.TorqueGameEngine10
 {
 	public class FileLoader : Loader.FileLoader
 	{

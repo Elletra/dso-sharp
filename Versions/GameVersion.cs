@@ -19,9 +19,9 @@ namespace DSO.Versions
 	public enum GameIdentifier : uint
 	{
 		Auto,
-		ForgettableDungeon,
+		TorqueGameEngine10,
 		TorqueGameEngine14,
-		BlocklandBeta,
+		ForgettableDungeon,
 		BlocklandV1,
 		BlocklandV20,
 		BlocklandV21,
@@ -32,9 +32,9 @@ namespace DSO.Versions
 		static public string GetDisplayName(GameIdentifier identifier) => identifier switch
 		{
 			GameIdentifier.Auto => "Automatically determines the game from script file.",
+			GameIdentifier.TorqueGameEngine10 => "Torque Game Engine 1.0-1.3",
 			GameIdentifier.TorqueGameEngine14 => "Torque Game Engine 1.4",
 			GameIdentifier.ForgettableDungeon => "The Forgettable Dungeon",
-			GameIdentifier.BlocklandBeta => "Blockland Retail Beta",
 			GameIdentifier.BlocklandV1 => "Blockland v1",
 			GameIdentifier.BlocklandV20 => "Blockland v20",
 			GameIdentifier.BlocklandV21 => "Blockland v21",
@@ -44,9 +44,9 @@ namespace DSO.Versions
 		static public uint GetVersionFromIdentifier(GameIdentifier identifier) => identifier switch
 		{
 			GameIdentifier.Auto => 0,
+			GameIdentifier.TorqueGameEngine10 => GameVersions.TGE10,
 			GameIdentifier.TorqueGameEngine14 => GameVersions.TGE14,
 			GameIdentifier.ForgettableDungeon => GameVersions.TFD,
-			GameIdentifier.BlocklandBeta => GameVersions.BLBETA,
 			GameIdentifier.BlocklandV1 => GameVersions.BLV1,
 			GameIdentifier.BlocklandV20 => GameVersions.BLV20,
 			GameIdentifier.BlocklandV21 => GameVersions.BLV21,
@@ -56,19 +56,19 @@ namespace DSO.Versions
 		static public GameIdentifier[] GetIdentifiersFromVersion(uint version) => version switch
 		{
 			GameVersions.TGE14 => [GameIdentifier.TorqueGameEngine14],
-			GameVersions.TFD or GameVersions.BLBETA => [GameIdentifier.ForgettableDungeon, GameIdentifier.BlocklandBeta],
+			GameVersions.TFD or GameVersions.TGE10 => [GameIdentifier.ForgettableDungeon, GameIdentifier.TorqueGameEngine10],
 			GameVersions.BLV1 => [GameIdentifier.BlocklandV1],
 			GameVersions.BLV20 => [GameIdentifier.BlocklandV20],
 			GameVersions.BLV21 => [GameIdentifier.BlocklandV21],
-			_ => [GameIdentifier.Auto],
+			_ => [],
 		};
 
 		static public Ops? CreateOps(GameIdentifier identifier) => identifier switch
 		{
 			GameIdentifier.Auto => null,
+			GameIdentifier.TorqueGameEngine10 => new TorqueGameEngine10.Ops(),
 			GameIdentifier.TorqueGameEngine14 => new Ops(),
 			GameIdentifier.ForgettableDungeon => new TFD.Ops(),
-			GameIdentifier.BlocklandBeta => new Blockland.Beta.Ops(),
 			GameIdentifier.BlocklandV1 => new Blockland.V1.Ops(),
 			GameIdentifier.BlocklandV20 => new Blockland.V20.Ops(),
 			GameIdentifier.BlocklandV21 => new Blockland.V21.Ops(),
@@ -78,9 +78,9 @@ namespace DSO.Versions
 		static public FileLoader? CreateFileLoader(GameIdentifier identifier) => identifier switch
 		{
 			GameIdentifier.Auto => null,
+			GameIdentifier.TorqueGameEngine10 => new TorqueGameEngine10.FileLoader(),
 			GameIdentifier.TorqueGameEngine14 => new FileLoader(),
 			GameIdentifier.ForgettableDungeon => new TFD.FileLoader(),
-			GameIdentifier.BlocklandBeta => new Blockland.Beta.FileLoader(),
 			GameIdentifier.BlocklandV1 => new Blockland.V1.FileLoader(),
 			GameIdentifier.BlocklandV20 => new Blockland.FileLoader(),
 			GameIdentifier.BlocklandV21 => new Blockland.FileLoader(),
