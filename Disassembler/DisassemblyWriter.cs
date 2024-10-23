@@ -64,7 +64,10 @@ namespace DSO.Disassembler
 					endComment += $" (package: `{Function.Package}`)";
 				}
 
+				WriteLine(Address, "", "", indent: false);
 				WriteCommentLine(endComment, writeAddress: true, indent: true);
+				WriteLine(Address, "", "", indent: false);
+				WriteCommentLine("=====================================================================================", writeAddress: true);
 				Write("\n");
 			}
 
