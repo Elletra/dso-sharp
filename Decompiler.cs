@@ -184,7 +184,13 @@ namespace DSO
 			try
 			{
 				game = GameVersion.Create(identifier);
-				fileData = game.FileLoader.LoadFile(path, game.Version);
+				fileData = game.FileLoader.LoadFile(path);
+
+				if (fileData.Version != game.Version)
+				{
+					Logger.LogWarning($"File version {fileData.Version} differs from expected version {game.Version}");
+				}
+
 				disassembly = new Disassembler.Disassembler().Disassemble(fileData, game.Ops);
 				nodes = new Builder().Build(new ControlFlowAnalyzer().Analyze(disassembly), disassembly);
 			}

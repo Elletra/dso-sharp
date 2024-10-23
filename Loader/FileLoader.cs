@@ -40,14 +40,13 @@ namespace DSO.Loader
 		/// <exception cref="FileLoaderException">
 		/// <see cref="ReadHeader"/> throws if the DSO file has the wrong version.
 		/// </exception>
-		public virtual FileData LoadFile(string filePath, uint version)
+		public virtual FileData LoadFile(string filePath)
 		{
 			_reader?.Close();
 			_reader = new(filePath);
 
-			var data = new FileData(version);
+			var data = ReadHeader();
 
-			ReadHeader(data);
 			ReadTables(data);
 
 			var (codeSize, lineBreaks) = ReadCode(data);
@@ -62,27 +61,17 @@ namespace DSO.Loader
 
 		public void Close() => _reader?.Close();
 
+		/// <summary>
+		/// Reads the DSO file header and returns a <see cref="FileData"/> instance.
+		/// </summary>
+		protected virtual FileData ReadHeader() => new(_reader.ReadUInt());
+
 		protected virtual void ReadTables(FileData data)
 		{
 			ReadStringTable(data, global: true);
 			ReadFloatTable(data, global: true);
 			ReadStringTable(data, global: false);
 			ReadFloatTable(data, global: false);
-		}
-
-		/// <summary>
-		/// Reads the DSO file header to make sure it has the right version, and throws an exception
-		/// if it does not.
-		/// </summary>
-		/// <exception cref="FileLoaderException">If file has the wrong version.</exception>
-		protected virtual void ReadHeader(FileData data)
-		{
-			var fileVersion = _reader.ReadUInt();
-
-			if (fileVersion != data.Version)
-			{
-				throw new FileLoaderException($"Invalid DSO version: Expected {data.Version}, got {fileVersion}");
-			}
 		}
 
 		protected virtual void ReadStringTable(FileData data, bool global)
