@@ -21,6 +21,7 @@ namespace DSO.Versions
 		Auto,
 		TorqueGameEngine10,
 		TorqueGameEngine14,
+		Tribes2,
 		ForgettableDungeon,
 		BlocklandV1,
 		BlocklandV20,
@@ -34,6 +35,7 @@ namespace DSO.Versions
 			GameIdentifier.Auto => "Automatically determines the game from script file.",
 			GameIdentifier.TorqueGameEngine10 => "Torque Game Engine 1.0-1.3",
 			GameIdentifier.TorqueGameEngine14 => "Torque Game Engine 1.4",
+			GameIdentifier.Tribes2 => "Tribes 2",
 			GameIdentifier.ForgettableDungeon => "The Forgettable Dungeon",
 			GameIdentifier.BlocklandV1 => "Blockland v1",
 			GameIdentifier.BlocklandV20 => "Blockland v20",
@@ -46,6 +48,7 @@ namespace DSO.Versions
 			GameIdentifier.Auto => 0,
 			GameIdentifier.TorqueGameEngine10 => GameVersions.TGE10,
 			GameIdentifier.TorqueGameEngine14 => GameVersions.TGE14,
+			GameIdentifier.Tribes2 => GameVersions.T2,
 			GameIdentifier.ForgettableDungeon => GameVersions.TFD,
 			GameIdentifier.BlocklandV1 => GameVersions.BLV1,
 			GameIdentifier.BlocklandV20 => GameVersions.BLV20,
@@ -57,6 +60,7 @@ namespace DSO.Versions
 		{
 			GameVersions.TGE10 or GameVersions.TFD => [GameIdentifier.TorqueGameEngine10, GameIdentifier.ForgettableDungeon],
 			GameVersions.TGE14 => [GameIdentifier.TorqueGameEngine14],
+			GameVersions.T2 => [GameIdentifier.Tribes2],
 			GameVersions.BLV1 => [GameIdentifier.BlocklandV1],
 			GameVersions.BLV20 => [GameIdentifier.BlocklandV20],
 			GameVersions.BLV21 => [GameIdentifier.BlocklandV21],
@@ -66,7 +70,7 @@ namespace DSO.Versions
 		static public Ops? CreateOps(GameIdentifier identifier) => identifier switch
 		{
 			GameIdentifier.Auto => null,
-			GameIdentifier.TorqueGameEngine10 => new Ops(),
+			GameIdentifier.TorqueGameEngine10 or GameIdentifier.Tribes2 => new Ops(),
 			GameIdentifier.TorqueGameEngine14 => new TorqueGameEngine14.Ops(),
 			GameIdentifier.ForgettableDungeon => new TFD.Ops(),
 			GameIdentifier.BlocklandV1 => new Blockland.V1.Ops(),
@@ -78,7 +82,7 @@ namespace DSO.Versions
 		static public FileLoader? CreateFileLoader(GameIdentifier identifier) => identifier switch
 		{
 			GameIdentifier.Auto => null,
-			GameIdentifier.TorqueGameEngine10 => new FileLoader(),
+			GameIdentifier.TorqueGameEngine10 or GameIdentifier.Tribes2 => new FileLoader(),
 			GameIdentifier.TorqueGameEngine14 => new TorqueGameEngine14.FileLoader(),
 			GameIdentifier.ForgettableDungeon => new TFD.FileLoader(),
 			GameIdentifier.BlocklandV1 => new Blockland.V1.FileLoader(),

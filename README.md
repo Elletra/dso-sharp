@@ -6,6 +6,7 @@ This project supports the following games and engines:
 
 * Torque Game Engine 1.0-1.3 (e.g. Marble Blast Gold, Blockland v0002, and [Blockland Retail Beta](https://bl.kenko.dev/Versions/Retail%20Beta))
 * Torque Game Engine 1.4
+* Tribes 2
 * The Forgettable Dungeon
 * Blockland v1
 * Blockland v20
@@ -47,6 +48,7 @@ You can also use it as a command-line interface: `usage: dso-sharp path1[, path2
 | `auto`   | Automatically determines the game from script file (defaults to this if `--game` flag is not set). |
 | `tge10`  | Torque Game Engine 1.0-1.3 |
 | `tge14`  | Torque Game Engine 1.4 |
+| `t2`     | Tribes 2 |
 | `tfd`    | The Forgettable Dungeon |
 | `blv1`   | Blockland v1 |
 | `blv20`  | Blockland v20 |

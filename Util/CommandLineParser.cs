@@ -30,6 +30,7 @@ namespace DSO.Util
 			{ "auto", GameIdentifier.Auto },
 			{ "tge10", GameIdentifier.TorqueGameEngine10 },
 			{ "tge14", GameIdentifier.TorqueGameEngine14 },
+			{ "t2", GameIdentifier.Tribes2 },
 			{ "tfd", GameIdentifier.ForgettableDungeon },
 			{ "blv1", GameIdentifier.BlocklandV1 },
 			{ "blv20", GameIdentifier.BlocklandV20 },
