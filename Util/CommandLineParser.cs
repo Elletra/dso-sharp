@@ -129,7 +129,7 @@ namespace DSO.Util
 						{
 							Logger.LogError($"Unknown or unsupported flag '{arg}'");
 
-							if (arg == "-H" || arg == "-Q" || arg == "-G")
+							if (arg == "-H" || arg == "-Q" || arg == "-G" || arg == "-D")
 							{
 								Logger.LogError($"Did you mean '{arg.ToLower()}'?");
 							}
@@ -175,7 +175,7 @@ namespace DSO.Util
 				"    -h, --help           Displays help.\n" +
 				"    -q, --quiet          Disables all messages (except command-line argument errors).\n" +
 				"    -g, --game           Specifies which game settings to use (default: 'auto').\n" +
-				"    -d, --disassembly    Writes a `" + DISASM_EXTENSION + "` file containg the disassembly.\n" +
+				"    -d, --disassembly    Writes a `" + DISASM_EXTENSION + "` file containing the disassembly.\n" +
 				"    -X, --cli            Makes the program operate as a command-line interface\n" +
 				"                         that takes no keyboard input and closes immediately\n" +
 				"                         upon completion or failure.\n"
