@@ -10,16 +10,24 @@
 
 using DSO.Versions;
 using static DSO.Constants.Decompiler;
+using static DSO.Util.CommandLineOptions;
 
 namespace DSO.Util
 {
 	public class CommandLineOptions
 	{
+		public enum DisassemblyOutput
+		{
+			None,
+			Disassembly,
+			DisassemblyOnly,
+		}
+
 		public readonly List<string> Paths = [];
 
 		public GameIdentifier GameIdentifier { get; set; } = GameIdentifier.Auto;
 		public bool Quiet { get; set; } = false;
-		public bool OutputDisassembly { get; set; } = false;
+		public DisassemblyOutput OutputDisassembly { get; set; } = DisassemblyOutput.None;
 		public bool CommandLineMode { get; set; } = false;
 	}
 
@@ -40,6 +48,7 @@ namespace DSO.Util
 		static public Tuple<bool, CommandLineOptions> Parse(string[] args)
 		{
 			var firstFlagSet = false;
+			var unknownFlag = false;
 			var options = new CommandLineOptions();
 			var error = false;
 			var paths = new List<string>();
@@ -58,24 +67,36 @@ namespace DSO.Util
 
 				switch (arg)
 				{
-					case "--help" or "-h":
+					case "-h":
 						DisplayHelp();
 						error = true;
 						break;
 
-					case "--cli" or "-X":
+					case "-X":
 						options.CommandLineMode = true;
 						break;
 
-					case "--quiet" or "-q":
+					case "-q":
 						options.Quiet = true;
 						break;
 
-					case "--disassembly" or "-d":
-						options.OutputDisassembly = true;
+					case "-d":
+						if (options.OutputDisassembly == DisassemblyOutput.None)
+						{
+							options.OutputDisassembly = DisassemblyOutput.Disassembly;
+						}
+
 						break;
 
-					case "--game" or "-g":
+					case "-D":
+						if (options.OutputDisassembly != DisassemblyOutput.DisassemblyOnly)
+						{
+							options.OutputDisassembly = DisassemblyOutput.DisassemblyOnly;
+						}
+
+						break;
+
+					case "-g":
 					{
 						error = i >= args.Length - 1 || args[i + 1].StartsWith('-');
 
@@ -127,9 +148,9 @@ namespace DSO.Util
 						}
 						else
 						{
-							Logger.LogError($"Unknown or unsupported flag '{arg}'");
+							Logger.LogError($"Unknown or unsupported flag '{arg}'\n");
 
-							if (arg == "-H" || arg == "-Q" || arg == "-G" || arg == "-D")
+							if (arg == "-H" || arg == "-Q" || arg == "-G")
 							{
 								Logger.LogError($"Did you mean '{arg.ToLower()}'?");
 							}
@@ -138,6 +159,7 @@ namespace DSO.Util
 								Logger.LogError($"Did you mean '{arg.ToUpper()}'?");
 							}
 
+							unknownFlag = true;
 							error = true;
 						}
 
@@ -151,7 +173,14 @@ namespace DSO.Util
 				}
 			}
 
-			if (!error && options.Paths.Count <= 0)
+			if (error)
+			{
+				if (unknownFlag)
+				{
+					DisplayHelp();
+				}
+			}
+			else if (options.Paths.Count <= 0)
 			{
 				if (!options.Quiet && !options.CommandLineMode)
 				{
@@ -170,15 +199,15 @@ namespace DSO.Util
 		static private void DisplayHelp()
 		{
 			Logger.LogMessage(
-				"usage: dso-sharp path1[, path2[, ...]] [-h] [-q] [-g game_version] [-d] [-X]\n" +
+				"usage: dso-sharp path1[, path2[, ...]] [-h] [-q] [-g game] [-d | -D] [-X]\n" +
 				"  options:\n" +
-				"    -h, --help           Displays help.\n" +
-				"    -q, --quiet          Disables all messages (except command-line argument errors).\n" +
-				"    -g, --game           Specifies which game settings to use (default: 'auto').\n" +
-				"    -d, --disassembly    Writes a `" + DISASM_EXTENSION + "` file containing the disassembly.\n" +
-				"    -X, --cli            Makes the program operate as a command-line interface\n" +
-				"                         that takes no keyboard input and closes immediately\n" +
-				"                         upon completion or failure.\n"
+				"    -h    Displays help.\n" +
+				"    -q    Disables all messages (except command-line argument errors).\n" +
+				"    -g    Specifies which game settings to use (default: 'auto').\n" +
+				"    -d    Writes a `" + DISASM_EXTENSION + "` file containing the disassembly.\n" +
+				"    -D    Writes only the disassembly file and nothing else.\n" +
+				"    -X    Makes the program operate as a command-line interface that takes\n" +
+				"          no keyboard input and closes immediately upon completion or failure.\n"
 			);
 
 			DisplayVersions();

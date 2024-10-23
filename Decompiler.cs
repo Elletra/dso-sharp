@@ -16,6 +16,7 @@ using DSO.Loader;
 using DSO.Util;
 using DSO.Versions;
 using static DSO.Constants.Decompiler;
+using static DSO.Util.CommandLineOptions;
 
 namespace DSO
 {
@@ -131,10 +132,19 @@ namespace DSO
 
 		private bool DecompileFile(string path)
 		{
-			Logger.LogMessage($"Decompiling file: \"{path}\"");
+			if (_options.OutputDisassembly == DisassemblyOutput.DisassemblyOnly)
+			{
+				Logger.LogMessage($"Disassembling file: \"{path}\"");
+			}
+			else
+			{
+				Logger.LogMessage($"Decompiling file: \"{path}\"");
+			}
 
 			if (_options.GameIdentifier != GameIdentifier.Auto)
 			{
+				Logger.LogMessage($"\tUsing game settings: \"{GameVersion.GetDisplayName(_options.GameIdentifier)}\"", ConsoleColor.DarkGray);
+
 				return DecompileFile(path, _options.GameIdentifier, silentError: false);
 			}
 
@@ -179,7 +189,9 @@ namespace DSO
 			GameVersion game = new();
 			FileData fileData;
 			Disassembly disassembly;
-			List<Node> nodes;
+			List<Node> nodes = [];
+
+			var disassemblyOnly = _options.OutputDisassembly == DisassemblyOutput.DisassemblyOnly;
 
 			try
 			{
@@ -192,7 +204,11 @@ namespace DSO
 				}
 
 				disassembly = new Disassembler.Disassembler().Disassemble(fileData, game.Ops);
-				nodes = new Builder().Build(new ControlFlowAnalyzer().Analyze(disassembly), disassembly);
+
+				if (!disassemblyOnly)
+				{
+					nodes = new Builder().Build(new ControlFlowAnalyzer().Analyze(disassembly), disassembly);
+				}
 			}
 			catch (Exception exception)
 			{
@@ -206,13 +222,17 @@ namespace DSO
 				return false;
 			}
 
-			var scriptPath = $"{Directory.GetParent(path)}/{Path.GetFileNameWithoutExtension(path)}";
 
-			Logger.LogMessage($"Writing output file: \"{scriptPath}\"");
+			if (!disassemblyOnly)
+			{
+				var scriptPath = $"{Directory.GetParent(path)}/{Path.GetFileNameWithoutExtension(path)}";
 
-			WriteScriptFile(scriptPath, nodes);
+				Logger.LogMessage($"Writing output file: \"{scriptPath}\"");
 
-			if (_options.OutputDisassembly)
+				WriteScriptFile(scriptPath, nodes);
+			}
+
+			if (_options.OutputDisassembly != DisassemblyOutput.None)
 			{
 				var disassemblyPath = $"{Directory.GetParent(path)}/{Path.GetFileNameWithoutExtension(path)}{DISASM_EXTENSION}";
 

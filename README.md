@@ -30,16 +30,17 @@ There are two ways to use this program: either as a typical console program, or 
 
 To use it normally, just drag a `.dso` file or a directory full of `.dso` files onto the program. It will try to automatically detect and decompile the file(s) that were passed in.
 
-You can also use it as a command-line interface: `usage: dso-sharp path1[, path2[, ...]] [-h] [-q] [-g game_version] [-d] [-X]`
+You can also use it as a command-line interface: `usage: dso-sharp path1[, path2[, ...]] [-h] [-q] [-g game] [-d | -D] [-X]`
 
 
 | Flag                   |   Description  |
 |:-----------------------|:---------------|
-| `-h`, `--help`         | Displays help. |
-| `-q`, `--quiet`        | Disables all messages (except command-line argument errors). |
-| `-g`, `--game`         | Specifies which game's scripts we are decompiling (default: `auto`). |
-| `-d`, `--disassembly`  | Writes a `.disasm` file containing the disassembly. |
-| `-X`, `--cli`          | Makes the program operate as a command-line interface that takes no keyboard input and closes immediately upon completion or failure. |
+| `-h` | Displays help. |
+| `-q` | Disables all messages (except command-line argument errors). |
+| `-g` | Specifies which game's scripts we are decompiling (default: `auto`). |
+| `-d` | Writes a `.disasm` file containing the disassembly. |
+| `-D` | Writes only the disassembly file and nothing else. |
+| `-X` | Makes the program operate as a command-line interface that takes no keyboard input and closes immediately upon completion or failure. |
 
 
 ### Supported Games
