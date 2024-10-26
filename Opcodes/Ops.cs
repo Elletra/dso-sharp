@@ -86,6 +86,7 @@ namespace DSO.Opcodes
 
 		OP_SETCUROBJECT,
 		OP_SETCUROBJECT_NEW,
+		OP_SETCUROBJECT_INTERNAL,
 
 		OP_SETCURFIELD,
 		OP_SETCURFIELD_ARRAY,
@@ -129,6 +130,8 @@ namespace DSO.Opcodes
 		OP_PUSH_FRAME,
 
 		OP_BREAK,
+
+		OP_UNIT_CONVERSION,
 
 		OP_UNUSED1,
 		OP_UNUSED2,
@@ -199,6 +202,7 @@ namespace DSO.Opcodes
 
 		public virtual uint OP_SETCUROBJECT => 0x2E;
 		public virtual uint OP_SETCUROBJECT_NEW => 0x2F;
+		public virtual uint OP_SETCUROBJECT_INTERNAL => OP_INVALID;
 
 		public virtual uint OP_SETCURFIELD => 0x30;
 		public virtual uint OP_SETCURFIELD_ARRAY => 0x31;
@@ -242,6 +246,8 @@ namespace DSO.Opcodes
 		public virtual uint OP_PUSH_FRAME => 0x51;
 
 		public virtual uint OP_BREAK => 0x52;
+
+		public virtual uint OP_UNIT_CONVERSION => OP_INVALID;
 
 		public virtual uint OP_UNUSED1 => 0x02;
 		public virtual uint OP_UNUSED2 => 0x03;
@@ -358,6 +364,16 @@ namespace DSO.Opcodes
 
 				{ OP_INVALID, OpcodeTag.OP_INVALID },
 			};
+
+			if (!_tags.ContainsKey(OP_SETCUROBJECT_INTERNAL))
+			{
+				_tags[OP_SETCUROBJECT_INTERNAL] = OpcodeTag.OP_SETCUROBJECT_INTERNAL;
+			}
+
+			if (!_tags.ContainsKey(OP_UNIT_CONVERSION))
+			{
+				_tags[OP_UNIT_CONVERSION] = OpcodeTag.OP_UNIT_CONVERSION;
+			}
 
 			if (!_tags.ContainsKey(OP_UNUSED1))
 			{

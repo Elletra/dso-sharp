@@ -8,8 +8,11 @@
  * For full terms, see the LICENSE file or visit https://spdx.org/licenses/BSD-3-Clause.html
  */
 
-namespace DSO.Versions.TorqueGameEngine14
+namespace DSO.Versions.Constructor
 {
+	/// <summary>
+	/// The opcodes for Torque Constructor.
+	/// </summary>
 	public class Ops : Opcodes.Ops
 	{
 		public override uint OP_FUNC_DECL => 0x00;
@@ -56,6 +59,7 @@ namespace DSO.Versions.TorqueGameEngine14
 
 		public override uint OP_SETCURVAR => 0x22;
 		public override uint OP_SETCURVAR_CREATE => 0x23;
+
 		public override uint OP_SETCURVAR_ARRAY => 0x24;
 		public override uint OP_SETCURVAR_ARRAY_CREATE => 0x25;
 
@@ -69,54 +73,59 @@ namespace DSO.Versions.TorqueGameEngine14
 
 		public override uint OP_SETCUROBJECT => 0x2C;
 		public override uint OP_SETCUROBJECT_NEW => 0x2D;
+		public override uint OP_SETCUROBJECT_INTERNAL => 0x2E;
 
-		public override uint OP_SETCURFIELD => 0x2E;
-		public override uint OP_SETCURFIELD_ARRAY => 0x2F;
+		public override uint OP_SETCURFIELD => 0x2F;
+		public override uint OP_SETCURFIELD_ARRAY => 0x30;
 
-		public override uint OP_LOADFIELD_UINT => 0x30;
-		public override uint OP_LOADFIELD_FLT => 0x31;
-		public override uint OP_LOADFIELD_STR => 0x32;
+		public override uint OP_LOADFIELD_UINT => 0x31;
+		public override uint OP_LOADFIELD_FLT => 0x32;
+		public override uint OP_LOADFIELD_STR => 0x33;
 
-		public override uint OP_SAVEFIELD_UINT => 0x33;
-		public override uint OP_SAVEFIELD_FLT => 0x34;
-		public override uint OP_SAVEFIELD_STR => 0x35;
+		public override uint OP_SAVEFIELD_UINT => 0x34;
+		public override uint OP_SAVEFIELD_FLT => 0x35;
+		public override uint OP_SAVEFIELD_STR => 0x36;
 
-		public override uint OP_STR_TO_UINT => 0x36;
-		public override uint OP_STR_TO_FLT => 0x37;
-		public override uint OP_STR_TO_NONE => 0x38;
-		public override uint OP_FLT_TO_UINT => 0x39;
-		public override uint OP_FLT_TO_STR => 0x3A;
-		public override uint OP_FLT_TO_NONE => 0x3B;
-		public override uint OP_UINT_TO_FLT => 0x3C;
-		public override uint OP_UINT_TO_STR => 0x3D;
-		public override uint OP_UINT_TO_NONE => 0x3E;
+		public override uint OP_STR_TO_UINT => 0x37;
+		public override uint OP_STR_TO_FLT => 0x38;
+		public override uint OP_STR_TO_NONE => 0x39;
 
-		public override uint OP_LOADIMMED_UINT => 0x3F;
-		public override uint OP_LOADIMMED_FLT => 0x40;
-		public override uint OP_TAG_TO_STR => 0x41;
-		public override uint OP_LOADIMMED_STR => 0x42;
-		public override uint OP_LOADIMMED_IDENT => 0x43;
+		public override uint OP_FLT_TO_UINT => 0x3A;
+		public override uint OP_FLT_TO_STR => 0x3B;
+		public override uint OP_FLT_TO_NONE => 0x3C;
 
-		public override uint OP_CALLFUNC_RESOLVE => 0x44;
-		public override uint OP_CALLFUNC => 0x45;
+		public override uint OP_UINT_TO_FLT => 0x3D;
+		public override uint OP_UINT_TO_STR => 0x3E;
+		public override uint OP_UINT_TO_NONE => 0x3F;
 
-		public override uint OP_ADVANCE_STR => 0x46;
-		public override uint OP_ADVANCE_STR_APPENDCHAR => 0x47;
-		public override uint OP_ADVANCE_STR_COMMA => 0x48;
-		public override uint OP_ADVANCE_STR_NUL => 0x49;
-		public override uint OP_REWIND_STR => 0x4A;
-		public override uint OP_TERMINATE_REWIND_STR => 0x4B;
-		public override uint OP_COMPARE_STR => 0x4C;
+		public override uint OP_LOADIMMED_UINT => 0x40;
+		public override uint OP_LOADIMMED_FLT => 0x41;
+		public override uint OP_TAG_TO_STR => 0x42;
+		public override uint OP_LOADIMMED_STR => 0x43;
+		public override uint OP_LOADIMMED_IDENT => 0x44;
 
-		public override uint OP_PUSH => 0x4D;
-		public override uint OP_PUSH_FRAME => 0x4E;
+		public override uint OP_CALLFUNC_RESOLVE => 0x45;
+		public override uint OP_CALLFUNC => 0x46;
 
-		public override uint OP_BREAK => 0x4F;
+		public override uint OP_ADVANCE_STR => 0x47;
+		public override uint OP_ADVANCE_STR_APPENDCHAR => 0x48;
+		public override uint OP_ADVANCE_STR_COMMA => 0x49;
+		public override uint OP_ADVANCE_STR_NUL => 0x4A;
+		public override uint OP_REWIND_STR => 0x4B;
+		public override uint OP_TERMINATE_REWIND_STR => 0x4C;
+		public override uint OP_COMPARE_STR => 0x4D;
+
+		public override uint OP_PUSH => 0x4E;
+		public override uint OP_PUSH_FRAME => 0x4F;
+
+		public override uint OP_BREAK => 0x50;
+
+		public override uint OP_UNIT_CONVERSION => 0x51;
+
+		public override uint OP_INVALID => 0x52;
 
 		public override uint OP_UNUSED1 => OP_INVALID;
 		public override uint OP_UNUSED2 => OP_INVALID;
 		public override uint OP_UNUSED3 => OP_INVALID;
-
-		public override uint OP_INVALID => 0x50;
 	}
 }

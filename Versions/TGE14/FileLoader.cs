@@ -10,7 +10,7 @@
 
 using DSO.Loader;
 
-namespace DSO.Versions.TorqueGameEngine14
+namespace DSO.Versions.TGE14
 {
 	public class FileLoader : Loader.FileLoader
 	{

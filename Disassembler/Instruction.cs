@@ -136,11 +136,21 @@ namespace DSO.Disassembler
 	/// <summary>
 	/// Instruction for the first part of object creation.
 	/// </summary>
-	public class CreateObjectInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader)
+	public class CreateObjectInstruction : Instruction
 	{
-		public StringTableEntry? Parent { get; } = reader.ReadIdentifier();
-		public bool IsDataBlock { get; } = reader.ReadBool();
-		public uint FailJumpAddress { get; } = reader.ReadUInt();
+		public StringTableEntry? Parent { get; protected set; } = null;
+		public bool IsDataBlock { get; protected set; } = false;
+		public bool? IsInternal { get; protected set; } = null;
+		public uint FailJumpAddress { get; protected set; } = 0;
+
+		public CreateObjectInstruction(Opcode opcode, uint address, BytecodeReader reader) : base(opcode, address, reader) => Read(reader);
+
+		protected virtual void Read(BytecodeReader reader)
+		{
+			Parent = reader.ReadIdentifier();
+			IsDataBlock = reader.ReadBool();
+			FailJumpAddress = reader.ReadUInt();
+		}
 
 		public override void Visit(DisassemblyWriter writer)
 		{
@@ -148,6 +158,12 @@ namespace DSO.Disassembler
 
 			writer.WriteValue(Parent, "parent");
 			writer.WriteValue(IsDataBlock, "is datablock");
+
+			if (IsInternal != null)
+			{
+				writer.WriteValue(IsInternal, "is internal");
+			}
+
 			writer.WriteAddressValue(FailJumpAddress, "fail jump address");
 		}
 	}
@@ -275,6 +291,11 @@ namespace DSO.Disassembler
 	/// OP_SETCUROBJECT_NEW
 	/// </summary>
 	public class ObjectNewInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader) { }
+
+	/// <summary>
+	/// OP_SETCUROBJECT_INTERNAL
+	/// </summary>
+	public class ObjectInternalInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader) { }
 
 	/// <summary>
 	/// Field instruction.
@@ -434,6 +455,11 @@ namespace DSO.Disassembler
 	/// OP_BREAK
 	/// </summary>
 	public class DebugBreakInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader) { }
+
+	/// <summary>
+	/// OP_UNIT_CONVERSION
+	/// </summary>
+	public class UnitConversionInstruction(Opcode opcode, uint address, BytecodeReader reader) : Instruction(opcode, address, reader) { }
 
 	/// <summary>
 	/// OP_UNUSED#

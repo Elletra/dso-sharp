@@ -57,13 +57,11 @@ namespace DSO.Disassembler
 		{
 			var address = _index;
 
-			return ReadInstruction(address, ReadUInt());
+			return ReadInstruction(address, Opcode.Create(ReadUInt(), _ops));
 		}
 
-		private Instruction ReadInstruction(uint address, uint op)
+		protected virtual Instruction ReadInstruction(uint address, Opcode? opcode)
 		{
-			var opcode = Opcode.Create(op, _ops);
-
 			return opcode?.Tag switch
 			{
 				OpcodeTag.OP_FUNC_DECL => new FunctionInstruction(opcode, address, this),
@@ -98,6 +96,8 @@ namespace DSO.Disassembler
 
 				OpcodeTag.OP_SETCUROBJECT => new ObjectInstruction(opcode, address, this),
 				OpcodeTag.OP_SETCUROBJECT_NEW => new ObjectNewInstruction(opcode, address, this),
+				OpcodeTag.OP_SETCUROBJECT_INTERNAL => new ObjectInternalInstruction(opcode, address, this),
+
 				OpcodeTag.OP_SETCURFIELD => new FieldInstruction(opcode, address, this),
 				OpcodeTag.OP_SETCURFIELD_ARRAY => new FieldArrayInstruction(opcode, address, this),
 
@@ -127,9 +127,12 @@ namespace DSO.Disassembler
 				OpcodeTag.OP_PUSH_FRAME => new PushFrameInstruction(opcode, address, this),
 
 				OpcodeTag.OP_BREAK => new DebugBreakInstruction(opcode, address, this),
+
+				OpcodeTag.OP_UNIT_CONVERSION => new UnitConversionInstruction(opcode, address, this),
+
 				OpcodeTag.OP_UNUSED1 or OpcodeTag.OP_UNUSED2 or OpcodeTag.OP_UNUSED3 => new UnusedInstruction(opcode, address, this),
 
-				_ => throw new DisassemblerException($"Invalid opcode 0x{op:X2} at {address}"),
+				_ => throw new DisassemblerException($"Invalid opcode at {address}"),
 			};
 		}
 

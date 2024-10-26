@@ -19,6 +19,8 @@ namespace DSO.AST.Nodes
 		private Node? _object = null;
 		private Node? _index = null;
 
+		public bool Internal { get; set; } = false;
+
 		/* I realize these are abominations and I deeply apologize. */
 		public Node? Object { get => _object; set => _object = value is ConstantStringNode node ? node.ConvertToUIntNode() ?? node.ConvertToDoubleNode() ?? value : value; }
 		public Node? Index { get => _index; set => _index = value is ConstantStringNode node ? node.ConvertToUIntNode() ?? node.ConvertToDoubleNode() ?? value : value; }
@@ -35,7 +37,7 @@ namespace DSO.AST.Nodes
 			if (Object != null)
 			{
 				writer.Write(Object, node => node.Precedence > Precedence);
-				writer.Write(".");
+				writer.Write(Internal ? "->" : ".");
 			}
 
 			writer.Write(Name);

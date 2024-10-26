@@ -18,6 +18,7 @@ namespace DSO.AST.Nodes
 		private readonly List<Node> _arguments = [];
 
 		public readonly bool IsDataBlock = instruction.IsDataBlock;
+		public readonly bool IsInternal = instruction.IsInternal ?? false;
 		public readonly Node Class = className;
 		public readonly Node? Name = objectName;
 		public readonly string? Parent = instruction.Parent;
@@ -41,9 +42,19 @@ namespace DSO.AST.Nodes
 			writer.Write(Class, node => node is not ConstantStringNode str || str.StringType != StringType.Identifier);
 			writer.Write("(");
 
+			if (IsInternal)
+			{
+				writer.Write("[");
+			}
+
 			if (Name != null && (Name is not ConstantStringNode || (Name is ConstantStringNode constant && constant.Value != "")))
 			{
 				writer.Write(Name, isExpression: true);
+			}
+
+			if (IsInternal)
+			{
+				writer.Write("]");
 			}
 
 			if (Parent != null && Parent != "")

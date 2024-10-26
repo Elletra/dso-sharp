@@ -98,23 +98,25 @@ namespace DSO
 
 			Logger.LogMessage("");
 
+			var verb = _options.OutputDisassembly == DisassemblyOutput.DisassemblyOnly ? "Disassemble" : "Decompile";
+
 			if (failures <= 0)
 			{
-				Logger.LogSuccess($"Decompiled {files} file{(plural ? "s" : "")} successfully in {totalTime} ms\n");
+				Logger.LogSuccess($"{verb}d {files} file{(plural ? "s" : "")} successfully in {totalTime} ms\n");
 			}
 			else if (failures < files)
 			{
-				Logger.LogWarning($"Decompiled {files - failures} of {files} file{(plural ? "s" : "")} in {totalTime} ms");
+				Logger.LogWarning($"{verb}d {files - failures} of {files} file{(plural ? "s" : "")} in {totalTime} ms");
 			}
 			else
 			{
-				Logger.LogError($"Failed to decompile {(plural ? "all " : "")}{files} file{(plural ? "s" : "")}");
+				Logger.LogError($"Failed to {verb.ToLower()} {(plural ? "all " : "")}{files} file{(plural ? "s" : "")}");
 			}
 		}
 
 		private Tuple<int, int> DecompileDirectory(string path)
 		{
-			Logger.LogMessage($"Decompiling all files in directory: \"{path}\"");
+			Logger.LogMessage($"{(_options.OutputDisassembly == DisassemblyOutput.DisassemblyOnly ? "Disassembling" : "Decompiling")} all files in directory: \"{path}\"");
 
 			var files = Directory.GetFiles(path, $"*{EXTENSION}", SearchOption.AllDirectories);
 			var failures = 0;
@@ -186,8 +188,8 @@ namespace DSO
 
 		private bool DecompileFile(string path, GameIdentifier identifier, bool silentError)
 		{
-			GameVersion game = new();
-			FileData fileData;
+			GameVersion? game = null;
+			FileData data;
 			Disassembly disassembly;
 			List<Node> nodes = [];
 
@@ -196,14 +198,14 @@ namespace DSO
 			try
 			{
 				game = GameVersion.Create(identifier);
-				fileData = game.FileLoader.LoadFile(path);
+				data = game?.FileLoader.LoadFile(path);
 
-				if (fileData.Version != game.Version)
+				if (data.Version != game.Version)
 				{
-					Logger.LogWarning($"File version {fileData.Version} differs from expected version {game.Version}");
+					Logger.LogWarning($"File version {data.Version} differs from expected version {game.Version}");
 				}
 
-				disassembly = new Disassembler.Disassembler().Disassemble(fileData, game.Ops);
+				disassembly = new Disassembler.Disassembler().Disassemble(GameVersion.CreateBytecodeReader(identifier, data, game.Ops));
 
 				if (!disassemblyOnly)
 				{
@@ -217,7 +219,7 @@ namespace DSO
 					Logger.LogError(exception.Message);
 				}
 
-				game?.FileLoader?.Close();
+				game.FileLoader?.Close();
 
 				return false;
 			}
@@ -238,7 +240,7 @@ namespace DSO
 
 				Logger.LogMessage($"Writing disassembly file: \"{disassemblyPath}\"");
 
-				WriteDisassemblyFile(disassemblyPath, game, fileData, disassembly);
+				WriteDisassemblyFile(disassemblyPath, game, data, disassembly);
 			}
 
 			return true;

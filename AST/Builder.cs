@@ -92,7 +92,7 @@ namespace DSO.AST
 			}
 		}
 
-		private Node? Parse(Instruction? instruction)
+		protected virtual Node? Parse(Instruction? instruction)
 		{
 			if (instruction == null)
 			{
@@ -248,16 +248,39 @@ namespace DSO.AST
 				case ObjectInstruction or ObjectNewInstruction:
 				{
 					var next = Parse(Read());
+					FieldNode field;
 
-					if (next is not FieldNode field)
+					if (next is ConstantStringNode constant)
 					{
-						throw new BuilderException($"Expected FieldNode after {instruction.Opcode.Value} at {instruction.Address}");
+						field = new(constant.Value);
+					}
+					else if (next is not FieldNode)
+					{
+						throw new BuilderException($"Expected FieldNode or ConstantStringNode after {instruction.Opcode.Value} at {instruction.Address}");
+					}
+					else
+					{
+						field = (FieldNode) next;
 					}
 
 					if (instruction is not ObjectNewInstruction)
 					{
 						field.Object = Pop();
 					}
+
+					return field;
+				}
+
+				case ObjectInternalInstruction:
+				{
+					var node = Pop();
+
+					if (node is not FieldNode field)
+					{
+						throw new BuilderException($"Expected FieldNode before {instruction.Opcode.Value} at {instruction.Address}");
+					}
+
+					field.Internal = true;
 
 					return field;
 				}
@@ -421,6 +444,9 @@ namespace DSO.AST
 
 					return obj;
 				}
+
+				case UnitConversionInstruction:
+					return new UnitConversionNode(Pop(), Pop());
 
 				case LoadVariableInstruction or LoadFieldInstruction or
 					AdvanceNullInstruction or ConvertToTypeInstruction or

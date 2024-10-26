@@ -24,9 +24,9 @@ namespace DSO.Disassembler
 	{
 		private BytecodeReader _reader = new();
 
-		public Disassembly Disassemble(FileData data, Ops ops)
+		public Disassembly Disassemble(BytecodeReader reader)
 		{
-			_reader = new(data, ops);
+			_reader = reader;
 
 			return Disassemble();
 		}
