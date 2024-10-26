@@ -153,7 +153,7 @@ namespace DSO.ControlFlow
 						// If the branch is in a conditional, but it's not at the end, it's a continue.
 						branch.Type = ControlFlowBranchType.Continue;
 					}
-					else if (parent != null && parent.Type == ControlFlowBlockType.Conditional && branch.TargetAddress > parent.End.Address)
+					else if (parent != null && parent.Type == ControlFlowBlockType.Conditional && branch.TargetAddress > parent.End.Next?.Address)
 					{
 						// If the parent is a conditional, and the destination is higher than its end, it's a continue.
 						branch.Type = ControlFlowBranchType.Continue;

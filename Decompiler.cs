@@ -224,7 +224,6 @@ namespace DSO
 				return false;
 			}
 
-
 			if (!disassemblyOnly)
 			{
 				var scriptPath = $"{Directory.GetParent(path)}/{Path.GetFileNameWithoutExtension(path)}";
