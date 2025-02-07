@@ -28,7 +28,8 @@ namespace DSO.Constants
 			public const uint BLV1 = 90;
 			public const uint BLV20 = 190;
 			public const uint BLV21 = 210;
-		}
+            public const uint VSIDE = 34;
+        }
 	}
 
 	static public class Disassembler

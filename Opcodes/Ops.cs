@@ -32,7 +32,11 @@ namespace DSO.Opcodes
 		OP_FUNC_DECL,
 
 		OP_CREATE_OBJECT,
-		OP_ADD_OBJECT,
+
+        OP_CREATE_DATABLOCK,
+		OP_NAME_OBJECT,
+
+        OP_ADD_OBJECT,
 		OP_END_OBJECT,
 
 		OP_JMPIFFNOT,
@@ -138,7 +142,8 @@ namespace DSO.Opcodes
 		OP_UNUSED3,
 
 		OP_INVALID,
-	}
+        OP_INEXISTENT_72,
+    }
 
 	/// <summary>
 	/// Base `Ops` class uses opcodes for Torque Game Engine 1.0-1.3.
@@ -255,7 +260,11 @@ namespace DSO.Opcodes
 
 		public virtual uint OP_INVALID => 0x53;
 
-		protected Dictionary<uint, OpcodeTag> _tags = [];
+        public virtual uint OP_CREATE_DATABLOCK => 0x54;
+        public virtual uint OP_NAME_OBJECT => 0x55;
+        public virtual uint OP_INEXISTENT_72 => 0x56;
+
+        protected Dictionary<uint, OpcodeTag> _tags = [];
 
 		public Ops()
 		{

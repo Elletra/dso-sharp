@@ -130,7 +130,8 @@ namespace DSO.Disassembler
 
 				OpcodeTag.OP_UNIT_CONVERSION => new UnitConversionInstruction(opcode, address, this),
 
-				OpcodeTag.OP_UNUSED1 or OpcodeTag.OP_UNUSED2 or OpcodeTag.OP_UNUSED3 => new UnusedInstruction(opcode, address, this),
+				OpcodeTag.OP_UNUSED1 or OpcodeTag.OP_UNUSED2 or OpcodeTag.OP_UNUSED3 or
+				OpcodeTag.OP_CREATE_DATABLOCK or OpcodeTag.OP_NAME_OBJECT => new UnusedInstruction(opcode, address, this),
 
 				_ => throw new DisassemblerException($"Invalid opcode at {address}"),
 			};

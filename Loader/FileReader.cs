@@ -34,8 +34,11 @@ namespace DSO.Loader
 		public uint ReadUInt() => reader.ReadUInt32();
 		public double ReadDouble() => reader.ReadDouble();
 
-		public uint ReadOp()
+		public uint ReadOp(bool v34)
 		{
+			if (v34)
+				return ReadUInt();
+
 			var op = ReadByte();
 
 			return op == 0xFF ? ReadUInt() : op;

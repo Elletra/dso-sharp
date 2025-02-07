@@ -44,7 +44,8 @@ namespace DSO.Util
 			{ "blv1", GameIdentifier.BlocklandV1 },
 			{ "blv20", GameIdentifier.BlocklandV20 },
 			{ "blv21", GameIdentifier.BlocklandV21 },
-		};
+            { "vside", GameIdentifier.VSIDE },
+        };
 
 		static public Tuple<bool, CommandLineOptions> Parse(string[] args)
 		{

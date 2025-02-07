@@ -7,7 +7,6 @@
  *
  * For full terms, see the LICENSE file or visit https://spdx.org/licenses/BSD-3-Clause.html
  */
-
 namespace DSO.Loader
 {
 	public class FileLoaderException : Exception
@@ -115,9 +114,11 @@ namespace DSO.Loader
 
 			data.Code = new uint[size];
 
+			bool v34 = data.Version == 34;
+
 			for (uint i = 0; i < size; i++)
 			{
-				data.Code[i] = _reader.ReadOp();
+				data.Code[i] = _reader.ReadOp(v34);
 			}
 
 			return new(size, lineBreaks);

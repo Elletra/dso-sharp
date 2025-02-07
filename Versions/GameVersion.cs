@@ -27,6 +27,7 @@ namespace DSO.Versions
 		BlocklandV1,
 		BlocklandV20,
 		BlocklandV21,
+		VSIDE,
 	};
 
 	public class GameVersion
@@ -45,7 +46,8 @@ namespace DSO.Versions
 			GameIdentifier.BlocklandV1 => "Blockland v1",
 			GameIdentifier.BlocklandV20 => "Blockland v20",
 			GameIdentifier.BlocklandV21 => "Blockland v21",
-			_ => "<ERROR>",
+            GameIdentifier.VSIDE => "vSide v34",
+            _ => "<ERROR>",
 		};
 
 		static public uint GetVersionFromIdentifier(GameIdentifier identifier) => identifier switch
@@ -59,7 +61,8 @@ namespace DSO.Versions
 			GameIdentifier.BlocklandV1 => GameVersions.BLV1,
 			GameIdentifier.BlocklandV20 => GameVersions.BLV20,
 			GameIdentifier.BlocklandV21 => GameVersions.BLV21,
-			_ => 0,
+            GameIdentifier.VSIDE => GameVersions.VSIDE,
+            _ => 0,
 		};
 
 		static public GameIdentifier[] GetIdentifiersFromVersion(uint version) => version switch
@@ -71,7 +74,8 @@ namespace DSO.Versions
 			GameVersions.BLV1 => [GameIdentifier.BlocklandV1],
 			GameVersions.BLV20 => [GameIdentifier.BlocklandV20],
 			GameVersions.BLV21 => [GameIdentifier.BlocklandV21],
-			_ => [],
+            GameVersions.VSIDE => [GameIdentifier.VSIDE],
+            _ => [],
 		};
 
 		static public Ops? CreateOps(GameIdentifier identifier) => identifier switch
@@ -84,7 +88,8 @@ namespace DSO.Versions
 			GameIdentifier.BlocklandV1 => new Blockland.V1.Ops(),
 			GameIdentifier.BlocklandV20 => new Blockland.V20.Ops(),
 			GameIdentifier.BlocklandV21 => new Blockland.V21.Ops(),
-			_ => null,
+            GameIdentifier.VSIDE => new VSIDE.Ops(),
+            _ => null,
 		};
 
 		static public FileLoader? CreateFileLoader(GameIdentifier identifier) => identifier switch
@@ -97,7 +102,8 @@ namespace DSO.Versions
 			GameIdentifier.BlocklandV1 => new Blockland.V1.FileLoader(),
 			GameIdentifier.BlocklandV20 => new Blockland.FileLoader(),
 			GameIdentifier.BlocklandV21 => new Blockland.FileLoader(),
-			_ => null,
+            GameIdentifier.VSIDE => new VSIDE.FileLoader(),
+            _ => null,
 		};
 
 		static public BytecodeReader? CreateBytecodeReader(GameIdentifier identifier, FileData data, Ops ops) => identifier switch
