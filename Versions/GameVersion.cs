@@ -81,28 +81,26 @@ namespace DSO.Versions
 		static public Ops? CreateOps(GameIdentifier identifier) => identifier switch
 		{
 			GameIdentifier.Auto => null,
-			GameIdentifier.TGE10 or GameIdentifier.Tribes2 => new Ops(),
+			GameIdentifier.TGE10 or GameIdentifier.Tribes2 or GameIdentifier.VSIDE => new Ops(),
 			GameIdentifier.TGE14 => new TGE14.Ops(),
 			GameIdentifier.TCON => new Constructor.Ops(),
 			GameIdentifier.ForgettableDungeon => new TFD.Ops(),
 			GameIdentifier.BlocklandV1 => new Blockland.V1.Ops(),
 			GameIdentifier.BlocklandV20 => new Blockland.V20.Ops(),
 			GameIdentifier.BlocklandV21 => new Blockland.V21.Ops(),
-            GameIdentifier.VSIDE => new VSIDE.Ops(),
             _ => null,
 		};
 
 		static public FileLoader? CreateFileLoader(GameIdentifier identifier) => identifier switch
 		{
 			GameIdentifier.Auto => null,
-			GameIdentifier.TGE10 or GameIdentifier.Tribes2 => new FileLoader(),
+			GameIdentifier.TGE10 or GameIdentifier.Tribes2 or GameIdentifier.VSIDE => new FileLoader(),
 			GameIdentifier.TGE14 => new TGE14.FileLoader(),
 			GameIdentifier.TCON => new Constructor.FileLoader(),
 			GameIdentifier.ForgettableDungeon => new TFD.FileLoader(),
 			GameIdentifier.BlocklandV1 => new Blockland.V1.FileLoader(),
 			GameIdentifier.BlocklandV20 => new Blockland.FileLoader(),
 			GameIdentifier.BlocklandV21 => new Blockland.FileLoader(),
-            GameIdentifier.VSIDE => new VSIDE.FileLoader(),
             _ => null,
 		};
 

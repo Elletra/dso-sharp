@@ -11,6 +11,7 @@ This project supports the following games and engines:
 * Blockland v1
 * Blockland v20
 * Blockland v21
+* vSide v34
 
 
 ## Background
@@ -55,6 +56,7 @@ You can also use it as a command-line interface: `usage: dso-sharp path1[, path2
 | `blv1`   | Blockland v1 |
 | `blv20`  | Blockland v20 |
 | `blv21`  | Blockland v21 |
+| `vside`  | vSide v34 |
 
 
 ## Building
