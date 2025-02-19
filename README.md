@@ -24,6 +24,15 @@ But I still really wanted decompiled scripts for other games, so I decided to ju
 And so, here it finally is.
 
 
+## Contributing
+
+**All opcodes must be verified by me.** If I do not have the game, I cannot verify that the opcodes are correct and ***will not approve the pull request.***
+
+The base classes are based on Torque Game Engine 1.0-1.3. Any additional functionality is implemented by creating subclasses in the `Versions/` folder. During game detection, these subclasses are composed by `GameVersion.cs`.
+
+If you're modifying a base class to support more engines or games, make sure it is ***absolutely necessary*** first.
+
+
 ## Usage
 
 There are two ways to use this program: either as a typical console program, or as a command-line interface.
@@ -55,7 +64,6 @@ You can also use it as a command-line interface: `usage: dso-sharp path1[, path2
 | `blv1`   | Blockland v1 |
 | `blv20`  | Blockland v20 |
 | `blv21`  | Blockland v21 |
-
 
 ## Building
 
